@@ -1,8 +1,33 @@
 {
-  "subtasks": {},
+  "subtasks": {
+    "1.1": {
+      "attempts": [
+        {
+          "session": 2,
+          "timestamp": "2026-01-12T20:58:20.223000",
+          "approach": "Implemented: Add PostgreSQL enums for notification_channel (email, push, sms, in_app) and notification_status (pe",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "1.2": {
+      "attempts": [
+        {
+          "session": 3,
+          "timestamp": "2026-01-12T21:00:27.538633",
+          "approach": "Implemented: Create table to store user preferences including enabled channels, digest frequency, quiet hours, an",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    }
+  },
   "stuck_subtasks": [],
   "metadata": {
     "created_at": "2026-01-12T20:52:37.459445",
-    "last_updated": "2026-01-12T20:52:37.459465"
+    "last_updated": "2026-01-12T21:00:27.538658"
   }
 }

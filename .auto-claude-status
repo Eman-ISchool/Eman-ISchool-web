@@ -3,8 +3,8 @@
   "spec": "006-notification-system-email-push-sms",
   "state": "building",
   "subtasks": {
-    "completed": 0,
-    "total": 0,
+    "completed": 2,
+    "total": 37,
     "in_progress": 1,
     "failed": 0
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 2,
+    "number": 4,
     "started_at": "2026-01-12T20:52:37.460242"
   },
-  "last_update": "2026-01-12T20:56:31.002026"
+  "last_update": "2026-01-12T21:00:35.242130"
 }

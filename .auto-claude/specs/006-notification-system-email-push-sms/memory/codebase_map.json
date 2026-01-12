@@ -14,7 +14,12 @@
       "description": "Supabase client exports: supabase (anon), supabaseAdmin (service role). Use supabaseAdmin for server-side operations that bypass RLS.",
       "category": "patterns",
       "discovered_at": "2026-01-12T16:56:13.333327+00:00"
+    },
+    "supabase/migrations/001_notification_enums.sql": {
+      "description": "Created notification system enums migration file. Defines notification_channel (email, push, sms, in_app) and notification_status (pending, sent, delivered, failed, read) enums following the DROP IF EXISTS CASCADE pattern from schema.sql",
+      "category": "database",
+      "discovered_at": "2026-01-12T16:58:11.967957+00:00"
     }
   },
-  "last_updated": "2026-01-12T16:56:13.333420+00:00"
+  "last_updated": "2026-01-12T16:58:11.968341+00:00"
 }
