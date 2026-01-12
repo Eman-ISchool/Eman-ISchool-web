@@ -63,7 +63,7 @@ export default function FieldTripsHubPage() {
         city: "Giza",
         country: "Egypt",
       },
-      isAvailable: false, // Not implemented yet
+      isAvailable: true, // Implemented!
     },
     {
       id: "egyptian-museum",

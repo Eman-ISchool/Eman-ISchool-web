@@ -3,23 +3,23 @@
   "spec": "018-vr-educational-experience",
   "state": "building",
   "subtasks": {
-    "completed": 9,
+    "completed": 11,
     "total": 38,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Core VR Engine",
+    "current": "Egyptian Historical Field Trips",
     "id": null,
-    "total": 6
+    "total": 5
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 2,
+    "number": 4,
     "started_at": "2026-01-12T13:00:01.712911"
   },
-  "last_update": "2026-01-12T13:03:25.931137"
+  "last_update": "2026-01-12T13:13:22.619901"
 }

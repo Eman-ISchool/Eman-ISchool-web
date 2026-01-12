@@ -11,11 +11,35 @@
         }
       ],
       "status": "completed"
+    },
+    "2.6": {
+      "attempts": [
+        {
+          "session": 2,
+          "timestamp": "2026-01-12T13:08:57.235648",
+          "approach": "Implemented: Build unified control system for VR headsets, mouse, and touch",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "3.1": {
+      "attempts": [
+        {
+          "session": 3,
+          "timestamp": "2026-01-12T13:13:14.477430",
+          "approach": "Implemented: Build the main entry page for Egyptian field trips at /vr-eduverse/field-trips",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
     }
   },
   "stuck_subtasks": [],
   "metadata": {
     "created_at": "2026-01-12T13:00:01.712278",
-    "last_updated": "2026-01-12T13:03:17.760247"
+    "last_updated": "2026-01-12T13:13:14.477452"
   }
 }
