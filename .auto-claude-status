@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "spec": "018-vr-educational-experience",
+  "state": "building",
+  "subtasks": {
+    "completed": 0,
+    "total": 0,
+    "in_progress": 1,
+    "failed": 0
+  },
+  "phase": {
+    "current": "Foundation & Project Setup",
+    "id": null,
+    "total": 4
+  },
+  "workers": {
+    "active": 0,
+    "max": 1
+  },
+  "session": {
+    "number": 2,
+    "started_at": "2026-01-12T08:54:08.062982"
+  },
+  "last_update": "2026-01-12T08:57:33.937858"
+}

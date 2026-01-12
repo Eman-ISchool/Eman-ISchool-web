@@ -1,0 +1,569 @@
+{
+  "feature": "VR Educational Experience",
+  "description": "Immersive VR educational experiences for select subjects, enabling virtual field trips, 3D visualizations of complex concepts, and interactive learning environments. Positions EduVerse as an innovative leader in EdTech.",
+  "created_at": "2026-01-11T18:34:13.137Z",
+  "updated_at": "2026-01-12T08:55:00.000Z",
+  "status": "in_progress",
+  "planStatus": "ready",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Foundation & Project Setup",
+      "description": "Install VR libraries, set up project structure, and create base VR infrastructure",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Install VR Dependencies",
+          "description": "Install @react-three/fiber, @react-three/drei, @react-three/xr, and three.js for WebXR support",
+          "status": "pending",
+          "estimatedHours": 0.5,
+          "acceptanceCriteria": [
+            "All VR dependencies installed in package.json",
+            "TypeScript types available for all packages",
+            "No dependency conflicts with existing packages"
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Create VR Component Directory Structure",
+          "description": "Set up organized folder structure for VR components, scenes, assets, and utilities",
+          "status": "pending",
+          "estimatedHours": 0.5,
+          "acceptanceCriteria": [
+            "src/components/vr directory created with subdirectories",
+            "src/lib/vr for utilities and hooks",
+            "src/types/vr.ts for VR-specific types"
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Create VR Type Definitions",
+          "description": "Define TypeScript interfaces for VR experiences, scenes, hotspots, and tracking data",
+          "status": "pending",
+          "estimatedHours": 1,
+          "acceptanceCriteria": [
+            "VRExperience, VRScene, VRHotspot types defined",
+            "VRSessionData type for analytics",
+            "Subject-specific content types (HistoricalSite, ScienceConcept, etc.)"
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Create VR Device Detection Hook",
+          "description": "Build useVRCapabilities hook to detect WebXR support and device capabilities",
+          "status": "pending",
+          "estimatedHours": 1,
+          "acceptanceCriteria": [
+            "Detects WebXR support in browser",
+            "Identifies VR headset vs mobile vs desktop",
+            "Returns capability flags for conditional rendering"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Core VR Engine",
+      "description": "Build the core VR rendering system with scene management and user interaction",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "title": "Create VRCanvas Component",
+          "description": "Build the main VR canvas wrapper using React Three Fiber with XR support",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Canvas renders with proper sizing",
+            "XR mode can be entered/exited",
+            "Works in both VR and non-VR modes"
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Create VRScene Component",
+          "description": "Build base VRScene component for loading and displaying 360-degree environments",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Supports 360 equirectangular images as skybox",
+            "Camera controls for looking around",
+            "Proper lighting setup"
+          ]
+        },
+        {
+          "id": "2.3",
+          "title": "Create VRHotspot Component",
+          "description": "Build interactive hotspots for information points and navigation",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Clickable/gazeable hotspots",
+            "Shows info panels on interaction",
+            "Supports navigation between scenes"
+          ]
+        },
+        {
+          "id": "2.4",
+          "title": "Create VRInfoPanel Component",
+          "description": "Build floating info panels for educational content in VR",
+          "status": "pending",
+          "estimatedHours": 1.5,
+          "acceptanceCriteria": [
+            "Displays text and images in 3D space",
+            "Supports Arabic RTL text",
+            "Dismissible with interaction"
+          ]
+        },
+        {
+          "id": "2.5",
+          "title": "Create VRNavigation Component",
+          "description": "Build navigation system for moving between VR scenes and experiences",
+          "status": "pending",
+          "estimatedHours": 1.5,
+          "acceptanceCriteria": [
+            "Scene selector menu",
+            "Teleportation between viewpoints",
+            "Back/Home navigation"
+          ]
+        },
+        {
+          "id": "2.6",
+          "title": "Create VRControls Component",
+          "description": "Build unified control system for VR headsets, mouse, and touch",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Works with VR controllers",
+            "Mouse drag for desktop",
+            "Touch swipe for mobile"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Egyptian Historical Field Trips",
+      "description": "Create immersive virtual field trips to Egyptian historical sites",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "title": "Create Field Trip Hub Page",
+          "description": "Build the main entry page for Egyptian field trips at /vr-eduverse/field-trips",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Lists all available field trip destinations",
+            "Preview images and descriptions",
+            "Links to individual experiences"
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Pyramids of Giza VR Experience",
+          "description": "Create immersive VR experience of the Pyramids of Giza with educational hotspots",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "360-degree views of pyramid complex",
+            "Educational hotspots about construction, history, pharaohs",
+            "Multiple viewpoints (exterior, interior, sphinx)",
+            "Arabic and English content"
+          ]
+        },
+        {
+          "id": "3.3",
+          "title": "Egyptian Museum VR Experience",
+          "description": "Create virtual tour of the Egyptian Museum with artifact hotspots",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "360-degree views of key galleries",
+            "Hotspots for major artifacts (Tutankhamun, mummies)",
+            "Educational content about each artifact",
+            "Navigation between galleries"
+          ]
+        },
+        {
+          "id": "3.4",
+          "title": "Abu Simbel Temple VR Experience",
+          "description": "Create immersive VR experience of Abu Simbel temples",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "360-degree views of temple facade and interior",
+            "Educational content about Ramesses II",
+            "Information about temple relocation",
+            "Sun alignment phenomenon explanation"
+          ]
+        },
+        {
+          "id": "3.5",
+          "title": "Create 360 Assets & Placeholder Images",
+          "description": "Source or create placeholder 360-degree images for field trips",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "High-quality placeholder images for each location",
+            "Properly sized for VR (4096x2048 minimum)",
+            "Attribution for any sourced images"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Science 3D Visualizations",
+      "description": "Create interactive 3D visualizations for science concepts",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "title": "Create Science Hub Page",
+          "description": "Build the main entry page for science visualizations at /vr-eduverse/science",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Lists all available science visualizations",
+            "Categorized by topic (biology, chemistry, physics, astronomy)",
+            "Preview and difficulty indicators"
+          ]
+        },
+        {
+          "id": "4.2",
+          "title": "Solar System 3D Visualization",
+          "description": "Create interactive 3D model of the solar system",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "All 8 planets with accurate relative sizes",
+            "Orbital animation",
+            "Clickable planets with info panels",
+            "Scale toggle for distance visualization"
+          ]
+        },
+        {
+          "id": "4.3",
+          "title": "Human Cell 3D Visualization",
+          "description": "Create interactive 3D model of a plant/animal cell",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "Cutaway view of cell structure",
+            "Labeled organelles (nucleus, mitochondria, etc.)",
+            "Interactive exploration",
+            "Educational content for each part"
+          ]
+        },
+        {
+          "id": "4.4",
+          "title": "Atom & Molecule 3D Visualization",
+          "description": "Create interactive 3D model of atomic and molecular structures",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "Bohr model atom visualization",
+            "Water molecule (H2O) structure",
+            "Electron orbital animation",
+            "Educational content about bonding"
+          ]
+        },
+        {
+          "id": "4.5",
+          "title": "Create 3D Models & Assets",
+          "description": "Create or source 3D models for science visualizations",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "GLB/GLTF format models for web",
+            "Optimized for real-time rendering",
+            "Proper materials and textures"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Geography VR Module",
+      "description": "Create VR experiences for geography education as the third subject",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "5.1",
+          "title": "Create Geography Hub Page",
+          "description": "Build the main entry page for geography VR at /vr-eduverse/geography",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Lists available geography experiences",
+            "World map navigation interface",
+            "Links to individual experiences"
+          ]
+        },
+        {
+          "id": "5.2",
+          "title": "Nile River VR Experience",
+          "description": "Create VR journey along the Nile River showing geography and ecosystems",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            "360 views from source to delta",
+            "Hotspots for geographical features",
+            "Agricultural and ecological information",
+            "Historical significance content"
+          ]
+        },
+        {
+          "id": "5.3",
+          "title": "Sinai Peninsula VR Experience",
+          "description": "Create VR exploration of Sinai's diverse geography",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "Mountain, desert, and coastal views",
+            "Geological information hotspots",
+            "Flora and fauna content",
+            "Historical site markers"
+          ]
+        },
+        {
+          "id": "5.4",
+          "title": "Egyptian Ecosystems Overview",
+          "description": "Create VR experience showcasing Egypt's diverse ecosystems",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "Desert, oasis, Nile valley, Mediterranean coast",
+            "Wildlife and vegetation information",
+            "Climate and environmental content"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-6",
+      "name": "Performance Tracking",
+      "description": "Build analytics and progress tracking for VR sessions",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "6.1",
+          "title": "Create VR Session Tracking Types",
+          "description": "Define database schema and types for VR session tracking",
+          "status": "pending",
+          "estimatedHours": 1,
+          "acceptanceCriteria": [
+            "VR session database types defined",
+            "Tracks time spent, hotspots viewed, scenes visited",
+            "Links to user and experience IDs"
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "Create VR Analytics API Routes",
+          "description": "Build API endpoints for tracking VR session data",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "POST /api/vr/sessions for creating sessions",
+            "PATCH /api/vr/sessions/:id for updating progress",
+            "GET /api/vr/sessions for fetching user history"
+          ]
+        },
+        {
+          "id": "6.3",
+          "title": "Create useVRAnalytics Hook",
+          "description": "Build hook for tracking user interactions in VR experiences",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Tracks session start/end times",
+            "Records hotspot interactions",
+            "Batches events for efficient API calls"
+          ]
+        },
+        {
+          "id": "6.4",
+          "title": "Create VR Progress Dashboard",
+          "description": "Build dashboard component showing VR learning progress",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "Shows completed experiences",
+            "Displays time spent per subject",
+            "Lists hotspots/content viewed",
+            "Progress towards completion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-7",
+      "name": "2D Fallback Mode",
+      "description": "Create fallback experience for browsers without VR support",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "7.1",
+          "title": "Create 2D Panorama Viewer",
+          "description": "Build fallback 360 image viewer using CSS/Canvas for non-WebGL browsers",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "Displays 360 images as draggable panorama",
+            "Touch and mouse support",
+            "Works without WebGL"
+          ]
+        },
+        {
+          "id": "7.2",
+          "title": "Create 2D Gallery Mode",
+          "description": "Build static image gallery as ultimate fallback",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Grid of key images from each scene",
+            "Educational content as text cards",
+            "Full accessibility support"
+          ]
+        },
+        {
+          "id": "7.3",
+          "title": "Create Capability-Based Rendering",
+          "description": "Implement automatic switching between VR, 3D, and 2D modes",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Auto-detects best experience mode",
+            "User can manually switch modes",
+            "Seamless content across modes"
+          ]
+        },
+        {
+          "id": "7.4",
+          "title": "Create 2D Science Visualizations",
+          "description": "Build animated 2D alternatives for 3D science content",
+          "status": "pending",
+          "estimatedHours": 3,
+          "acceptanceCriteria": [
+            "SVG/Canvas animations for each concept",
+            "Interactive elements preserved",
+            "Same educational content"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-8",
+      "name": "Integration & Polish",
+      "description": "Integrate VR experiences with main platform and polish UI",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "8.1",
+          "title": "Update VR Eduverse Landing Page",
+          "description": "Enhance existing /vr-eduverse page with links to actual experiences",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Quick access to all VR experiences",
+            "VR capability indicator",
+            "Getting started guide"
+          ]
+        },
+        {
+          "id": "8.2",
+          "title": "Add VR to Navigation",
+          "description": "Update site navigation to include VR experiences",
+          "status": "pending",
+          "estimatedHours": 1,
+          "acceptanceCriteria": [
+            "VR section in main nav",
+            "VR badge/indicator in header",
+            "Mobile navigation updated"
+          ]
+        },
+        {
+          "id": "8.3",
+          "title": "Create VR Loading States",
+          "description": "Build loading indicators and progress for VR asset loading",
+          "status": "pending",
+          "estimatedHours": 1.5,
+          "acceptanceCriteria": [
+            "Asset loading progress bar",
+            "Skeleton states for scenes",
+            "Error handling for failed loads"
+          ]
+        },
+        {
+          "id": "8.4",
+          "title": "Add VR Onboarding Tutorial",
+          "description": "Create first-time user tutorial for VR controls",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Control hints overlay",
+            "Introductory scene for practice",
+            "Skip option for experienced users"
+          ]
+        },
+        {
+          "id": "8.5",
+          "title": "Cross-Browser Testing",
+          "description": "Test VR experiences across browsers and devices",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "Works in Chrome, Firefox, Safari, Edge",
+            "Mobile browsers tested",
+            "VR headset testing documented"
+          ]
+        },
+        {
+          "id": "8.6",
+          "title": "Performance Optimization",
+          "description": "Optimize VR rendering for smooth performance",
+          "status": "pending",
+          "estimatedHours": 2,
+          "acceptanceCriteria": [
+            "60fps target on mid-range devices",
+            "Texture compression implemented",
+            "LOD (Level of Detail) for 3D models"
+          ]
+        }
+      ]
+    }
+  ],
+  "qa": {
+    "status": "pending",
+    "tests_passed": "",
+    "issues": ""
+  },
+  "totalEstimatedHours": 87.5,
+  "technicalDecisions": [
+    {
+      "decision": "Use React Three Fiber with @react-three/xr for VR",
+      "rationale": "Best React integration for WebXR, large ecosystem, good TypeScript support"
+    },
+    {
+      "decision": "360-degree images for field trips, 3D models for science",
+      "rationale": "360 images are more immersive for locations, 3D models allow interaction for concepts"
+    },
+    {
+      "decision": "Progressive enhancement from 2D to VR",
+      "rationale": "Ensures all users can access content regardless of device capabilities"
+    },
+    {
+      "decision": "Client-side rendering for VR components",
+      "rationale": "VR requires browser APIs not available during SSR, use dynamic imports"
+    }
+  ],
+  "dependencies": [
+    "@react-three/fiber",
+    "@react-three/drei",
+    "@react-three/xr",
+    "three"
+  ]
+}
