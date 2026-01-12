@@ -16,19 +16,27 @@
           "id": "1.1",
           "title": "Create notification channel and status enums",
           "description": "Add PostgreSQL enums for notification_channel (email, push, sms, in_app) and notification_status (pending, sent, delivered, failed, read)",
-          "status": "pending",
+          "status": "completed",
           "estimated_hours": 0.5,
-          "files_to_create": ["supabase/migrations/001_notification_enums.sql"],
-          "files_to_modify": []
+          "files_to_create": [
+            "supabase/migrations/001_notification_enums.sql"
+          ],
+          "files_to_modify": [],
+          "notes": "Successfully created PostgreSQL enums migration file. Added notification_channel enum (email, push, sms, in_app) and notification_status enum (pending, sent, delivered, failed, read) following existing schema patterns.",
+          "updated_at": "2026-01-12T16:58:05.644830+00:00"
         },
         {
           "id": "1.2",
           "title": "Create notification_preferences table",
           "description": "Create table to store user preferences including enabled channels, digest frequency, quiet hours, and timezone",
-          "status": "pending",
+          "status": "completed",
           "estimated_hours": 1,
-          "files_to_create": ["supabase/migrations/002_notification_preferences.sql"],
-          "files_to_modify": []
+          "files_to_create": [
+            "supabase/migrations/002_notification_preferences.sql"
+          ],
+          "files_to_modify": [],
+          "notes": "Successfully created notification_preferences table migration. Added comprehensive user preferences including:\n- Channel toggles (email, push, SMS, in-app)\n- Digest frequency enum (instant, daily, weekly)\n- Quiet hours with timezone support\n- Granular notification type preferences (class reminders, grades, announcements, cancellations)\n- Phone number with verification status\n- Unsubscribe token system for CAN-SPAM compliance\n- RLS policies for user data protection\n- Automatic updated_at trigger\nFollows established schema patterns with proper indexes, comments, and foreign key constraints.",
+          "updated_at": "2026-01-12T17:00:10.029732+00:00"
         },
         {
           "id": "1.3",
@@ -36,7 +44,9 @@
           "description": "Create table for queuing notifications with scheduling, retry logic, and delivery tracking",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["supabase/migrations/003_notification_queue.sql"],
+          "files_to_create": [
+            "supabase/migrations/003_notification_queue.sql"
+          ],
           "files_to_modify": []
         },
         {
@@ -45,7 +55,9 @@
           "description": "Create table to store web push subscription endpoints and keys per user/device",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["supabase/migrations/004_push_subscriptions.sql"],
+          "files_to_create": [
+            "supabase/migrations/004_push_subscriptions.sql"
+          ],
           "files_to_modify": []
         },
         {
@@ -55,7 +67,9 @@
           "status": "pending",
           "estimated_hours": 1,
           "files_to_create": [],
-          "files_to_modify": ["src/types/database.ts"]
+          "files_to_modify": [
+            "src/types/database.ts"
+          ]
         },
         {
           "id": "1.6",
@@ -63,7 +77,9 @@
           "description": "Create comprehensive TypeScript types for notification payloads, templates, and preferences",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/types/notifications.ts"],
+          "files_to_create": [
+            "src/types/notifications.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -80,7 +96,9 @@
           "description": "Build template registry with content templates for each notification type (class_reminder, grade_update, announcement, cancellation)",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["src/lib/notifications/templates.ts"],
+          "files_to_create": [
+            "src/lib/notifications/templates.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -89,7 +107,9 @@
           "description": "Create main NotificationService class with methods for creating, scheduling, and dispatching notifications",
           "status": "pending",
           "estimated_hours": 2,
-          "files_to_create": ["src/lib/notifications/service.ts"],
+          "files_to_create": [
+            "src/lib/notifications/service.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -98,7 +118,9 @@
           "description": "Create timezone utilities for scheduling notifications during user's acceptable hours (quiet hours enforcement)",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/timezone.ts"],
+          "files_to_create": [
+            "src/lib/notifications/timezone.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -107,7 +129,9 @@
           "description": "Create service for managing user notification preferences with CRUD operations",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/preferences.ts"],
+          "files_to_create": [
+            "src/lib/notifications/preferences.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -124,8 +148,12 @@
           "description": "Configure Resend SDK for sending transactional emails with proper error handling",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/channels/email.ts"],
-          "files_to_modify": ["package.json"]
+          "files_to_create": [
+            "src/lib/notifications/channels/email.ts"
+          ],
+          "files_to_modify": [
+            "package.json"
+          ]
         },
         {
           "id": "3.2",
@@ -133,7 +161,9 @@
           "description": "Build responsive HTML email templates for all notification types with RTL support for Arabic",
           "status": "pending",
           "estimated_hours": 2,
-          "files_to_create": ["src/lib/notifications/channels/email-templates.ts"],
+          "files_to_create": [
+            "src/lib/notifications/channels/email-templates.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -142,7 +172,9 @@
           "description": "Create logic for aggregating notifications into daily/weekly digest emails",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["src/lib/notifications/digest.ts"],
+          "files_to_create": [
+            "src/lib/notifications/digest.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -151,7 +183,9 @@
           "description": "Implement secure unsubscribe tokens for one-click email unsubscribe (CAN-SPAM compliant)",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/unsubscribe.ts"],
+          "files_to_create": [
+            "src/lib/notifications/unsubscribe.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -168,8 +202,12 @@
           "description": "Set up VAPID keys and configure web-push library for push notifications",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/channels/push.ts"],
-          "files_to_modify": ["package.json"]
+          "files_to_create": [
+            "src/lib/notifications/channels/push.ts"
+          ],
+          "files_to_modify": [
+            "package.json"
+          ]
         },
         {
           "id": "4.2",
@@ -177,7 +215,10 @@
           "description": "Implement service worker to receive and display push notifications",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["public/sw.js", "src/lib/notifications/push-client.ts"],
+          "files_to_create": [
+            "public/sw.js",
+            "src/lib/notifications/push-client.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -186,7 +227,9 @@
           "description": "Create client-side hooks and functions for managing push subscriptions",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/hooks/usePushNotifications.ts"],
+          "files_to_create": [
+            "src/hooks/usePushNotifications.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -203,8 +246,12 @@
           "description": "Configure Twilio SDK for sending SMS messages with error handling and rate limiting",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/channels/sms.ts"],
-          "files_to_modify": ["package.json"]
+          "files_to_create": [
+            "src/lib/notifications/channels/sms.ts"
+          ],
+          "files_to_modify": [
+            "package.json"
+          ]
         },
         {
           "id": "5.2",
@@ -212,7 +259,9 @@
           "description": "Build concise SMS templates for critical notifications (cancellations, exam reminders)",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/lib/notifications/channels/sms-templates.ts"],
+          "files_to_create": [
+            "src/lib/notifications/channels/sms-templates.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -221,8 +270,12 @@
           "description": "Add phone number validation and formatting using libphonenumber",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/lib/notifications/phone-utils.ts"],
-          "files_to_modify": ["package.json"]
+          "files_to_create": [
+            "src/lib/notifications/phone-utils.ts"
+          ],
+          "files_to_modify": [
+            "package.json"
+          ]
         }
       ]
     },
@@ -238,7 +291,9 @@
           "description": "Build GET/PUT endpoints for managing user notification preferences",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/app/api/notifications/preferences/route.ts"],
+          "files_to_create": [
+            "src/app/api/notifications/preferences/route.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -247,7 +302,10 @@
           "description": "Build endpoints for fetching notifications and marking as read",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/app/api/notifications/route.ts", "src/app/api/notifications/[id]/read/route.ts"],
+          "files_to_create": [
+            "src/app/api/notifications/route.ts",
+            "src/app/api/notifications/[id]/read/route.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -256,7 +314,9 @@
           "description": "Build endpoints for subscribing/unsubscribing to push notifications",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/app/api/notifications/push/subscribe/route.ts"],
+          "files_to_create": [
+            "src/app/api/notifications/push/subscribe/route.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -265,7 +325,10 @@
           "description": "Build token-based unsubscribe endpoint for email/SMS opt-out",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/app/api/notifications/unsubscribe/route.ts", "src/app/unsubscribe/page.tsx"],
+          "files_to_create": [
+            "src/app/api/notifications/unsubscribe/route.ts",
+            "src/app/unsubscribe/page.tsx"
+          ],
           "files_to_modify": []
         },
         {
@@ -274,7 +337,9 @@
           "description": "Build internal webhooks/endpoints for triggering notifications from other services",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/app/api/notifications/send/route.ts"],
+          "files_to_create": [
+            "src/app/api/notifications/send/route.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -291,7 +356,9 @@
           "description": "Build comprehensive settings page for managing all notification preferences",
           "status": "pending",
           "estimated_hours": 2,
-          "files_to_create": ["src/app/settings/notifications/page.tsx"],
+          "files_to_create": [
+            "src/app/settings/notifications/page.tsx"
+          ],
           "files_to_modify": []
         },
         {
@@ -300,7 +367,10 @@
           "description": "Create notification bell icon with unread count and dropdown for quick access",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["src/components/notifications/NotificationBell.tsx", "src/components/notifications/NotificationDropdown.tsx"],
+          "files_to_create": [
+            "src/components/notifications/NotificationBell.tsx",
+            "src/components/notifications/NotificationDropdown.tsx"
+          ],
           "files_to_modify": []
         },
         {
@@ -309,7 +379,10 @@
           "description": "Build notification list with infinite scroll and read/unread states",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/components/notifications/NotificationList.tsx", "src/components/notifications/NotificationItem.tsx"],
+          "files_to_create": [
+            "src/components/notifications/NotificationList.tsx",
+            "src/components/notifications/NotificationItem.tsx"
+          ],
           "files_to_modify": []
         },
         {
@@ -319,7 +392,9 @@
           "status": "pending",
           "estimated_hours": 0.5,
           "files_to_create": [],
-          "files_to_modify": ["src/components/layout/Header.tsx"]
+          "files_to_modify": [
+            "src/components/layout/Header.tsx"
+          ]
         }
       ]
     },
@@ -335,7 +410,10 @@
           "description": "Create cron job/scheduled function to send class reminders (24h, 1h, 15min before)",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["src/lib/notifications/triggers/lesson-reminders.ts", "src/app/api/cron/lesson-reminders/route.ts"],
+          "files_to_create": [
+            "src/lib/notifications/triggers/lesson-reminders.ts",
+            "src/app/api/cron/lesson-reminders/route.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -344,7 +422,9 @@
           "description": "Trigger notifications when grades are posted or updated",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/triggers/grade-updates.ts"],
+          "files_to_create": [
+            "src/lib/notifications/triggers/grade-updates.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -353,7 +433,9 @@
           "description": "Trigger notifications for course/school announcements",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": ["src/lib/notifications/triggers/announcements.ts"],
+          "files_to_create": [
+            "src/lib/notifications/triggers/announcements.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -362,7 +444,9 @@
           "description": "Trigger SMS and other urgent notifications for class cancellations",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/lib/notifications/triggers/cancellations.ts"],
+          "files_to_create": [
+            "src/lib/notifications/triggers/cancellations.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -371,7 +455,9 @@
           "description": "Build scheduled job for sending daily/weekly digest emails",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/app/api/cron/digest/route.ts"],
+          "files_to_create": [
+            "src/app/api/cron/digest/route.ts"
+          ],
           "files_to_modify": []
         }
       ]
@@ -388,7 +474,9 @@
           "description": "Create comprehensive unit tests for core notification service functions",
           "status": "pending",
           "estimated_hours": 1.5,
-          "files_to_create": ["src/lib/notifications/__tests__/service.test.ts"],
+          "files_to_create": [
+            "src/lib/notifications/__tests__/service.test.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -397,7 +485,9 @@
           "description": "Create integration tests for notification API endpoints",
           "status": "pending",
           "estimated_hours": 1,
-          "files_to_create": ["src/app/api/notifications/__tests__/route.test.ts"],
+          "files_to_create": [
+            "src/app/api/notifications/__tests__/route.test.ts"
+          ],
           "files_to_modify": []
         },
         {
@@ -406,7 +496,9 @@
           "description": "Document required environment variables and provider setup",
           "status": "pending",
           "estimated_hours": 0.5,
-          "files_to_create": [".auto-claude/specs/006-notification-system-email-push-sms/ENV_SETUP.md"],
+          "files_to_create": [
+            ".auto-claude/specs/006-notification-system-email-push-sms/ENV_SETUP.md"
+          ],
           "files_to_modify": []
         }
       ]
@@ -492,5 +584,6 @@
     "status": "pending",
     "issues": "",
     "tests_passed": ""
-  }
+  },
+  "last_updated": "2026-01-12T17:00:10.029749+00:00"
 }
