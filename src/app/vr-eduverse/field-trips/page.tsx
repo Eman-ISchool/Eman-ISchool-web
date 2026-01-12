@@ -101,7 +101,7 @@ export default function FieldTripsHubPage() {
         city: "Cairo",
         country: "Egypt",
       },
-      isAvailable: false, // Not implemented yet
+      isAvailable: true, // Implemented!
     },
     {
       id: "abu-simbel",
