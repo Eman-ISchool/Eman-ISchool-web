@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { VRCanvas } from '@/components/vr/canvas';
 import { VRScene } from '@/components/vr/scenes';
 import { VRHotspots } from '@/components/vr/hotspots';
+import { VRInfoPanel } from '@/components/vr/ui';
 import { useVRCapabilities } from '@/lib/vr/hooks';
-import type { VRScene as VRSceneType, AnyHotspot } from '@/types/vr';
+import type { VRScene as VRSceneType, AnyHotspot, InfoHotspot, VRLanguage, RichContent } from '@/types/vr';
 
 /**
  * VR Scene Test Page
@@ -18,6 +19,8 @@ export default function VRTestPage() {
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [useScene, setUseScene] = useState(false);
   const [interactionLog, setInteractionLog] = useState<string[]>([]);
+  const [activeInfoPanel, setActiveInfoPanel] = useState<RichContent | null>(null);
+  const [language, setLanguage] = useState<VRLanguage>('en');
 
   // Test hotspots demonstrating all types
   const testHotspots: AnyHotspot[] = [
@@ -40,9 +43,10 @@ export default function VRTestPage() {
           ar: 'مرحبا بك في التعليم الافتراضي',
         },
         description: {
-          en: 'This is an example of an information hotspot. These hotspots provide educational content when clicked.',
-          ar: 'هذا مثال على نقطة معلومات. توفر هذه النقاط محتوى تعليمي عند النقر عليها.',
+          en: 'This is an example of an information hotspot. These hotspots provide educational content when clicked.\n\nVR technology creates immersive learning experiences that help students understand complex concepts through interactive 3D visualizations and virtual field trips.',
+          ar: 'هذا مثال على نقطة معلومات. توفر هذه النقاط محتوى تعليمي عند النقر عليها.\n\nتقنية الواقع الافتراضي تخلق تجارب تعليمية غامرة تساعد الطلاب على فهم المفاهيم المعقدة من خلال التصورات ثلاثية الأبعاد التفاعلية والرحلات الميدانية الافتراضية.',
         },
+        imageUrl: 'https://picsum.photos/400/200',
       },
     },
     // Navigation Hotspot (Purple)
@@ -171,8 +175,8 @@ export default function VRTestPage() {
           )}
         </div>
 
-        {/* Toggle between basic scene and VRScene */}
-        <div className="flex gap-2">
+        {/* Controls */}
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setUseScene(false)}
             className={`px-4 py-2 rounded ${
@@ -188,6 +192,12 @@ export default function VRTestPage() {
             }`}
           >
             360° Scene
+          </button>
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+            className="px-4 py-2 rounded bg-purple-600 hover:bg-purple-700"
+          >
+            {language === 'en' ? 'عربي' : 'English'}
           </button>
         </div>
       </div>
@@ -217,16 +227,17 @@ export default function VRTestPage() {
               />
               <VRHotspots
                 hotspots={testScene.hotspots}
-                language="en"
+                language={language}
                 onClick={(id, type) => {
                   const msg = `Clicked ${type} hotspot: ${id}`;
                   console.log(msg);
                   setInteractionLog((prev) => [...prev.slice(-4), msg]);
                 }}
                 onShowInfo={(hotspot) => {
-                  const msg = `Showing info: ${hotspot.content.title.en}`;
+                  const msg = `Showing info: ${hotspot.content.title[language]}`;
                   console.log(msg);
                   setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                  setActiveInfoPanel(hotspot.content);
                 }}
                 onNavigate={(sceneId) => {
                   const msg = `Navigating to scene: ${sceneId}`;
@@ -239,11 +250,23 @@ export default function VRTestPage() {
                   setInteractionLog((prev) => [...prev.slice(-4), msg]);
                 }}
                 onShowQuiz={(hotspot) => {
-                  const msg = `Showing quiz: ${hotspot.question.en}`;
+                  const msg = `Showing quiz: ${hotspot.question[language]}`;
                   console.log(msg);
                   setInteractionLog((prev) => [...prev.slice(-4), msg]);
                 }}
               />
+              {/* VRInfoPanel Demo */}
+              {activeInfoPanel && (
+                <VRInfoPanel
+                  content={activeInfoPanel}
+                  position={{ x: 0, y: 1.6, z: -2 }}
+                  isVisible={!!activeInfoPanel}
+                  onClose={() => setActiveInfoPanel(null)}
+                  language={language}
+                  width={600}
+                  height={400}
+                />
+              )}
             </>
           ) : (
             <>
@@ -286,9 +309,11 @@ export default function VRTestPage() {
         {useScene ? (
           <>
             <p className="text-center mb-3">
-              Test page for VRScene with interactive hotspots. You should see a 360° panoramic image with 4 colored hotspots.
+              Test page for VRScene with interactive hotspots and info panels. You should see a 360° panoramic image with 4 colored hotspots.
               <br />
-              <strong>Controls:</strong> Mouse drag to look around, scroll to zoom. Hover over hotspots to see labels, click to interact.
+              <strong>Controls:</strong> Mouse drag to look around, scroll to zoom. Hover over hotspots to see labels, click blue hotspot to see info panel.
+              <br />
+              <strong>Language:</strong> {language === 'en' ? 'English' : 'العربية'} - Toggle to see RTL text support
             </p>
             <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
               <div className="bg-blue-600 p-2 rounded">
