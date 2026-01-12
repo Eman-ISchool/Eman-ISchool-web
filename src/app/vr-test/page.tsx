@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { VRCanvas } from '@/components/vr/canvas';
 import { VRScene } from '@/components/vr/scenes';
+import { VRHotspots } from '@/components/vr/hotspots';
 import { useVRCapabilities } from '@/lib/vr/hooks';
-import type { VRScene as VRSceneType } from '@/types/vr';
+import type { VRScene as VRSceneType, AnyHotspot } from '@/types/vr';
 
 /**
  * VR Scene Test Page
@@ -16,6 +17,95 @@ export default function VRTestPage() {
   const capabilities = useVRCapabilities();
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [useScene, setUseScene] = useState(false);
+  const [interactionLog, setInteractionLog] = useState<string[]>([]);
+
+  // Test hotspots demonstrating all types
+  const testHotspots: AnyHotspot[] = [
+    // Info Hotspot (Blue)
+    {
+      id: 'info-1',
+      type: 'info',
+      position: { x: -2, y: 1.6, z: -3 },
+      title: {
+        en: 'Information Point',
+        ar: 'نقطة المعلومات',
+      },
+      description: {
+        en: 'Click to learn more',
+        ar: 'انقر لمعرفة المزيد',
+      },
+      content: {
+        title: {
+          en: 'Welcome to VR Education',
+          ar: 'مرحبا بك في التعليم الافتراضي',
+        },
+        description: {
+          en: 'This is an example of an information hotspot. These hotspots provide educational content when clicked.',
+          ar: 'هذا مثال على نقطة معلومات. توفر هذه النقاط محتوى تعليمي عند النقر عليها.',
+        },
+      },
+    },
+    // Navigation Hotspot (Purple)
+    {
+      id: 'nav-1',
+      type: 'navigation',
+      position: { x: 2, y: 1.6, z: -3 },
+      title: {
+        en: 'Go to Next Scene',
+        ar: 'الانتقال إلى المشهد التالي',
+      },
+      targetSceneId: 'test-scene-2',
+      transitionDuration: 1000,
+    },
+    // Interactive Hotspot (Orange)
+    {
+      id: 'interactive-1',
+      type: 'interactive',
+      position: { x: 0, y: 2.5, z: -3 },
+      title: {
+        en: 'Rotate Model',
+        ar: 'تدوير النموذج',
+      },
+      interactionType: 'rotate',
+    },
+    // Quiz Hotspot (Yellow)
+    {
+      id: 'quiz-1',
+      type: 'quiz',
+      position: { x: 0, y: 1, z: -3 },
+      title: {
+        en: 'Test Your Knowledge',
+        ar: 'اختبر معرفتك',
+      },
+      question: {
+        en: 'What is the purpose of VR in education?',
+        ar: 'ما هو الغرض من الواقع الافتراضي في التعليم؟',
+      },
+      options: [
+        {
+          id: 'opt-1',
+          text: {
+            en: 'To make learning more engaging',
+            ar: 'لجعل التعلم أكثر جاذبية',
+          },
+          isCorrect: true,
+        },
+        {
+          id: 'opt-2',
+          text: {
+            en: 'Just for entertainment',
+            ar: 'فقط للترفيه',
+          },
+          isCorrect: false,
+        },
+      ],
+      explanation: {
+        en: 'VR enhances learning by providing immersive experiences that make complex concepts easier to understand.',
+        ar: 'يعزز الواقع الافتراضي التعلم من خلال توفير تجارب غامرة تجعل المفاهيم المعقدة أسهل للفهم.',
+      },
+      points: 10,
+    },
+  ];
 
   // Test scene data with placeholder 360 image
   const testScene: VRSceneType = {
@@ -33,7 +123,7 @@ export default function VRTestPage() {
     // Replace with actual 360 image for production
     imageUrl: 'https://picsum.photos/4096/2048',
     thumbnailUrl: 'https://picsum.photos/400/200',
-    hotspots: [],
+    hotspots: testHotspots,
     camera: {
       initialRotation: { x: 0, y: 0, z: 0 },
       minPolarAngle: 0,
@@ -114,16 +204,47 @@ export default function VRTestPage() {
           onError={(error) => console.error('Canvas error:', error)}
         >
           {useScene ? (
-            <VRScene
-              scene={testScene}
-              enableControls={true}
-              isVRMode={capabilities.hasVRHeadset}
-              onLoad={() => {
-                console.log('Scene loaded successfully');
-                setSceneLoaded(true);
-              }}
-              onError={(error) => console.error('Scene error:', error)}
-            />
+            <>
+              <VRScene
+                scene={testScene}
+                enableControls={true}
+                isVRMode={capabilities.hasVRHeadset}
+                onLoad={() => {
+                  console.log('Scene loaded successfully');
+                  setSceneLoaded(true);
+                }}
+                onError={(error) => console.error('Scene error:', error)}
+              />
+              <VRHotspots
+                hotspots={testScene.hotspots}
+                language="en"
+                onClick={(id, type) => {
+                  const msg = `Clicked ${type} hotspot: ${id}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                }}
+                onShowInfo={(hotspot) => {
+                  const msg = `Showing info: ${hotspot.content.title.en}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                }}
+                onNavigate={(sceneId) => {
+                  const msg = `Navigating to scene: ${sceneId}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                }}
+                onInteract={(hotspot) => {
+                  const msg = `Interacting: ${hotspot.interactionType}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                }}
+                onShowQuiz={(hotspot) => {
+                  const msg = `Showing quiz: ${hotspot.question.en}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                }}
+              />
+            </>
           ) : (
             <>
               {/* Ambient light */}
@@ -161,28 +282,52 @@ export default function VRTestPage() {
       </div>
 
       {/* Footer */}
-      <div className="p-4 bg-gray-900 text-white text-center text-sm">
+      <div className="p-4 bg-gray-900 text-white text-sm">
         {useScene ? (
           <>
-            <p>
-              Test page for VRScene component. You should see a 360-degree panoramic image.
+            <p className="text-center mb-3">
+              Test page for VRScene with interactive hotspots. You should see a 360° panoramic image with 4 colored hotspots.
               <br />
-              Use mouse drag to look around, scroll to zoom.
+              <strong>Controls:</strong> Mouse drag to look around, scroll to zoom. Hover over hotspots to see labels, click to interact.
             </p>
+            <div className="grid grid-cols-4 gap-2 mb-3 text-xs">
+              <div className="bg-blue-600 p-2 rounded">
+                <strong>Blue:</strong> Info hotspot - Educational content
+              </div>
+              <div className="bg-purple-600 p-2 rounded">
+                <strong>Purple:</strong> Navigation - Go to another scene
+              </div>
+              <div className="bg-orange-600 p-2 rounded">
+                <strong>Orange:</strong> Interactive - Trigger 3D model actions
+              </div>
+              <div className="bg-yellow-600 p-2 rounded">
+                <strong>Yellow:</strong> Quiz - Test your knowledge
+              </div>
+            </div>
+            {interactionLog.length > 0 && (
+              <div className="bg-gray-800 p-2 rounded mb-2">
+                <p className="font-semibold mb-1">Recent Interactions:</p>
+                {interactionLog.map((log, i) => (
+                  <p key={i} className="text-xs text-green-400">
+                    • {log}
+                  </p>
+                ))}
+              </div>
+            )}
             {capabilities.hasWebXRSupport && (
-              <p className="mt-2 text-green-400">
+              <p className="text-center text-green-400">
                 Click the &quot;Enter VR&quot; button to start VR mode with your headset.
               </p>
             )}
           </>
         ) : (
           <>
-            <p>
+            <p className="text-center">
               Test page for VRCanvas component. You should see three 3D shapes (cube, sphere, cone)
               floating above a ground plane.
             </p>
             {capabilities.hasWebXRSupport && (
-              <p className="mt-2 text-green-400">
+              <p className="mt-2 text-center text-green-400">
                 Click the &quot;Enter VR&quot; button to start VR mode with your headset.
               </p>
             )}
