@@ -119,9 +119,35 @@ Total Estimated: ~87.5 hours
 - Created `src/components/vr/canvas/index.ts` for easy imports
 - Component follows existing codebase patterns (client directive, TypeScript, error handling)
 
+**Subtask 2.2 - COMPLETED**: Create VRScene Component
+- Created `VRScene` component in `src/components/vr/scenes/VRScene.tsx`
+- **Features Implemented**:
+  - 360-degree equirectangular image display using THREE.BackSide sphere geometry
+  - Automatic texture loading with `useTexture` hook from @react-three/drei
+  - Texture configuration for optimal panorama display (EquirectangularReflectionMapping, SRGB color space)
+  - OrbitControls integration for camera movement (mouse drag, touch swipe, zoom)
+  - Configurable lighting system with ambient and directional lights
+  - Support for scene-specific lighting settings (intensity, color, position)
+  - Initial camera rotation support from scene configuration
+  - Camera constraints (polar angle limits, zoom range)
+  - Automatic control disabling in VR mode (headset handles camera)
+  - Error handling with onError callback for texture loading failures
+  - Loading callback when scene is ready
+  - Fallback background color when no image is provided
+  - VRSceneLoading component for loading states
+  - Comprehensive TypeScript props interface with JSDoc documentation
+  - Configurable sphere radius (default 500 units)
+- **Acceptance Criteria Met**:
+  ✓ Supports 360 equirectangular images as skybox (BackSide sphere with proper texture mapping)
+  ✓ Camera controls for looking around (OrbitControls with damping, customizable settings)
+  ✓ Proper lighting setup (ambient + directional lights with configurable parameters)
+- Created `src/components/vr/scenes/index.ts` for easy imports
+- Updated `/vr-test` page with toggle between basic shapes and 360° scene testing
+- Component follows React Three Fiber patterns and existing codebase conventions
+
 ---
 
 ## Next Steps
-1. Create VRScene component (Subtask 2.2)
-2. Create VRHotspot component (Subtask 2.3)
-3. Create VRInfoPanel component (Subtask 2.4)
+1. Create VRHotspot component (Subtask 2.3)
+2. Create VRInfoPanel component (Subtask 2.4)
+3. Create VRNavigation component (Subtask 2.5)
