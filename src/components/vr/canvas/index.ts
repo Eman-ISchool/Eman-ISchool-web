@@ -5,4 +5,5 @@
  */
 
 export { VRCanvas, VRCanvasLoading } from './VRCanvas';
+export { VRControls, VRControlsHUD } from './VRControls';
 export type { default as VRCanvasProps } from './VRCanvas';
