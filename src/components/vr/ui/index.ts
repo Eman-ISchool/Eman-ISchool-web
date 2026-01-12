@@ -6,4 +6,5 @@
  */
 
 export { VRInfoPanel } from './VRInfoPanel';
-export type { VRInfoPanelProps } from '@/types/vr';
+export { VRNavigation } from './VRNavigation';
+export type { VRInfoPanelProps, VRNavigationProps } from '@/types/vr';

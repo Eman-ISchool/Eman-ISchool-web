@@ -3,7 +3,7 @@
   "spec": "018-vr-educational-experience",
   "state": "building",
   "subtasks": {
-    "completed": 7,
+    "completed": 8,
     "total": 38,
     "in_progress": 1,
     "failed": 0
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 9,
-    "started_at": "2026-01-12T08:54:08.062982"
+    "number": 1,
+    "started_at": "2026-01-12T13:00:01.712911"
   },
-  "last_update": "2026-01-12T09:17:43.776714"
+  "last_update": "2026-01-12T13:00:01.775819"
 }

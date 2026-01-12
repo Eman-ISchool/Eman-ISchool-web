@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { VRCanvas } from '@/components/vr/canvas';
 import { VRScene } from '@/components/vr/scenes';
 import { VRHotspots } from '@/components/vr/hotspots';
-import { VRInfoPanel } from '@/components/vr/ui';
+import { VRInfoPanel, VRNavigation } from '@/components/vr/ui';
 import { useVRCapabilities } from '@/lib/vr/hooks';
 import type { VRScene as VRSceneType, AnyHotspot, InfoHotspot, VRLanguage, RichContent } from '@/types/vr';
 
@@ -21,6 +21,8 @@ export default function VRTestPage() {
   const [interactionLog, setInteractionLog] = useState<string[]>([]);
   const [activeInfoPanel, setActiveInfoPanel] = useState<RichContent | null>(null);
   const [language, setLanguage] = useState<VRLanguage>('en');
+  const [currentSceneId, setCurrentSceneId] = useState('test-scene-1');
+  const [showNavigation, setShowNavigation] = useState(false);
 
   // Test hotspots demonstrating all types
   const testHotspots: AnyHotspot[] = [
@@ -111,38 +113,127 @@ export default function VRTestPage() {
     },
   ];
 
-  // Test scene data with placeholder 360 image
-  const testScene: VRSceneType = {
-    id: 'test-scene-1',
-    title: {
-      en: 'Test 360 Scene',
-      ar: 'مشهد اختبار 360',
+  // Test scenes data with placeholder 360 images
+  const testScenes: VRSceneType[] = [
+    {
+      id: 'test-scene-1',
+      title: {
+        en: 'Main Plaza',
+        ar: 'الساحة الرئيسية',
+      },
+      description: {
+        en: 'The central gathering area with multiple viewpoints',
+        ar: 'منطقة التجمع المركزية مع عدة نقاط عرض',
+      },
+      environmentType: '360-image',
+      imageUrl: 'https://picsum.photos/seed/scene1/4096/2048',
+      thumbnailUrl: 'https://picsum.photos/seed/scene1/400/200',
+      hotspots: testHotspots,
+      camera: {
+        initialRotation: { x: 0, y: 0, z: 0 },
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI,
+        enableZoom: true,
+        zoomRange: { min: 0.5, max: 2 },
+      },
+      lighting: {
+        ambientIntensity: 0.7,
+        ambientColor: '#ffffff',
+        directionalIntensity: 0.5,
+        directionalColor: '#ffffff',
+        directionalPosition: { x: 5, y: 10, z: 5 },
+      },
     },
-    description: {
-      en: 'A test scene with 360-degree panoramic view',
-      ar: 'مشهد اختبار بمنظر بانورامي 360 درجة',
+    {
+      id: 'test-scene-2',
+      title: {
+        en: 'Garden View',
+        ar: 'منظر الحديقة',
+      },
+      description: {
+        en: 'A peaceful garden setting with natural elements',
+        ar: 'حديقة هادئة مع عناصر طبيعية',
+      },
+      environmentType: '360-image',
+      imageUrl: 'https://picsum.photos/seed/scene2/4096/2048',
+      thumbnailUrl: 'https://picsum.photos/seed/scene2/400/200',
+      hotspots: [],
+      camera: {
+        initialRotation: { x: 0, y: 0, z: 0 },
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI,
+        enableZoom: true,
+        zoomRange: { min: 0.5, max: 2 },
+      },
+      lighting: {
+        ambientIntensity: 0.8,
+        ambientColor: '#f0f0e0',
+        directionalIntensity: 0.6,
+        directionalColor: '#fffacd',
+        directionalPosition: { x: -5, y: 10, z: 5 },
+      },
     },
-    environmentType: '360-image',
-    // Using a placeholder equirectangular image URL
-    // Replace with actual 360 image for production
-    imageUrl: 'https://picsum.photos/4096/2048',
-    thumbnailUrl: 'https://picsum.photos/400/200',
-    hotspots: testHotspots,
-    camera: {
-      initialRotation: { x: 0, y: 0, z: 0 },
-      minPolarAngle: 0,
-      maxPolarAngle: Math.PI,
-      enableZoom: true,
-      zoomRange: { min: 0.5, max: 2 },
+    {
+      id: 'test-scene-3',
+      title: {
+        en: 'Historic Hall',
+        ar: 'القاعة التاريخية',
+      },
+      description: {
+        en: 'An ancient hall filled with artifacts',
+        ar: 'قاعة قديمة مليئة بالقطع الأثرية',
+      },
+      environmentType: '360-image',
+      imageUrl: 'https://picsum.photos/seed/scene3/4096/2048',
+      thumbnailUrl: 'https://picsum.photos/seed/scene3/400/200',
+      hotspots: [],
+      camera: {
+        initialRotation: { x: 0, y: 0, z: 0 },
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI,
+        enableZoom: true,
+        zoomRange: { min: 0.5, max: 2 },
+      },
+      lighting: {
+        ambientIntensity: 0.5,
+        ambientColor: '#ffd7a3',
+        directionalIntensity: 0.4,
+        directionalColor: '#ffa500',
+        directionalPosition: { x: 0, y: 10, z: 0 },
+      },
     },
-    lighting: {
-      ambientIntensity: 0.7,
-      ambientColor: '#ffffff',
-      directionalIntensity: 0.5,
-      directionalColor: '#ffffff',
-      directionalPosition: { x: 5, y: 10, z: 5 },
+    {
+      id: 'test-scene-4',
+      title: {
+        en: 'Observatory Deck',
+        ar: 'سطح المرصد',
+      },
+      description: {
+        en: 'A stargazing platform with panoramic views',
+        ar: 'منصة مراقبة النجوم مع مناظر بانورامية',
+      },
+      environmentType: '360-image',
+      imageUrl: 'https://picsum.photos/seed/scene4/4096/2048',
+      thumbnailUrl: 'https://picsum.photos/seed/scene4/400/200',
+      hotspots: [],
+      camera: {
+        initialRotation: { x: 0, y: Math.PI / 4, z: 0 },
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI,
+        enableZoom: true,
+        zoomRange: { min: 0.5, max: 2 },
+      },
+      lighting: {
+        ambientIntensity: 0.4,
+        ambientColor: '#1a1a3e',
+        directionalIntensity: 0.3,
+        directionalColor: '#ffffff',
+        directionalPosition: { x: 10, y: 10, z: 10 },
+      },
     },
-  };
+  ];
+
+  const currentScene = testScenes.find((s) => s.id === currentSceneId) || testScenes[0];
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -199,6 +290,14 @@ export default function VRTestPage() {
           >
             {language === 'en' ? 'عربي' : 'English'}
           </button>
+          {useScene && (
+            <button
+              onClick={() => setShowNavigation(!showNavigation)}
+              className="px-4 py-2 rounded bg-green-600 hover:bg-green-700"
+            >
+              {showNavigation ? 'Hide' : 'Show'} Navigation
+            </button>
+          )}
         </div>
       </div>
 
@@ -216,7 +315,7 @@ export default function VRTestPage() {
           {useScene ? (
             <>
               <VRScene
-                scene={testScene}
+                scene={currentScene}
                 enableControls={true}
                 isVRMode={capabilities.hasVRHeadset}
                 onLoad={() => {
@@ -226,7 +325,7 @@ export default function VRTestPage() {
                 onError={(error) => console.error('Scene error:', error)}
               />
               <VRHotspots
-                hotspots={testScene.hotspots}
+                hotspots={currentScene.hotspots}
                 language={language}
                 onClick={(id, type) => {
                   const msg = `Clicked ${type} hotspot: ${id}`;
@@ -243,6 +342,7 @@ export default function VRTestPage() {
                   const msg = `Navigating to scene: ${sceneId}`;
                   console.log(msg);
                   setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                  setCurrentSceneId(sceneId);
                 }}
                 onInteract={(hotspot) => {
                   const msg = `Interacting: ${hotspot.interactionType}`;
@@ -267,6 +367,27 @@ export default function VRTestPage() {
                   height={400}
                 />
               )}
+              {/* VRNavigation Demo */}
+              <VRNavigation
+                scenes={testScenes}
+                currentSceneId={currentSceneId}
+                onSceneChange={(sceneId) => {
+                  const msg = `Scene changed to: ${sceneId}`;
+                  console.log(msg);
+                  setInteractionLog((prev) => [...prev.slice(-4), msg]);
+                  setCurrentSceneId(sceneId);
+                }}
+                onExit={() => {
+                  console.log('Exit clicked');
+                  alert('Exit VR Experience - would navigate to /vr-eduverse');
+                }}
+                language={language}
+                position={{ x: -2.5, y: 2, z: -1 }}
+                isOpen={showNavigation}
+                onToggle={() => setShowNavigation(!showNavigation)}
+                showBackButton={true}
+                showHomeButton={true}
+              />
             </>
           ) : (
             <>
@@ -309,9 +430,11 @@ export default function VRTestPage() {
         {useScene ? (
           <>
             <p className="text-center mb-3">
-              Test page for VRScene with interactive hotspots and info panels. You should see a 360° panoramic image with 4 colored hotspots.
+              Test page for VRScene with navigation, interactive hotspots and info panels. You should see a 360° panoramic image.
               <br />
-              <strong>Controls:</strong> Mouse drag to look around, scroll to zoom. Hover over hotspots to see labels, click blue hotspot to see info panel.
+              <strong>Controls:</strong> Mouse drag to look around, scroll to zoom. Click &quot;Show Navigation&quot; to open scene selector menu.
+              <br />
+              <strong>Current Scene:</strong> {currentScene.title[language]} ({currentSceneId})
               <br />
               <strong>Language:</strong> {language === 'en' ? 'English' : 'العربية'} - Toggle to see RTL text support
             </p>
