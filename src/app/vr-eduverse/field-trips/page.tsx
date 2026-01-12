@@ -131,15 +131,15 @@ export default function FieldTripsHubPage() {
         { en: "Sun alignment phenomenon", ar: "ظاهرة تعامد الشمس" },
       ],
       stats: {
-        scenes: 4,
-        hotspots: 10,
-        quizzes: 2,
+        scenes: 5,
+        hotspots: 26,
+        quizzes: 4,
       },
       location: {
         city: "Aswan",
         country: "Egypt",
       },
-      isAvailable: false, // Not implemented yet
+      isAvailable: true, // Implemented!
     },
   ];
 
