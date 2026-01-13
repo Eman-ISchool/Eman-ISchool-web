@@ -3,13 +3,13 @@
   "spec": "018-vr-educational-experience",
   "state": "building",
   "subtasks": {
-    "completed": 14,
+    "completed": 15,
     "total": 38,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Egyptian Historical Field Trips",
+    "current": "Science 3D Visualizations",
     "id": null,
     "total": 5
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 1,
+    "number": 2,
     "started_at": "2026-01-13T14:04:28.820543"
   },
-  "last_update": "2026-01-13T14:04:28.983505"
+  "last_update": "2026-01-13T14:15:49.759256"
 }
