@@ -105,7 +105,7 @@ export default function ScienceHubPage() {
         hotspots: 12,
         quizzes: 5,
       },
-      isAvailable: false, // To be implemented in 4.3
+      isAvailable: true, // Implemented in 4.3
     },
     {
       id: "atom-molecule",
