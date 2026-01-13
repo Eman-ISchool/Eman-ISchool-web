@@ -66,7 +66,7 @@ export default function ScienceHubPage() {
         hotspots: 8,
         quizzes: 4,
       },
-      isAvailable: false, // To be implemented in 4.2
+      isAvailable: true, // Implemented in 4.2
     },
     {
       id: "human-cell",
