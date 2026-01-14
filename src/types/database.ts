@@ -10,7 +10,7 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[];
 
-export type UserRole = 'student' | 'teacher' | 'admin';
+export type UserRole = 'student' | 'teacher' | 'admin' | 'parent';
 export type LessonStatus = 'scheduled' | 'live' | 'completed' | 'cancelled';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'early_exit';
 export type EnrollmentStatus = 'active' | 'completed' | 'dropped' | 'pending';
@@ -236,6 +236,26 @@ export interface Database {
                     progress_percent?: number;
                     last_accessed?: string | null;
                     completed_at?: string | null;
+                };
+            };
+            parent_children: {
+                Row: {
+                    id: string;
+                    parent_id: string;
+                    child_id: string;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    parent_id: string;
+                    child_id: string;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    parent_id?: string;
+                    child_id?: string;
+                    created_at?: string;
                 };
             };
             meeting_logs: {
