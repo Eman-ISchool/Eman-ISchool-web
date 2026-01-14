@@ -1,0 +1,44 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/**)",
+      "Write(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/**)",
+      "Edit(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/**)",
+      "Glob(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/**)",
+      "Grep(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/**)",
+      "Read(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/.auto-claude/specs/021-multi-language-support/**)",
+      "Write(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/.auto-claude/specs/021-multi-language-support/**)",
+      "Edit(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/worktrees/tasks/021-multi-language-support/.auto-claude/specs/021-multi-language-support/**)",
+      "Read(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/**)",
+      "Write(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/**)",
+      "Edit(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/**)",
+      "Glob(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/**)",
+      "Grep(/Users/hazmy/ProgrammingProjects/2026/eduverse/.auto-claude/**)",
+      "Read(/Users/hazmy/ProgrammingProjects/2026/eduverse/.worktrees/**)",
+      "Write(/Users/hazmy/ProgrammingProjects/2026/eduverse/.worktrees/**)",
+      "Edit(/Users/hazmy/ProgrammingProjects/2026/eduverse/.worktrees/**)",
+      "Glob(/Users/hazmy/ProgrammingProjects/2026/eduverse/.worktrees/**)",
+      "Grep(/Users/hazmy/ProgrammingProjects/2026/eduverse/.worktrees/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
