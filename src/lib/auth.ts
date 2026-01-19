@@ -1,6 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "./supabase";
+import { storeGoogleTokens } from "./google-token";
+import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -13,6 +16,65 @@ export const authOptions: NextAuthOptions = {
                     access_type: "offline",
                     prompt: "consent",
                 },
+            },
+        }),
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+                console.log("Authorize called with:", credentials?.email);
+                if (!credentials?.email || !credentials?.password) {
+                    throw new Error("Email and password required");
+                }
+
+                if (!isSupabaseAdminConfigured || !supabaseAdmin) {
+                    console.error('Supabase not configured for credentials auth');
+                    throw new Error("Authentication service unavailable");
+                }
+
+                try {
+                    // Find user by email
+                    console.log("Fetching user from Supabase...");
+                    const { data: user, error } = await supabaseAdmin
+                        .from('users')
+                        .select('*')
+                        .eq('email', credentials.email as string)
+                        .single();
+
+                    if (error || !user) {
+                        console.error("User not found or error:", error);
+                        throw new Error("Invalid email or password");
+                    }
+                    console.log("User found:", user.email, "Has hash:", !!(user as any).password_hash);
+
+                    // Verify password (assuming password_hash field exists)
+                    // Note: This requires password_hash field in users table
+                    // For now, we'll check if password matches stored hash
+                    const isValidPassword = await bcrypt.compare(
+                        credentials.password as string,
+                        (user as any).password_hash || ''
+                    );
+
+                    console.log("Password valid:", isValidPassword);
+
+                    if (!isValidPassword) {
+                        throw new Error("Invalid email or password");
+                    }
+
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        image: user.image,
+                        role: user.role,
+                    };
+                } catch (error) {
+                    console.error("Credentials auth error:", error);
+                    throw new Error("Authentication failed");
+                }
             },
         }),
     ],
@@ -56,15 +118,28 @@ export const authOptions: NextAuthOptions = {
                         console.error("Error creating user:", insertError);
                     }
                 } else {
-                    // Update existing user's last login
+                    // Update existing user's last login and store Google tokens
+                    const updateData: any = {
+                        last_login: new Date().toISOString(),
+                        image: user.image,
+                        name: user.name || existingUser.name,
+                        google_id: account?.providerAccountId || existingUser.google_id,
+                    };
+
+                    // Store Google tokens if this is a Google sign-in
+                    if (account?.provider === 'google' && account.access_token) {
+                        updateData.google_access_token = account.access_token;
+                        if (account.refresh_token) {
+                            updateData.google_refresh_token = account.refresh_token;
+                        }
+                        if (account.expires_at) {
+                            updateData.google_token_expires_at = new Date(account.expires_at * 1000).toISOString();
+                        }
+                    }
+
                     const { error: updateError } = await supabaseAdmin
                         .from('users')
-                        .update({
-                            last_login: new Date().toISOString(),
-                            image: user.image,
-                            name: user.name || existingUser.name,
-                            google_id: account?.providerAccountId || existingUser.google_id,
-                        } as any)
+                        .update(updateData)
                         .eq('email', user.email);
 
                     if (updateError) {

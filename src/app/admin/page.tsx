@@ -1,27 +1,32 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
     Users,
     BookOpen,
+    GraduationCap,
     Calendar,
     TrendingUp,
-    AlertCircle,
+    Video,
+    MessageSquare,
+    FileQuestion,
     CheckCircle,
-    Clock,
-    Shield,
-    Activity,
-    FileText,
-    Settings,
-    BarChart3,
+    Sparkles,
 } from 'lucide-react';
 
-interface AdminStats {
+// Components
+import KPIStatCard from '@/components/admin/KPIStatCard';
+import AttendanceWidget from '@/components/admin/widgets/AttendanceWidget';
+import TodaySessionsWidget from '@/components/admin/widgets/TodaySessionsWidget';
+import PendingActionsWidget from '@/components/admin/widgets/PendingActionsWidget';
+import QuickActionsBar from '@/components/admin/widgets/QuickActionsBar';
+import InstantChatbotWidget from '@/components/admin/widgets/InstantChatbotWidget';
+import { LoadingState, ErrorState, CardSkeleton } from '@/components/admin/StateComponents';
+
+interface DashboardStats {
     users: {
         total: number;
         students: number;
@@ -50,14 +55,12 @@ interface AdminStats {
         late: number;
         rate: number;
     };
-    recentActivity: any[];
-    teacherPerformance: any[];
 }
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [stats, setStats] = useState<AdminStats | null>(null);
+    const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -75,10 +78,9 @@ export default function AdminPage() {
 
     const fetchStats = async () => {
         try {
+            setLoading(true);
             const res = await fetch('/api/admin/stats');
-            if (!res.ok) {
-                throw new Error('Failed to fetch stats');
-            }
+            if (!res.ok) throw new Error('Failed to fetch stats');
             const data = await res.json();
             setStats(data);
         } catch (err: any) {
@@ -88,344 +90,327 @@ export default function AdminPage() {
         }
     };
 
-    if (status === 'loading' || loading) {
-        return (
-            <div className="container mx-auto p-8">
-                <div className="animate-pulse space-y-6">
-                    <div className="h-10 w-64 bg-gray-200 rounded"></div>
-                    <div className="grid md:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
+    // Transform lessons to sessions format for widget
+    const todaySessions = stats?.lessons.today?.map((lesson: any) => ({
+        id: lesson.id,
+        title: lesson.title,
+        teacherName: lesson.teacher?.name || 'معلم غير محدد',
+        time: new Date(lesson.start_date_time).toLocaleTimeString('ar-EG', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }),
+        status: lesson.status === 'live' ? 'live' as const :
+            lesson.status === 'completed' ? 'completed' as const :
+                'upcoming' as const,
+        meetLink: lesson.meet_link,
+    })) || [];
+
+    // Pending actions data
+    const pendingActions = [
+        {
+            type: 'unpaid_fees' as const,
+            count: 12, // TODO: Get from API
+            label: 'رسوم غير مدفوعة',
+            href: '/admin/fees?filter=unpaid',
+        },
+        {
+            type: 'missing_conclusions' as const,
+            count: 5,
+            label: 'خلاصات دروس ناقصة',
+            href: '/admin/lessons?filter=no-conclusion',
+        },
+        {
+            type: 'overdue_grading' as const,
+            count: 8,
+            label: 'تصحيح متأخر',
+            href: '/admin/quizzes-exams?filter=ungraded',
+        },
+        {
+            type: 'unassigned_teachers' as const,
+            count: 3,
+            label: 'دروس بدون معلم',
+            href: '/admin/lessons?filter=unassigned',
+        },
+    ];
+
+    const managementLinks = [
+        {
+            title: 'الطلاب والحضور',
+            description: 'متابعة حضور وغياب كل طالب',
+            href: '/admin/attendance',
+            icon: <CheckCircle className="w-5 h-5 text-teal-500" />,
+        },
+        {
+            title: 'قائمة المعلمين',
+            description: 'إدارة المعلمين وتوزيع الجداول',
+            href: '/admin/teachers',
+            icon: <Users className="w-5 h-5 text-purple-500" />,
+        },
+        {
+            title: 'الأنشطة والرسائل',
+            description: 'عرض النشاطات والرسائل بالكامل',
+            href: '/admin/messages-audit',
+            icon: <MessageSquare className="w-5 h-5 text-blue-500" />,
+        },
+        {
+            title: 'الاختبارات والبنك',
+            description: 'إدارة بنك الأسئلة التفاعلي',
+            href: '/admin/quizzes-exams',
+            icon: <FileQuestion className="w-5 h-5 text-orange-500" />,
+        },
+    ];
+
+    const platformHighlights = [
+        {
+            title: 'التواصل والشرح المباشر',
+            description: 'حسابات زووم شخصية لكل طالب لتفاعل فعّال مع المعلم.',
+            href: '/admin/live',
+            icon: <Video className="w-5 h-5 text-red-500" />,
+        },
+        {
+            title: 'جدول دراسي منتظم',
+            description: 'يُرفع على المنصة مع نسخة تلقائية لولي الأمر عبر واتساب.',
+            href: '/admin/calendar',
+            icon: <Calendar className="w-5 h-5 text-teal-500" />,
+        },
+        {
+            title: 'منصة متميزة ومتكاملة',
+            description: 'أدوات شاملة تدعم الطالب طوال رحلة التعلم.',
+            href: '/admin/content',
+            icon: <Sparkles className="w-5 h-5 text-amber-500" />,
+        },
+        {
+            title: 'تسجيلات الدروس',
+            description: 'وصول دائم لكل تسجيلات محتوى المنهج.',
+            href: '/admin/lessons',
+            icon: <BookOpen className="w-5 h-5 text-indigo-500" />,
+        },
+        {
+            title: 'بنك أسئلة تفاعلي',
+            description: 'تدريب حسب مستوى الطالب مع مراعاة الفروق الفردية.',
+            href: '/admin/quizzes-exams',
+            icon: <FileQuestion className="w-5 h-5 text-orange-500" />,
+        },
+        {
+            title: 'واجبات أسبوعية',
+            description: 'تصحيح مع تعليقات مكتوبة وصوتية للنطق والقراءة.',
+            href: '/admin/lessons',
+            icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
+        },
+        {
+            title: 'حساب خاص لولي الأمر',
+            description: 'متابعة الدرجات والحضور والغياب والمهام المنجزة.',
+            href: '/admin/users',
+            icon: <Users className="w-5 h-5 text-sky-500" />,
+        },
+    ];
+
+    if (status === 'loading') {
+        return <LoadingState message="جاري تحميل لوحة التحكم..." />;
     }
 
     if (error) {
-        return (
-            <div className="container mx-auto p-8">
-                <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
-                    <AlertCircle className="h-5 w-5" />
-                    <p>{error}</p>
-                </div>
-            </div>
-        );
+        return <ErrorState message={error} onRetry={fetchStats} />;
     }
 
     return (
-        <div className="container mx-auto p-4 md:p-8 space-y-6">
-            {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
-                        <Shield className="h-8 w-8 text-brand-primary" />
-                        لوحة تحكم المدير
-                    </h1>
-                    <p className="text-gray-500">مرحباً، {session?.user?.name}</p>
+                    <h1 className="text-2xl font-bold text-gray-800">لوحة التحكم</h1>
+                    <p className="text-gray-500">
+                        مرحباً، {session?.user?.name} 👋
+                    </p>
                 </div>
-                <div className="flex gap-2">
-                    <Link href="/admin/users">
-                        <Button variant="outline" className="gap-2">
-                            <Users className="h-4 w-4" />
-                            إدارة المستخدمين
-                        </Button>
-                    </Link>
-                    <Link href="/admin/attendance">
-                        <Button variant="outline" className="gap-2">
-                            <FileText className="h-4 w-4" />
-                            سجلات الحضور
-                        </Button>
-                    </Link>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                    {new Date().toLocaleDateString('ar-EG', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                    })}
                 </div>
-            </header>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-blue-100 text-sm">إجمالي المستخدمين</p>
-                                <p className="text-3xl font-bold">{stats?.users.total || 0}</p>
-                                {stats?.users.growth !== 0 && (
-                                    <p className="text-blue-100 text-xs flex items-center gap-1">
-                                        <TrendingUp className="h-3 w-3" />
-                                        {stats?.users.growth}% هذا الشهر
-                                    </p>
-                                )}
-                            </div>
-                            <Users className="h-12 w-12 text-blue-200" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-green-100 text-sm">الدورات المنشورة</p>
-                                <p className="text-3xl font-bold">{stats?.courses.published || 0}</p>
-                                <p className="text-green-100 text-xs">
-                                    من {stats?.courses.total || 0} دورة
-                                </p>
-                            </div>
-                            <BookOpen className="h-12 w-12 text-green-200" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-purple-100 text-sm">الدروس القادمة</p>
-                                <p className="text-3xl font-bold">{stats?.lessons.upcoming || 0}</p>
-                                <p className="text-purple-100 text-xs">
-                                    {stats?.lessons.thisWeek || 0} هذا الأسبوع
-                                </p>
-                            </div>
-                            <Calendar className="h-12 w-12 text-purple-200" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-orange-100 text-sm">نسبة الحضور</p>
-                                <p className="text-3xl font-bold">{stats?.attendance.rate || 0}%</p>
-                                <p className="text-orange-100 text-xs">
-                                    {stats?.attendance.present || 0} حاضر
-                                </p>
-                            </div>
-                            <BarChart3 className="h-12 w-12 text-orange-200" />
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
-            {/* User Breakdown */}
-            <div className="grid md:grid-cols-3 gap-4">
-                <Card>
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 rounded-full">
-                            <Users className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold">{stats?.users.students || 0}</p>
-                            <p className="text-gray-500">طالب</p>
-                        </div>
-                    </CardContent>
-                </Card>
+            {/* Quick Actions */}
+            <QuickActionsBar />
 
-                <Card>
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="p-3 bg-green-100 rounded-full">
-                            <BookOpen className="h-6 w-6 text-green-600" />
+            {/* Management Links */}
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                {managementLinks.map((link) => (
+                    <Link
+                        key={link.title}
+                        href={link.href}
+                        className="admin-card p-4 flex items-center gap-4 hover:shadow-md transition-shadow"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center">
+                            {link.icon}
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">{stats?.users.teachers || 0}</p>
-                            <p className="text-gray-500">معلم</p>
+                            <p className="font-semibold text-gray-800">{link.title}</p>
+                            <p className="text-sm text-gray-500">{link.description}</p>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 rounded-full">
-                            <Shield className="h-6 w-6 text-purple-600" />
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold">{stats?.users.admins || 0}</p>
-                            <p className="text-gray-500">مدير</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </Link>
+                ))}
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid lg:grid-cols-2 gap-6">
-                {/* Today's Lessons */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-brand-primary" />
-                            دروس اليوم
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {stats?.lessons.today && stats.lessons.today.length > 0 ? (
-                            <div className="space-y-3">
-                                {stats.lessons.today.slice(0, 5).map((lesson: any) => (
-                                    <div
-                                        key={lesson.id}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {loading ? (
+                    <>
+                        <CardSkeleton />
+                        <CardSkeleton />
+                        <CardSkeleton />
+                        <CardSkeleton />
+                    </>
+                ) : (
+                    <>
+                        <KPIStatCard
+                            title="إجمالي الطلاب"
+                            value={stats?.users.students || 0}
+                            icon={<GraduationCap className="w-6 h-6 text-white" />}
+                            variant="blue"
+                            href="/admin/students"
+                            trend={{
+                                value: stats?.users.growth || 0,
+                                label: 'هذا الشهر',
+                                isPositive: (stats?.users.growth || 0) > 0,
+                            }}
+                        />
+                        <KPIStatCard
+                            title="المعلمون"
+                            value={stats?.users.teachers || 0}
+                            icon={<Users className="w-6 h-6 text-white" />}
+                            variant="teal"
+                            href="/admin/teachers"
+                        />
+                        <KPIStatCard
+                            title="الدورات النشطة"
+                            value={stats?.courses.published || 0}
+                            icon={<BookOpen className="w-6 h-6 text-white" />}
+                            variant="purple"
+                            href="/admin/lessons"
+                            trend={{
+                                value: stats?.courses.total ? Math.round((stats.courses.published / stats.courses.total) * 100) : 0,
+                                label: 'منشورة',
+                                isPositive: true,
+                            }}
+                        />
+                        <KPIStatCard
+                            title="دروس هذا الأسبوع"
+                            value={stats?.lessons.thisWeek || 0}
+                            icon={<Calendar className="w-6 h-6 text-white" />}
+                            variant="orange"
+                            href="/admin/calendar"
+                            trend={{
+                                value: stats?.lessons.upcoming || 0,
+                                label: 'قادمة',
+                                isPositive: true,
+                            }}
+                        />
+                    </>
+                )}
+            </div>
+
+            {/* Main Dashboard Grid */}
+            <div className="grid lg:grid-cols-3 gap-6">
+                {/* Left Column - Sessions & Pending */}
+                <div className="lg:col-span-2 space-y-6">
+                    <TodaySessionsWidget sessions={todaySessions} />
+                    <PendingActionsWidget actions={pendingActions} />
+                </div>
+
+                {/* Right Column - Attendance */}
+                <div className="space-y-6">
+                    <AttendanceWidget
+                        data={{
+                            present: stats?.attendance.present || 0,
+                            absent: stats?.attendance.absent || 0,
+                            late: stats?.attendance.late || 0,
+                            rate: stats?.attendance.rate || 0,
+                        }}
+                        href="/admin/attendance"
+                    />
+
+                    {/* Recent Activity Card */}
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <h3 className="admin-card-title">
+                                <TrendingUp className="w-5 h-5 text-teal-500" />
+                                النشاط الأخير
+                            </h3>
+                        </div>
+                        <div className="admin-card-body">
+                            <div className="space-y-4">
+                                {[
+                                    { action: 'تسجيل طالب جديد', time: 'منذ 5 دقائق', type: 'success', href: '/admin/students' },
+                                    { action: 'إضافة درس', time: 'منذ 15 دقيقة', type: 'info', href: '/admin/lessons' },
+                                    { action: 'تحديث رسوم', time: 'منذ ساعة', type: 'warning', href: '/admin/fees' },
+                                ].map((activity, index) => (
+                                    <Link
+                                        key={index}
+                                        href={activity.href}
+                                        className="flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
                                     >
-                                        <div>
-                                            <p className="font-medium">{lesson.title}</p>
-                                            <p className="text-sm text-gray-500">
-                                                {lesson.teacher?.name || 'معلم غير محدد'}
-                                            </p>
+                                        <div className={`w-2 h-2 rounded-full ${activity.type === 'success' ? 'bg-green-500' :
+                                                activity.type === 'info' ? 'bg-blue-500' : 'bg-yellow-500'
+                                            }`} />
+                                        <div className="flex-1">
+                                            <p className="text-sm text-gray-700">{activity.action}</p>
+                                            <p className="text-xs text-gray-400">{activity.time}</p>
                                         </div>
-                                        <div className="text-left">
-                                            <p className="text-sm font-medium">
-                                                {new Date(lesson.start_date_time).toLocaleTimeString('ar-EG', {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                            </p>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${lesson.status === 'live'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : lesson.status === 'completed'
-                                                        ? 'bg-gray-100 text-gray-700'
-                                                        : 'bg-blue-100 text-blue-700'
-                                                }`}>
-                                                {lesson.status === 'live' ? 'مباشر' : lesson.status === 'completed' ? 'منتهي' : 'مجدول'}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
-                        ) : (
-                            <p className="text-center text-gray-500 py-8">لا توجد دروس اليوم</p>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Attendance Summary */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Activity className="h-5 w-5 text-brand-primary" />
-                            ملخص الحضور
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
-                                    <span>حاضر</span>
-                                </div>
-                                <span className="font-bold">{stats?.attendance.present || 0}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <AlertCircle className="h-5 w-5 text-red-500" />
-                                    <span>غائب</span>
-                                </div>
-                                <span className="font-bold">{stats?.attendance.absent || 0}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-yellow-500" />
-                                    <span>متأخر</span>
-                                </div>
-                                <span className="font-bold">{stats?.attendance.late || 0}</span>
-                            </div>
-                            <div className="pt-4 border-t">
-                                <div className="flex items-center justify-between">
-                                    <span className="font-medium">نسبة الحضور الإجمالية</span>
-                                    <span className="text-2xl font-bold text-brand-primary">
-                                        {stats?.attendance.rate || 0}%
-                                    </span>
-                                </div>
-                                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-green-500 rounded-full transition-all"
-                                        style={{ width: `${stats?.attendance.rate || 0}%` }}
-                                    />
-                                </div>
-                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+
+                    <InstantChatbotWidget />
+                </div>
             </div>
 
-            {/* Recent Activity */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-brand-primary" />
-                        النشاط الأخير
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-                        <div className="space-y-3">
-                            {stats.recentActivity.slice(0, 5).map((log: any) => (
-                                <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-full ${log.action === 'create' ? 'bg-green-100' :
-                                                log.action === 'update' ? 'bg-blue-100' :
-                                                    'bg-red-100'
-                                            }`}>
-                                            {log.action === 'create' ? (
-                                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                            ) : log.action === 'update' ? (
-                                                <Settings className="h-4 w-4 text-blue-600" />
-                                            ) : (
-                                                <AlertCircle className="h-4 w-4 text-red-600" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">
-                                                {log.action === 'create' ? 'إنشاء' : log.action === 'update' ? 'تحديث' : 'حذف'} في {log.table_name}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                بواسطة {log.user?.name || 'مستخدم غير معروف'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className="text-sm text-gray-500">
-                                        {new Date(log.created_at).toLocaleString('ar-EG')}
-                                    </span>
+            {/* Eduverse Highlights */}
+            <div className="admin-card">
+                <div className="admin-card-header">
+                    <h3 className="admin-card-title">
+                        <Sparkles className="w-5 h-5 text-amber-500" />
+                        منصة Eduverse التعليمية – تجربة مختلفة ومتكاملة للتعلم
+                    </h3>
+                </div>
+                <div className="admin-card-body space-y-4">
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {platformHighlights.map((item) => (
+                            <Link
+                                key={item.title}
+                                href={item.href}
+                                className="p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md transition-shadow flex items-start gap-3"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center">
+                                    {item.icon}
                                 </div>
-                            ))}
+                                <div>
+                                    <p className="font-semibold text-gray-800">{item.title}</p>
+                                    <p className="text-sm text-gray-500 leading-relaxed">
+                                        {item.description}
+                                    </p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="p-4 rounded-xl bg-teal-50 border border-teal-100 flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
+                            <GraduationCap className="w-5 h-5 text-teal-600" />
                         </div>
-                    ) : (
-                        <p className="text-center text-gray-500 py-8">لا يوجد نشاط حديث</p>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Quick Links */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Link href="/admin/users">
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6 text-center">
-                            <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                            <p className="font-medium">إدارة المستخدمين</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/admin/attendance">
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6 text-center">
-                            <FileText className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                            <p className="font-medium">سجلات الحضور</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/admin/meetings">
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6 text-center">
-                            <Calendar className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-                            <p className="font-medium">سجل الاجتماعات</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/dashboard">
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6 text-center">
-                            <BarChart3 className="h-8 w-8 mx-auto mb-2 text-orange-500" />
-                            <p className="font-medium">لوحة التحكم</p>
-                        </CardContent>
-                    </Card>
-                </Link>
+                        <div>
+                            <p className="font-semibold text-teal-700">الدراسة في مجموعات فقط</p>
+                            <p className="text-sm text-teal-600">
+                                عدد الطلبة بالفصل الواحد من 15 وحتى 20 طالب لضمان جودة التفاعل والمتابعة.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

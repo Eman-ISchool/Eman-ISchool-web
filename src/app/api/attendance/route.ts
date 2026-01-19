@@ -18,6 +18,10 @@ export async function GET(req: Request) {
     }
 
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         const { searchParams } = new URL(req.url);
         const lessonId = searchParams.get('lessonId');
         const userId = searchParams.get('userId');

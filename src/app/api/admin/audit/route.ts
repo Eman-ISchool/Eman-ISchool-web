@@ -18,6 +18,10 @@ export async function GET(req: Request) {
     }
 
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         const { searchParams } = new URL(req.url);
         const action = searchParams.get('action');
         const tableName = searchParams.get('tableName');
@@ -85,6 +89,10 @@ export async function POST(req: Request) {
     }
 
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         const body = await req.json();
         const { action, tableName, recordId, notes } = body;
 
@@ -100,7 +108,7 @@ export async function POST(req: Request) {
                 record_id: recordId,
                 user_id: currentUser.id,
                 new_data: { notes, manual_entry: true },
-            })
+            } as any)
             .select()
             .single();
 
@@ -138,6 +146,10 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ error: 'تاريخ القطع مطلوب' }, { status: 400 });
         }
 
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         // Safety check: don't delete logs less than 30 days old
         const cutoffDate = new Date(beforeDate);
         const thirtyDaysAgo = new Date();
@@ -168,7 +180,7 @@ export async function DELETE(req: Request) {
                 deleted_before: beforeDate,
                 deleted_count: count,
             },
-        });
+        } as any);
 
         return NextResponse.json({
             success: true,

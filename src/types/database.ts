@@ -14,6 +14,7 @@ export type UserRole = 'student' | 'teacher' | 'admin';
 export type LessonStatus = 'scheduled' | 'live' | 'completed' | 'cancelled';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'early_exit';
 export type EnrollmentStatus = 'active' | 'completed' | 'dropped' | 'pending';
+export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed';
 
 export interface Database {
     public: {
@@ -336,46 +337,187 @@ export interface Database {
                     link?: string | null;
                     created_at?: string;
                 };
-                posts: {
-                    Row: {
-                        id: string;
-                        title: string;
-                        slug: string;
-                        content: string | null;
-                        excerpt: string | null;
-                        main_image: string | null;
-                        published_at: string;
-                        author_id: string | null;
-                        is_published: boolean;
-                        created_at: string;
-                        updated_at: string;
-                    };
-                    Insert: {
-                        id?: string;
-                        title: string;
-                        slug: string;
-                        content?: string | null;
-                        excerpt?: string | null;
-                        main_image?: string | null;
-                        published_at?: string;
-                        author_id?: string | null;
-                        is_published?: boolean;
-                        created_at?: string;
-                        updated_at?: string;
-                    };
-                    Update: {
-                        id?: string;
-                        title?: string;
-                        slug?: string;
-                        content?: string | null;
-                        excerpt?: string | null;
-                        main_image?: string | null;
-                        published_at?: string;
-                        author_id?: string | null;
-                        is_published?: boolean;
-                        created_at?: string;
-                        updated_at?: string;
-                    };
+            };
+            posts: {
+                Row: {
+                    id: string;
+                    title: string;
+                    slug: string;
+                    content: string | null;
+                    excerpt: string | null;
+                    main_image: string | null;
+                    published_at: string;
+                    author_id: string | null;
+                    is_published: boolean;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    title: string;
+                    slug: string;
+                    content?: string | null;
+                    excerpt?: string | null;
+                    main_image?: string | null;
+                    published_at?: string;
+                    author_id?: string | null;
+                    is_published?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    title?: string;
+                    slug?: string;
+                    content?: string | null;
+                    excerpt?: string | null;
+                    main_image?: string | null;
+                    published_at?: string;
+                    author_id?: string | null;
+                    is_published?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            reels: {
+                Row: {
+                    id: string;
+                    title_en: string;
+                    title_ar: string;
+                    description_en: string | null;
+                    description_ar: string | null;
+                    video_url: string;
+                    thumbnail_url: string | null;
+                    duration_seconds: number;
+                    status: ReelStatus;
+                    teacher_id: string;
+                    lesson_id: string | null;
+                    lesson_material_id: string | null;
+                    subject: string | null;
+                    grade_level: string | null;
+                    generation_request_id: string | null;
+                    is_published: boolean;
+                    view_count: number;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    title_en: string;
+                    title_ar: string;
+                    description_en?: string | null;
+                    description_ar?: string | null;
+                    video_url: string;
+                    thumbnail_url?: string | null;
+                    duration_seconds: number;
+                    status?: ReelStatus;
+                    teacher_id: string;
+                    lesson_id?: string | null;
+                    lesson_material_id?: string | null;
+                    subject?: string | null;
+                    grade_level?: string | null;
+                    generation_request_id?: string | null;
+                    is_published?: boolean;
+                    view_count?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    title_en?: string;
+                    title_ar?: string;
+                    description_en?: string | null;
+                    description_ar?: string | null;
+                    video_url?: string;
+                    thumbnail_url?: string | null;
+                    duration_seconds?: number;
+                    status?: ReelStatus;
+                    teacher_id?: string;
+                    lesson_id?: string | null;
+                    lesson_material_id?: string | null;
+                    subject?: string | null;
+                    grade_level?: string | null;
+                    generation_request_id?: string | null;
+                    is_published?: boolean;
+                    view_count?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            reel_progress: {
+                Row: {
+                    id: string;
+                    reel_id: string;
+                    student_id: string;
+                    watched_seconds: number;
+                    is_completed: boolean;
+                    is_saved: boolean;
+                    last_watched_at: string;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    reel_id: string;
+                    student_id: string;
+                    watched_seconds?: number;
+                    is_completed?: boolean;
+                    is_saved?: boolean;
+                    last_watched_at?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    reel_id?: string;
+                    student_id?: string;
+                    watched_seconds?: number;
+                    is_completed?: boolean;
+                    is_saved?: boolean;
+                    last_watched_at?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            generation_logs: {
+                Row: {
+                    id: string;
+                    reel_id: string | null;
+                    teacher_id: string;
+                    lesson_id: string | null;
+                    lesson_material_id: string | null;
+                    action: string;
+                    status: string;
+                    error_message: string | null;
+                    metadata: Json;
+                    ip_address: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    reel_id?: string | null;
+                    teacher_id: string;
+                    lesson_id?: string | null;
+                    lesson_material_id?: string | null;
+                    action: string;
+                    status: string;
+                    error_message?: string | null;
+                    metadata?: Json;
+                    ip_address?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    reel_id?: string | null;
+                    teacher_id?: string;
+                    lesson_id?: string | null;
+                    lesson_material_id?: string | null;
+                    action?: string;
+                    status?: string;
+                    error_message?: string | null;
+                    metadata?: Json;
+                    ip_address?: string | null;
+                    created_at?: string;
                 };
             };
         };
@@ -441,6 +583,7 @@ export interface Database {
             lesson_status: LessonStatus;
             attendance_status: AttendanceStatus;
             enrollment_status: EnrollmentStatus;
+            reel_status: ReelStatus;
         };
     };
 }

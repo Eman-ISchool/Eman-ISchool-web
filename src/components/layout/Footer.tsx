@@ -8,7 +8,7 @@ export function Footer() {
 
                 {/* About */}
                 <div>
-                    <h3 className="text-lg font-bold mb-4 text-brand-primary">Eman-Academy</h3>
+                    <h3 className="text-lg font-bold mb-4 text-brand-primary">Eman ISchool</h3>
                     <p className="text-sm text-gray-400 leading-relaxed">
                         المنصة الوحيدة المتخصصة في تحضير أبناء المصريين بالخارج للامتحانات المصرية باحترافية.
                     </p>
@@ -44,7 +44,7 @@ export function Footer() {
                 <div>
                     <h3 className="text-lg font-bold mb-4 text-brand-primary">تواصل معنا</h3>
                     <ul className="space-y-2 text-sm text-gray-300">
-                        <li>info@eman-academy.ae</li>
+                        <li>info@eman-ischool.ae</li>
                         <li>+971 50 569 2091</li>
                     </ul>
                     <div className="mt-4">
@@ -59,7 +59,7 @@ export function Footer() {
 
             </div>
             <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
-                <p>© {new Date().getFullYear()} Eman-Academy. جميع الحقوق محفوظة.</p>
+                <p>© {new Date().getFullYear()} Eman ISchool. جميع الحقوق محفوظة.</p>
                 <p className="mt-2 text-xs text-gray-600">
                     المنصة الأولى والوحيدة المتخصصة لجاهزية الامتحانات المصرية للمصريين بالخارج
                 </p>

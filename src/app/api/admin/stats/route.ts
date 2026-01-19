@@ -18,6 +18,10 @@ export async function GET(req: Request) {
     }
 
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         const now = new Date();
         const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
         const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
@@ -29,9 +33,9 @@ export async function GET(req: Request) {
             .select('role')
             .order('role');
 
-        const studentCount = userCounts?.filter(u => u.role === 'student').length || 0;
-        const teacherCount = userCounts?.filter(u => u.role === 'teacher').length || 0;
-        const adminCount = userCounts?.filter(u => u.role === 'admin').length || 0;
+        const studentCount = userCounts?.filter((u: any) => u.role === 'student').length || 0;
+        const teacherCount = userCounts?.filter((u: any) => u.role === 'teacher').length || 0;
+        const adminCount = userCounts?.filter((u: any) => u.role === 'admin').length || 0;
 
         // Get course stats
         const { count: totalCourses } = await supabaseAdmin
@@ -86,9 +90,9 @@ export async function GET(req: Request) {
             .from('attendance')
             .select('status');
 
-        const presentCount = attendanceStats?.filter(a => a.status === 'present').length || 0;
-        const absentCount = attendanceStats?.filter(a => a.status === 'absent').length || 0;
-        const lateCount = attendanceStats?.filter(a => a.status === 'late').length || 0;
+        const presentCount = attendanceStats?.filter((a: any) => a.status === 'present').length || 0;
+        const absentCount = attendanceStats?.filter((a: any) => a.status === 'absent').length || 0;
+        const lateCount = attendanceStats?.filter((a: any) => a.status === 'late').length || 0;
 
         // Get recent activity
         const { data: recentAuditLogs } = await supabaseAdmin

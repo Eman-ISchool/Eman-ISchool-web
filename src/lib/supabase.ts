@@ -50,11 +50,12 @@ export const supabaseAdmin: SupabaseClient<Database> | null = (() => {
 })();
 
 // Helper to get server-side client
-export function getServerSupabase() {
+export function getServerSupabase(): SupabaseClient<Database> {
     if (!supabaseUrl || !supabaseServiceKey) {
         throw new Error('Missing Supabase environment variables');
     }
-    return supabaseAdmin;
+    // Non-null assertion is safe here because we throw an error above if supabaseAdmin is null
+    return supabaseAdmin!;
 }
 
 // Types for database entities
@@ -65,6 +66,9 @@ export type Attendance = Database['public']['Tables']['attendance']['Row'];
 export type Enrollment = Database['public']['Tables']['enrollments']['Row'];
 export type MeetingLog = Database['public']['Tables']['meeting_logs']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+export type Reel = Database['public']['Tables']['reels']['Row'];
+export type ReelProgress = Database['public']['Tables']['reel_progress']['Row'];
+export type GenerationLog = Database['public']['Tables']['generation_logs']['Row'];
 
 // Type for inserts
 export type UserInsert = Database['public']['Tables']['users']['Insert'];
@@ -74,9 +78,15 @@ export type AttendanceInsert = Database['public']['Tables']['attendance']['Inser
 export type EnrollmentInsert = Database['public']['Tables']['enrollments']['Insert'];
 export type MeetingLogInsert = Database['public']['Tables']['meeting_logs']['Insert'];
 export type AuditLogInsert = Database['public']['Tables']['audit_logs']['Insert'];
+export type ReelInsert = Database['public']['Tables']['reels']['Insert'];
+export type ReelProgressInsert = Database['public']['Tables']['reel_progress']['Insert'];
+export type GenerationLogInsert = Database['public']['Tables']['generation_logs']['Insert'];
 
 // Type for updates
 export type UserUpdate = Database['public']['Tables']['users']['Update'];
 export type CourseUpdate = Database['public']['Tables']['courses']['Update'];
 export type LessonUpdate = Database['public']['Tables']['lessons']['Update'];
 export type AttendanceUpdate = Database['public']['Tables']['attendance']['Update'];
+export type ReelUpdate = Database['public']['Tables']['reels']['Update'];
+export type ReelProgressUpdate = Database['public']['Tables']['reel_progress']['Update'];
+export type GenerationLogUpdate = Database['public']['Tables']['generation_logs']['Update'];

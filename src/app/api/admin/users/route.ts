@@ -18,6 +18,10 @@ export async function GET(req: Request) {
     }
 
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         const { searchParams } = new URL(req.url);
         const role = searchParams.get('role');
         const search = searchParams.get('search');
@@ -57,7 +61,7 @@ export async function GET(req: Request) {
         }
 
         // Transform data for frontend
-        const transformedUsers = users?.map(user => ({
+        const transformedUsers = users?.map((user: any) => ({
             ...user,
             enrollmentsCount: user.enrollments?.[0]?.count || 0,
             lessonsTaughtCount: user.lessons_taught?.[0]?.count || 0,
@@ -92,6 +96,10 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: 'معرف المستخدم مطلوب' }, { status: 400 });
         }
 
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         // Cannot modify your own admin status
         if (id === currentUser.id && role && role !== 'admin') {
             return NextResponse.json({ error: 'لا يمكن تغيير صلاحياتك الخاصة' }, { status: 400 });
@@ -111,7 +119,7 @@ export async function PATCH(req: Request) {
         if (phone !== undefined) updates.phone = phone;
         if (bio !== undefined) updates.bio = bio;
 
-        const { data: user, error } = await supabaseAdmin
+        const { data: user, error } = await (supabaseAdmin as any)
             .from('users')
             .update(updates)
             .eq('id', id)
@@ -131,7 +139,7 @@ export async function PATCH(req: Request) {
             user_id: currentUser.id,
             old_data: oldData,
             new_data: user,
-        });
+        } as any);
 
         return NextResponse.json({ user, message: 'تم تحديث المستخدم بنجاح' });
     } catch (error) {
@@ -169,6 +177,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'لا يوجد مستخدمين لتحديثهم' }, { status: 400 });
         }
 
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
         let updates: any = {};
 
         switch (action) {
@@ -188,7 +200,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'إجراء غير صالح' }, { status: 400 });
         }
 
-        const { error } = await supabaseAdmin
+        const { error } = await (supabaseAdmin as any)
             .from('users')
             .update(updates)
             .in('id', safeUserIds);
@@ -204,7 +216,7 @@ export async function POST(req: Request) {
             table_name: 'users',
             user_id: currentUser.id,
             new_data: { action, userIds: safeUserIds, updates },
-        });
+        } as any);
 
         return NextResponse.json({
             success: true,
