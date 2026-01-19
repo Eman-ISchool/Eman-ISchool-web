@@ -12,6 +12,9 @@
     "@portabletext/react": "^4.0.3",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@react-three/drei": "^9.114.3",
+    "@react-three/fiber": "^8.17.10",
+    "@react-three/xr": "^6.2.5",
     "@sanity/image-url": "^1.2.0",
     "@sanity/vision": "^5.1.0",
     "@supabase/supabase-js": "^2.78.0",
@@ -30,6 +33,7 @@
     "sanity": "^3.99.0",
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.4.0",
+    "three": "^0.171.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
@@ -38,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.171.0",
     "eslint": "8.57.1",
     "eslint-config-next": "14.2.35",
     "jest": "^30.2.0",
