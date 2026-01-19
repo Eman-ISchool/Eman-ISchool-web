@@ -540,6 +540,184 @@ export interface Database {
                     created_at?: string;
                 };
             };
+            assignments: {
+                Row: {
+                    id: string;
+                    course_id: string;
+                    title: string;
+                    description: string | null;
+                    due_date: string;
+                    max_score: number;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    course_id: string;
+                    title: string;
+                    description?: string | null;
+                    due_date: string;
+                    max_score?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    course_id?: string;
+                    title?: string;
+                    description?: string | null;
+                    due_date?: string;
+                    max_score?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            assignment_submissions: {
+                Row: {
+                    id: string;
+                    assignment_id: string;
+                    student_id: string;
+                    submitted_at: string;
+                    score: number | null;
+                    feedback: string | null;
+                    graded_at: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    assignment_id: string;
+                    student_id: string;
+                    submitted_at?: string;
+                    score?: number | null;
+                    feedback?: string | null;
+                    graded_at?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    assignment_id?: string;
+                    student_id?: string;
+                    submitted_at?: string;
+                    score?: number | null;
+                    feedback?: string | null;
+                    graded_at?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            exam_simulations: {
+                Row: {
+                    id: string;
+                    course_id: string;
+                    title: string;
+                    description: string | null;
+                    duration_minutes: number;
+                    total_score: number;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    course_id: string;
+                    title: string;
+                    description?: string | null;
+                    duration_minutes: number;
+                    total_score?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    course_id?: string;
+                    title?: string;
+                    description?: string | null;
+                    duration_minutes?: number;
+                    total_score?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            exam_attempts: {
+                Row: {
+                    id: string;
+                    exam_id: string;
+                    student_id: string;
+                    score: number;
+                    max_score: number;
+                    completed_at: string;
+                    time_taken_minutes: number | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    exam_id: string;
+                    student_id: string;
+                    score: number;
+                    max_score: number;
+                    completed_at?: string;
+                    time_taken_minutes?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    exam_id?: string;
+                    student_id?: string;
+                    score?: number;
+                    max_score?: number;
+                    completed_at?: string;
+                    time_taken_minutes?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            exam_readiness_scores: {
+                Row: {
+                    id: string;
+                    student_id: string;
+                    course_id: string | null;
+                    overall_score: number;
+                    attendance_score: number | null;
+                    assignment_score: number | null;
+                    exam_score: number | null;
+                    weak_areas: Json;
+                    recommendations: Json;
+                    calculated_at: string;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    student_id: string;
+                    course_id?: string | null;
+                    overall_score: number;
+                    attendance_score?: number | null;
+                    assignment_score?: number | null;
+                    exam_score?: number | null;
+                    weak_areas?: Json;
+                    recommendations?: Json;
+                    calculated_at?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    student_id?: string;
+                    course_id?: string | null;
+                    overall_score?: number;
+                    attendance_score?: number | null;
+                    assignment_score?: number | null;
+                    exam_score?: number | null;
+                    weak_areas?: Json;
+                    recommendations?: Json;
+                    calculated_at?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
         };
         Views: {
             lesson_stats: {
