@@ -16,6 +16,13 @@ export type AttendanceStatus = 'present' | 'absent' | 'late' | 'early_exit';
 export type EnrollmentStatus = 'active' | 'completed' | 'dropped' | 'pending';
 export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed';
 
+// Notification system types
+export type NotificationChannel = 'email' | 'push' | 'sms' | 'in_app';
+export type NotificationStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
+export type DigestFrequency = 'instant' | 'daily' | 'weekly';
+export type NotificationType = 'class_reminder' | 'grade_update' | 'announcement' | 'cancellation' | 'assignment_due' | 'exam_reminder';
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'critical';
+
 export interface Database {
     public: {
         Tables: {
@@ -356,6 +363,136 @@ export interface Database {
                     is_read?: boolean;
                     link?: string | null;
                     created_at?: string;
+                };
+            };
+            notification_preferences: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    email_enabled: boolean;
+                    push_enabled: boolean;
+                    sms_enabled: boolean;
+                    in_app_enabled: boolean;
+                    phone_number: string | null;
+                    phone_verified: boolean;
+                    digest_frequency: DigestFrequency;
+                    quiet_hours_enabled: boolean;
+                    quiet_hours_start: string | null;
+                    quiet_hours_end: string | null;
+                    timezone: string;
+                    class_reminders_enabled: boolean;
+                    grade_updates_enabled: boolean;
+                    announcements_enabled: boolean;
+                    cancellations_enabled: boolean;
+                    unsubscribed_from_email: boolean;
+                    unsubscribe_token: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    email_enabled?: boolean;
+                    push_enabled?: boolean;
+                    sms_enabled?: boolean;
+                    in_app_enabled?: boolean;
+                    phone_number?: string | null;
+                    phone_verified?: boolean;
+                    digest_frequency?: DigestFrequency;
+                    quiet_hours_enabled?: boolean;
+                    quiet_hours_start?: string | null;
+                    quiet_hours_end?: string | null;
+                    timezone?: string;
+                    class_reminders_enabled?: boolean;
+                    grade_updates_enabled?: boolean;
+                    announcements_enabled?: boolean;
+                    cancellations_enabled?: boolean;
+                    unsubscribed_from_email?: boolean;
+                    unsubscribe_token?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    email_enabled?: boolean;
+                    push_enabled?: boolean;
+                    sms_enabled?: boolean;
+                    in_app_enabled?: boolean;
+                    phone_number?: string | null;
+                    phone_verified?: boolean;
+                    digest_frequency?: DigestFrequency;
+                    quiet_hours_enabled?: boolean;
+                    quiet_hours_start?: string | null;
+                    quiet_hours_end?: string | null;
+                    timezone?: string;
+                    class_reminders_enabled?: boolean;
+                    grade_updates_enabled?: boolean;
+                    announcements_enabled?: boolean;
+                    cancellations_enabled?: boolean;
+                    unsubscribed_from_email?: boolean;
+                    unsubscribe_token?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            notification_queue: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    notification_type: NotificationType;
+                    channel: NotificationChannel;
+                    priority: NotificationPriority;
+                    title: string;
+                    body: string;
+                    data: Json;
+                    scheduled_for: string | null;
+                    status: NotificationStatus;
+                    sent_at: string | null;
+                    delivered_at: string | null;
+                    read_at: string | null;
+                    error_message: string | null;
+                    retry_count: number;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    notification_type: NotificationType;
+                    channel: NotificationChannel;
+                    priority?: NotificationPriority;
+                    title: string;
+                    body: string;
+                    data?: Json;
+                    scheduled_for?: string | null;
+                    status?: NotificationStatus;
+                    sent_at?: string | null;
+                    delivered_at?: string | null;
+                    read_at?: string | null;
+                    error_message?: string | null;
+                    retry_count?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    notification_type?: NotificationType;
+                    channel?: NotificationChannel;
+                    priority?: NotificationPriority;
+                    title?: string;
+                    body?: string;
+                    data?: Json;
+                    scheduled_for?: string | null;
+                    status?: NotificationStatus;
+                    sent_at?: string | null;
+                    delivered_at?: string | null;
+                    read_at?: string | null;
+                    error_message?: string | null;
+                    retry_count?: number;
+                    created_at?: string;
+                    updated_at?: string;
                 };
             };
             posts: {
