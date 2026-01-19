@@ -1,5 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+
+
+.vscode
+.claude
+
 # dependencies
 /node_modules
 /.pnp
@@ -20,10 +25,12 @@
 # production
 /build
 
+.kilocode
+
 # misc
 .DS_Store
 *.pem
-
+.specify
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -43,3 +50,6 @@ next-env.d.ts
 .worktrees
 specs
 .auto-claude
+
+
+
