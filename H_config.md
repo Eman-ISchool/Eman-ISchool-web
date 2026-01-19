@@ -4,3 +4,5 @@ Student: student@eduverse.com / password123
 
 0147
 
+
+specify init . --ai kilocode
