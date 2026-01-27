@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole, LessonStatus, AttendanceStatus, EnrollmentStatus } from '@/types/database';
+import bcrypt from 'bcryptjs';
 
-// Helper to generate UUIDs (simplified v4-like for demo if needed, but Supabase generates them usually. 
+// Helper to generate UUIDs (simplified v4-like for demo if needed, but Supabase generates them usually.
 // However, we need them for FKs before insertion if we batch, or we insert and get back ID.)
 // We will insert and select return.
+
+// Test user credentials - use these for automated testing
+const TEST_USERS = [
+    { email: 'admin@test.com', password: 'TestAdmin123!', name: 'Test Admin', role: 'admin' as UserRole },
+    { email: 'teacher@test.com', password: 'TestTeacher123!', name: 'Test Teacher', role: 'teacher' as UserRole },
+    { email: 'student@test.com', password: 'TestStudent123!', name: 'Test Student', role: 'student' as UserRole },
+    { email: 'parent@test.com', password: 'TestParent123!', name: 'Test Parent', role: 'parent' as UserRole },
+];
 
 const ARABIC_FIRST_NAMES = ['أحمد', 'محمد', 'علي', 'عمر', 'خالد', 'سارة', 'نورة', 'ليلى', 'فاطمة', 'مريم', 'يوسف', 'إبراهيم', 'حسن', 'حسين', 'عبدالله'];
 const ARABIC_LAST_NAMES = ['المنصور', 'الخالدي', 'العتيبي', 'الشمري', 'المطيري', 'القحطاني', 'السعيد', 'الغامدي', 'الزهراني', 'العمري', 'الحربي', 'الدوسري'];
@@ -25,6 +36,19 @@ function randomEmail(name: string) {
 }
 
 export async function GET() {
+    // Security: Verify user is authenticated and is an admin
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    }
+
+    const currentUser = await getCurrentUser(session);
+
+    if (!currentUser || !isAdmin(currentUser.role)) {
+        return NextResponse.json({ error: 'غير مصرح. يحتاج لصلاحيات مدير.' }, { status: 403 });
+    }
+
     console.log('Starting seed process...');
 
     if (!supabaseAdmin) {
@@ -36,6 +60,50 @@ export async function GET() {
         const createdTeachers: string[] = [];
         const createdCourses: string[] = [];
         const createdLessons: string[] = [];
+        const testUserIds: Record<string, string> = {};
+
+        // 0. Create Test Users with known credentials (for automated testing)
+        console.log('Creating test users with known credentials...');
+        for (const testUser of TEST_USERS) {
+            // Check if user already exists
+            const { data: existingUser } = await supabaseAdmin
+                .from('users')
+                .select('id')
+                .eq('email', testUser.email)
+                .single();
+
+            if (existingUser) {
+                // Update existing user with new password hash
+                const passwordHash = await bcrypt.hash(testUser.password, 10);
+                await supabaseAdmin
+                    .from('users')
+                    .update({ password_hash: passwordHash, is_active: true })
+                    .eq('email', testUser.email);
+                testUserIds[testUser.role] = (existingUser as any).id;
+                console.log(`Updated existing test user: ${testUser.email}`);
+            } else {
+                // Create new test user
+                const passwordHash = await bcrypt.hash(testUser.password, 10);
+                const { data, error } = await supabaseAdmin.from('users').insert({
+                    email: testUser.email,
+                    name: testUser.name,
+                    role: testUser.role,
+                    password_hash: passwordHash,
+                    is_active: true,
+                    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${testUser.role}`,
+                } as any).select().single();
+
+                if (error) {
+                    console.error(`Error creating test user ${testUser.email}:`, error);
+                } else if (data) {
+                    testUserIds[testUser.role] = (data as any).id;
+                    console.log(`Created test user: ${testUser.email}`);
+                    if (testUser.role === 'teacher') {
+                        createdTeachers.push((data as any).id);
+                    }
+                }
+            }
+        }
 
         // 1. Create Teachers (5)
         console.log('Creating teachers...');
@@ -170,7 +238,12 @@ export async function GET() {
                 teachers: createdTeachers.length,
                 students: studentIds.length,
                 courses: createdCourses.length
-            }
+            },
+            testCredentials: TEST_USERS.map(u => ({
+                email: u.email,
+                password: u.password,
+                role: u.role
+            }))
         });
     } catch (error: any) {
         console.error('Seeding fatal error:', error);

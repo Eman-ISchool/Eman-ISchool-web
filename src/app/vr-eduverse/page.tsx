@@ -253,7 +253,7 @@ export default function VREdueversePage() {
                         </p>
 
                         <div className="flex flex-wrap gap-4 justify-center pt-4">
-                            <Link href="/login">
+                            <Link href="/vr-eduverse/science/solar-system">
                                 <Button size="lg" className="bg-brand-primary text-black hover:bg-brand-primary-hover font-bold px-8">
                                     ابدأ التجربة الآن
                                 </Button>
@@ -425,14 +425,14 @@ export default function VREdueversePage() {
                             انضم إلى Eman-Academy واستفد من تقنية الواقع الافتراضي لتحضير طفلك للامتحانات المصرية باحترافية
                         </p>
                         <div className="flex flex-wrap gap-4 justify-center pt-4">
-                            <Link href="/login">
+                            <Link href="/vr-eduverse/science">
                                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-8">
-                                    حضّر طفلك بثقة
+                                    استكشف تجارب العلوم
                                 </Button>
                             </Link>
-                            <Link href="/exam-simulation">
+                            <Link href="/vr-eduverse/field-trips">
                                 <Button size="lg" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8">
-                                    شاهد نظام المحاكاة
+                                    الرحلات الميدانية الافتراضية
                                 </Button>
                             </Link>
                         </div>

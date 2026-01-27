@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
         const teacherId = searchParams.get('teacher_id');
         const lessonId = searchParams.get('lesson_id');
+        const classId = searchParams.get('class_id');
         const subject = searchParams.get('subject');
         const gradeLevel = searchParams.get('grade_level');
         const isPublished = searchParams.get('is_published');
@@ -55,25 +56,8 @@ export async function GET(request: NextRequest) {
             query = query.eq('lesson_id', lessonId);
         }
 
-        if (subject) {
-            query = query.eq('subject', subject);
-        }
-
-        if (gradeLevel) {
-            query = query.eq('grade_level', gradeLevel);
-        }
-
-        // Apply filters
-        if (status) {
-            query = query.eq('status', status);
-        }
-
-        if (teacherId) {
-            query = query.eq('teacher_id', teacherId);
-        }
-
-        if (lessonId) {
-            query = query.eq('lesson_id', lessonId);
+        if (classId) {
+            query = query.eq('class_id', classId);
         }
 
         if (subject) {

@@ -70,7 +70,14 @@ const NANO_BANANA_API_KEY = process.env.NANO_BANANA_API_KEY || '';
  * Check if Nano-Banana service is configured
  */
 export function isNanoBananaConfigured(): boolean {
-    return !!(NANO_BANANA_API_URL && NANO_BANANA_API_KEY);
+    return !!(NANO_BANANA_API_URL && NANO_BANANA_API_KEY && NANO_BANANA_API_KEY.trim().length > 0);
+}
+
+/**
+ * Check if we should use simulation mode
+ */
+export function shouldUseSimulationMode(): boolean {
+    return !isNanoBananaConfigured();
 }
 
 /**

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { submitGenerationRequest } from '@/lib/nano-banana';
 import { logRegenerationRequested } from '@/lib/generation-log';
+import { logGenerationNotification } from '@/lib/reel-notifications';
 import type { ReelInsert, ReelUpdate } from '@/lib/supabase';
 
 /**
@@ -153,6 +154,9 @@ export async function POST(
             },
             supabaseAdmin
         );
+
+        // Trigger regeneration notification
+        await logGenerationNotification(reel.teacher_id, reel.id, reel.lesson_id, reel.lesson_material_id, 'success');
 
         return NextResponse.json({
             success: true,

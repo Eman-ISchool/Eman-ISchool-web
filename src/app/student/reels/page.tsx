@@ -1,213 +1,249 @@
-import { ReelsLearningComponent, type ReelClip } from '@/components/student/ReelsLearningComponent';
+'use client';
 
-const demoVideo = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+import { useEffect, useState, useCallback } from 'react';
+import { useSession, signIn } from 'next-auth/react';
+import ReelFeed, { type Reel } from '@/components/reels/ReelFeed';
+import { DatabaseSetupInstructions } from '@/components/reels/DatabaseSetupInstructions';
 
-const now = Date.now();
-const hoursAgo = (hours: number) => new Date(now - hours * 60 * 60 * 1000).toISOString();
-const daysAgo = (days: number) => new Date(now - days * 24 * 60 * 60 * 1000).toISOString();
-
-const mockReels: ReelClip[] = [
-    {
-        id: 'reel-01',
-        teacherId: 'teacher-01',
-        groupId: 'group-01',
-        subjectId: 'subject-01',
-        lessonId: 'lesson-01',
-        materialId: 'material-01',
-        teacherName: 'Ms. Laila',
-        subjectName: 'Biology',
-        lessonTitle: 'Chapter 4',
-        createdAt: hoursAgo(1),
-        durationSec: 88,
-        title: {
-            en: 'Photosynthesis in 90 Seconds',
-            ar: 'التمثيل الضوئي في 90 ثانية',
-        },
-        summary: {
-            en: 'How plants convert sunlight into energy and oxygen.',
-            ar: 'كيف تحول النباتات ضوء الشمس إلى طاقة وأكسجين.',
-        },
-        objective: {
-            en: 'Identify inputs and outputs of photosynthesis.',
-            ar: 'تحديد مدخلات ومخرجات التمثيل الضوئي.',
-        },
-        keywords: {
-            en: ['chlorophyll', 'CO2', 'oxygen'],
-            ar: ['الكلوروفيل', 'ثاني أكسيد الكربون', 'الأكسجين'],
-        },
-        captions: {
-            en: 'Light + CO2 + H2O → glucose + oxygen.',
-            ar: 'ضوء + ثاني أكسيد الكربون + ماء → جلوكوز + أكسجين.',
-        },
-        topics: {
-            en: ['Energy Flow', 'Plant Cells'],
-            ar: ['تدفق الطاقة', 'الخلايا النباتية'],
-        },
-        videoUrl: demoVideo,
-        thumbnailUrl: '/course-science.png',
-    },
-    {
-        id: 'reel-02',
-        teacherId: 'teacher-02',
-        groupId: 'group-01',
-        subjectId: 'subject-02',
-        lessonId: 'lesson-02',
-        materialId: 'material-02',
-        teacherName: 'Mr. Omar',
-        subjectName: 'Mathematics',
-        lessonTitle: 'Unit 2',
-        createdAt: hoursAgo(4),
-        durationSec: 75,
-        title: {
-            en: 'Linear Equations Quick Recap',
-            ar: 'مراجعة سريعة للمعادلات الخطية',
-        },
-        summary: {
-            en: 'Solve y = mx + b and read the graph in under a minute.',
-            ar: 'حل y = mx + b وقراءة الرسم البياني خلال دقيقة.',
-        },
-        objective: {
-            en: 'Interpret slope and intercept from an equation.',
-            ar: 'تفسير الميل والقطع من المعادلة.',
-        },
-        keywords: {
-            en: ['slope', 'intercept', 'graph'],
-            ar: ['الميل', 'القطع', 'الرسم البياني'],
-        },
-        captions: {
-            en: 'Slope = rise/run. Intercept is where the line crosses the y-axis.',
-            ar: 'الميل = التغير الرأسي/الأفقي. والقطع هو تقاطع الخط مع محور y.',
-        },
-        topics: {
-            en: ['Algebra Basics', 'Graph Reading'],
-            ar: ['أساسيات الجبر', 'قراءة الرسم البياني'],
-        },
-        videoUrl: demoVideo,
-        thumbnailUrl: '/course-math.png',
-    },
-    {
-        id: 'reel-03',
-        teacherId: 'teacher-03',
-        groupId: 'group-02',
-        subjectId: 'subject-03',
-        lessonId: 'lesson-03',
-        materialId: 'material-03',
-        teacherName: 'Ms. Rana',
-        subjectName: 'Arabic',
-        lessonTitle: 'Grammar Basics',
-        createdAt: daysAgo(2),
-        durationSec: 110,
-        title: {
-            en: 'Nominal vs. Verbal Sentences',
-            ar: 'الجملة الاسمية والجملة الفعلية',
-        },
-        summary: {
-            en: 'Learn how to distinguish Arabic sentence structures.',
-            ar: 'تعرف على الفرق بين تركيب الجملة الاسمية والفعلية.',
-        },
-        objective: {
-            en: 'Identify subject, predicate, and verb in context.',
-            ar: 'تحديد المبتدأ والخبر والفعل في السياق.',
-        },
-        keywords: {
-            en: ['noun', 'verb', 'predicate'],
-            ar: ['اسم', 'فعل', 'خبر'],
-        },
-        captions: {
-            en: 'Nominal sentences start with a noun, verbal sentences start with a verb.',
-            ar: 'الجملة الاسمية تبدأ باسم، والفعلية تبدأ بفعل.',
-        },
-        topics: {
-            en: ['Grammar', 'Sentence Structure'],
-            ar: ['النحو', 'تركيب الجملة'],
-        },
-        videoUrl: demoVideo,
-        thumbnailUrl: '/course-arabic.png',
-    },
-    {
-        id: 'reel-04',
-        teacherId: 'teacher-04',
-        groupId: 'group-03',
-        subjectId: 'subject-04',
-        lessonId: 'lesson-04',
-        materialId: 'material-04',
-        teacherName: 'Dr. Yusuf',
-        subjectName: 'Physics',
-        lessonTitle: "Newton's Laws",
-        createdAt: daysAgo(5),
-        durationSec: 95,
-        title: {
-            en: "Newton's First Law in Action",
-            ar: 'قانون نيوتن الأول في الحياة اليومية',
-        },
-        summary: {
-            en: 'Understand inertia with everyday examples.',
-            ar: 'فهم القصور الذاتي من خلال أمثلة يومية.',
-        },
-        objective: {
-            en: 'Explain why objects resist changes in motion.',
-            ar: 'شرح سبب مقاومة الأجسام لتغير الحركة.',
-        },
-        keywords: {
-            en: ['inertia', 'force', 'motion'],
-            ar: ['القصور الذاتي', 'القوة', 'الحركة'],
-        },
-        captions: {
-            en: 'Objects stay in motion unless acted on by a force.',
-            ar: 'الأجسام تبقى في حالتها ما لم تؤثر عليها قوة خارجية.',
-        },
-        topics: {
-            en: ['Forces', 'Motion'],
-            ar: ['القوى', 'الحركة'],
-        },
-        videoUrl: demoVideo,
-        thumbnailUrl: '/course-science.png',
-    },
-    {
-        id: 'reel-05',
-        teacherId: 'teacher-05',
-        groupId: 'group-04',
-        subjectId: 'subject-05',
-        lessonId: 'lesson-05',
-        materialId: 'material-05',
-        teacherName: 'Ms. Dina',
-        subjectName: 'History',
-        lessonTitle: 'Industrial Revolution',
-        createdAt: daysAgo(10),
-        durationSec: 120,
-        title: {
-            en: 'Industrial Revolution Highlights',
-            ar: 'أهم محطات الثورة الصناعية',
-        },
-        summary: {
-            en: 'Key inventions and impacts on society.',
-            ar: 'أبرز الاختراعات وتأثيرها على المجتمع.',
-        },
-        objective: {
-            en: 'Connect technological changes to social shifts.',
-            ar: 'ربط التطورات التقنية بالتغيرات الاجتماعية.',
-        },
-        keywords: {
-            en: ['steam', 'factory', 'urbanization'],
-            ar: ['البخار', 'المصانع', 'التحضر'],
-        },
-        captions: {
-            en: 'Factories reshaped work, cities, and economies worldwide.',
-            ar: 'المصانع غيرت أساليب العمل والمدن والاقتصاد عالمياً.',
-        },
-        topics: {
-            en: ['Industrialization', 'Modern History'],
-            ar: ['التصنيع', 'التاريخ الحديث'],
-        },
-        videoUrl: demoVideo,
-        thumbnailUrl: '/course-science.png',
-    },
-];
+type FilterType = 'all' | 'bookmarked' | 'not_understood';
 
 export default function StudentReelsPage() {
+    const { data: session, status } = useSession();
+    const [reels, setReels] = useState<Reel[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState<FilterType>('all');
+
+    useEffect(() => {
+        // Wait for session to load
+        if (status === 'loading') {
+            return;
+        }
+
+        // Redirect to sign in if not authenticated
+        if (status === 'unauthenticated') {
+            signIn();
+            return;
+        }
+
+        // Fetch reels if authenticated
+        if (status === 'authenticated' && session?.user) {
+            fetchReels();
+        } else {
+            setLoading(false);
+            setError('Unable to retrieve user information. Please try logging in again.');
+        }
+    }, [session, status, filter]);
+
+    const fetchReels = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await fetch(`/api/reels/feed?filter=${filter}&limit=20&offset=0`);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+
+                // Check if this is a database configuration error
+                if (errorData.error?.includes('does not exist') ||
+                    errorData.error?.includes('Database not configured') ||
+                    errorData.details?.includes('relation') ||
+                    response.status === 500) {
+                    throw new Error('DATABASE_NOT_CONFIGURED');
+                }
+
+                throw new Error('Failed to fetch reels');
+            }
+
+            const data = await response.json();
+
+            // Check if we got empty data - might need setup
+            if (!data.reels || data.reels.length === 0) {
+                if (filter === 'all') {
+                    throw new Error('NO_REELS_FOUND');
+                }
+                // For filtered views, empty results are ok
+                setReels([]);
+                return;
+            }
+
+            // Transform API data to Reel format
+            const transformedReels: Reel[] = data.reels.map((reel: any) => ({
+                id: reel.id,
+                title_en: reel.title_en,
+                title_ar: reel.title_ar,
+                description_en: reel.description_en || '',
+                description_ar: reel.description_ar || '',
+                video_url: reel.video_url,
+                thumbnail_url: reel.thumbnail_url || '',
+                duration_seconds: reel.duration_seconds,
+                teacher_id: reel.teacher_id,
+                is_bookmarked: reel.is_bookmarked || false,
+                is_understood: reel.is_understood || false,
+                progress: reel.progress || 0,
+            }));
+
+            setReels(transformedReels);
+        } catch (err: any) {
+            console.error('Error fetching reels:', err);
+            setError(err.message || 'Failed to load reels');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBookmark = useCallback(async (reelId: string) => {
+        try {
+            const response = await fetch(`/api/reels/${reelId}/bookmark`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                // Update local state
+                setReels(prev => prev.map(reel =>
+                    reel.id === reelId ? { ...reel, is_bookmarked: !reel.is_bookmarked } : reel
+                ));
+            }
+        } catch (err) {
+            console.error('Error bookmarking reel:', err);
+        }
+    }, []);
+
+    const handleUnderstood = useCallback(async (reelId: string) => {
+        try {
+            const response = await fetch(`/api/reels/${reelId}/understood`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                // Update local state
+                setReels(prev => prev.map(reel =>
+                    reel.id === reelId ? { ...reel, is_understood: !reel.is_understood } : reel
+                ));
+            }
+        } catch (err) {
+            console.error('Error marking reel as understood:', err);
+        }
+    }, []);
+
+    const handleProgressUpdate = useCallback(async (reelId: string, progress: number, lastPosition: number) => {
+        try {
+            await fetch(`/api/reels/${reelId}/progress`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ progress, lastPosition }),
+            });
+
+            // Update local state
+            setReels(prev => prev.map(reel =>
+                reel.id === reelId ? { ...reel, progress } : reel
+            ));
+        } catch (err) {
+            console.error('Error updating progress:', err);
+        }
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-8">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                        Educational Reels
+                    </h1>
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <p className="text-gray-600 mb-4">
+                            Loading reels...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        // Show setup instructions for database errors
+        if (error === 'DATABASE_NOT_CONFIGURED' || error === 'NO_REELS_FOUND') {
+            return <DatabaseSetupInstructions />;
+        }
+
+        // Show regular error for other issues
+        return (
+            <div className="min-h-screen bg-gray-50 p-8">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                        Educational Reels
+                    </h1>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <p className="text-red-800">
+                            {error}
+                        </p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-6">
-            <ReelsLearningComponent reels={mockReels} />
+        <div className="min-h-screen bg-gray-900">
+            {/* Filter Bar */}
+            <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <h1 className="text-xl font-bold text-white">
+                        Educational Reels
+                    </h1>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setFilter('all')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                filter === 'all'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => setFilter('bookmarked')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                filter === 'bookmarked'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                        >
+                            Bookmarked
+                        </button>
+                        <button
+                            onClick={() => setFilter('not_understood')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                filter === 'not_understood'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                        >
+                            Not Understood
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Reel Feed */}
+            <div className="pt-16">
+                <ReelFeed
+                    reels={reels}
+                    onBookmark={handleBookmark}
+                    onUnderstood={handleUnderstood}
+                    onProgressUpdate={handleProgressUpdate}
+                />
+            </div>
         </div>
     );
 }

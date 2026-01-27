@@ -23,7 +23,7 @@ export function AnnouncementCard({ announcement, onViewAll }: AnnouncementCardPr
     const priorityClass = priorityStyles[announcement.priority || 'normal'];
 
     return (
-        <div className={`card-soft p-5 ${priorityClass} relative overflow-hidden`}>
+        <div className={`card-soft p-5 ${priorityClass} relative overflow-hidden max-h-48`}>
             {/* Decorative pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
                 <svg viewBox="0 0 100 100" className="w-full h-full">

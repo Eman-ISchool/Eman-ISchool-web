@@ -1,8 +1,8 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
@@ -131,13 +131,30 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-    const { data: session } = useSession();
+    const router = useRouter();
+    const { data: session, status } = useSession();
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    // Redirect if not admin
+    useEffect(() => {
+        if (status === 'loading') return;
+
+        // @ts-ignore - role is added to session
+        const role = session?.user?.role;
+
+        if (!session || role !== 'admin') {
+            router.push('/');
+        }
+    }, [session, status, router]);
+
     // @ts-ignore - role is added to session
-    const userRole = session?.user?.role || 'admin';
+    const userRole = session?.user?.role;
+
+    if (status === 'loading' || !session) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    }
 
     // Filter nav items based on user role
     const filteredNavItems = navItems.filter((item) => {

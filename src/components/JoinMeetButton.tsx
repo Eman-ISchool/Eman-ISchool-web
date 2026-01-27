@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Video, Loader2 } from 'lucide-react';
+import { Video, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { isGoogleMeetUrl } from '@/lib/meet-utils';
 
 interface JoinMeetButtonProps {
     lessonId: string;
@@ -58,10 +59,25 @@ export function JoinMeetButton({
         setIsLogging(true);
 
         try {
+            // T013: Validate Meet link before redirect (FR-003)
+            if (!isLive) {
+                if (!meetLink || meetLink.trim() === '') {
+                    setError('لا يوجد رابط اجتماع متاح لهذا الدرس');
+                    setIsLogging(false);
+                    return;
+                }
+
+                if (!isGoogleMeetUrl(meetLink)) {
+                    setError('رابط الاجتماع غير صالح. يرجى التواصل مع المعلم للحصول على الرابط الصحيح');
+                    setIsLogging(false);
+                    return;
+                }
+            }
+
             // Log attendance before redirecting
             await logAttendance();
 
-            // Navigate to the appropriate destination
+            // Navigate to appropriate destination
             if (isLive) {
                 window.location.href = `/dashboard/classroom/${lessonId}`;
             } else {
@@ -111,4 +127,3 @@ export function JoinMeetButton({
         </Button>
     );
 }
-

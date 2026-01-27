@@ -1,14 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Settings, Search } from 'lucide-react';
+import { Bell, Settings } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
+import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
 import { AssignmentList } from '@/components/student/AssignmentList';
 import { TeacherCardList } from '@/components/student/TeacherCardList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
 import { useLanguage } from '@/context/LanguageContext';
+
+interface ApiAnnouncement {
+    id: string;
+    title: string;
+    content: string;
+    priority: 'high' | 'medium' | 'low';
+    target: string;
+    publishedAt: string;
+    isPinned: boolean;
+}
 
 // Skeleton loader component
 function Skeleton({ className }: { className?: string }) {
@@ -19,15 +31,29 @@ function Skeleton({ className }: { className?: string }) {
 // ...
 
 export default function StudentHomePage() {
+    const router = useRouter();
     const { data: session } = useSession();
     const { t, language } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [topAnnouncement, setTopAnnouncement] = useState<ApiAnnouncement | null>(null);
 
     useEffect(() => {
-        // Simulate API loading
-        const timer = setTimeout(() => setLoading(false), 1000);
-        return () => clearTimeout(timer);
+        // Fetch announcements from API
+        const fetchAnnouncements = async () => {
+            try {
+                const response = await fetch('/api/announcements?role=student');
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    setTopAnnouncement(data.data[0]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch announcements:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAnnouncements();
     }, []);
 
     const handleUpload = async (assignmentId: string, file: File) => {
@@ -163,6 +189,18 @@ export default function StudentHomePage() {
 
     return (
         <div className="space-y-6">
+            {/* Top Announcement Bar from Admin */}
+            {topAnnouncement && (
+                <AnnouncementBar
+                    announcement={{
+                        id: topAnnouncement.id,
+                        text: topAnnouncement.title,
+                        createdAt: topAnnouncement.publishedAt,
+                    }}
+                    onViewAll={() => console.log('View all announcements')}
+                />
+            )}
+
             {/* Header */}
             <header className="flex items-center justify-between">
                 <div>
@@ -184,10 +222,8 @@ export default function StudentHomePage() {
 
             {/* Search - Removed per user request */}
 
-            {/* Announcement */}
-            {loading ? (
-                <Skeleton className="h-32" />
-            ) : (
+            {/* Announcement - Only show when loaded and has content */}
+            {!loading && mockAnnouncement && (
                 <AnnouncementCard
                     announcement={mockAnnouncement}
                     onViewAll={() => console.log('View all announcements')}
@@ -240,8 +276,8 @@ export default function StudentHomePage() {
                 <TeacherCardList
                     teachers={mockTeachers}
                     title={t('home.teachers')}
-                    onSeeAll={() => console.log('See all teachers')}
-                    onMessage={(id) => console.log('Message teacher:', id)}
+                    onSeeAll={() => router.push('/student/chat')}
+                    onMessage={(id) => router.push(`/student/chat?teacher=${id}`)}
                 />
             )}
 

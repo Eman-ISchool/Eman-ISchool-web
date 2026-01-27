@@ -34,3 +34,28 @@ export function formatMeetLink(url: string): string {
 export function hasMeetLink(meetLink: string | null | undefined): boolean {
     return isGoogleMeetUrl(meetLink);
 }
+
+/**
+ * Validates a Google Meet link for joining and returns structured validation result
+ * Used by the classroom page to validate before opening the Meet link
+ */
+export function validateMeetLinkForJoining(meetLink: string | null | undefined): {
+    isValid: boolean;
+    error?: string;
+} {
+    if (!meetLink || meetLink.trim() === '') {
+        return {
+            isValid: false,
+            error: 'لا يوجد رابط اجتماع متاح لهذا الدرس'
+        };
+    }
+
+    if (!isGoogleMeetUrl(meetLink)) {
+        return {
+            isValid: false,
+            error: 'رابط الاجتماع غير صالح. يرجى التواصل مع المعلم للحصول على الرابط الصحيح'
+        };
+    }
+
+    return { isValid: true };
+}

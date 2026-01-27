@@ -192,16 +192,33 @@ const translations = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+const LANGUAGE_STORAGE_KEY = 'eduverse-language';
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
     // Default to Arabic (RTL)
     const [language, setLanguage] = useState<Language>('ar');
     const [direction, setDirection] = useState<Direction>('rtl');
+    const [isInitialized, setIsInitialized] = useState(false);
 
+    // Load saved language preference on mount
     useEffect(() => {
-        // Update HTML attributes when language changes
+        const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language | null;
+        if (savedLanguage && (savedLanguage === 'ar' || savedLanguage === 'en')) {
+            setLanguage(savedLanguage);
+            setDirection(savedLanguage === 'ar' ? 'rtl' : 'ltr');
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Update HTML attributes and save to localStorage when language changes
+    useEffect(() => {
         document.documentElement.lang = language;
         document.documentElement.dir = direction;
-    }, [language, direction]);
+        // Only save to localStorage after initial load to avoid overwriting saved preference
+        if (isInitialized) {
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+        }
+    }, [language, direction, isInitialized]);
 
     const toggleLanguage = () => {
         setLanguage(prev => {

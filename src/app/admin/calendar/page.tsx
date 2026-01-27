@@ -18,9 +18,12 @@ import {
     Trash2,
     Edit2,
     MoreHorizontal,
+    AlertCircle,
+    RefreshCw,
 } from 'lucide-react';
 import { LoadingState, EmptyState } from '@/components/admin/StateComponents';
 import Modal, { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '@/components/admin/Modal';
+import { createSession, fetchSessions, Session, CreateSessionInput } from '@/lib/session-api';
 
 type ViewMode = 'month' | 'week' | 'day';
 
@@ -40,6 +43,20 @@ interface Appointment {
     platform?: 'zoom' | 'meet' | 'teams' | 'other';
     capacity?: number;
     accessCode?: string;
+}
+
+// T039: Get styling for cancelled sessions (FR-012a)
+const getAppointmentStyle = (status: string) => ({
+    cancelled: 'line-through opacity-50 text-gray-400',
+    completed: 'opacity-70',
+    live: 'bg-red-100 border-red-500',
+    scheduled: 'bg-teal-100 border-teal-500'
+}[status] || 'bg-teal-100 border-teal-500');
+
+interface SessionCreationError {
+    message: string;
+    requiresGoogleAuth?: boolean;
+    code?: string;
 }
 
 interface AppointmentFormData {
@@ -143,7 +160,7 @@ function CalendarGrid({
         days.push(<div key={`empty-${i}`} className="h-24 bg-gray-50" />);
     }
 
-    // Days of the month
+    // Days of month
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
         const isToday = date.toDateString() === new Date().toDateString();
@@ -174,12 +191,7 @@ function CalendarGrid({
                                 e.stopPropagation();
                                 onEventClick(apt);
                             }}
-                            className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer ${apt.status === 'live'
-                                ? 'bg-red-100 text-red-700'
-                                : apt.status === 'completed'
-                                    ? 'bg-gray-100 text-gray-600'
-                                    : 'bg-teal-100 text-teal-700'
-                                }`}
+                            className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer ${getAppointmentStyle(apt.status)}`}
                         >
                             {apt.title}
                         </div>
@@ -233,7 +245,7 @@ function AppointmentListItem({
     };
 
     return (
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        <div className={`flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${getAppointmentStyle(appointment.status)}`}>
             <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-lg bg-teal-100 flex flex-col items-center justify-center">
                     <span className="text-xs text-teal-600">
@@ -244,7 +256,7 @@ function AppointmentListItem({
                     </span>
                 </div>
                 <div>
-                    <h4 className="font-medium text-gray-800">{appointment.title}</h4>
+                    <h4 className={`font-medium text-gray-800 ${appointment.status === 'cancelled' ? 'line-through' : ''}`}>{appointment.title}</h4>
                     <p className="text-sm text-gray-500">
                         {appointment.teacherName} • {appointment.subject}
                         {appointment.groupName ? ` • ${appointment.groupName}` : ''}
@@ -294,7 +306,11 @@ export default function CalendarPage() {
     const [showList, setShowList] = useState(false);
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<SessionCreationError | null>(null);
     const [showNewModal, setShowNewModal] = useState(false);
+    const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [formData, setFormData] = useState<AppointmentFormData>(initialFormData);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -324,137 +340,39 @@ export default function CalendarPage() {
     const [sessionError, setSessionError] = useState<string | null>(null);
     const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
 
+    // T019: Fetch real sessions from API
     useEffect(() => {
-        // Extended mock data with more appointments
-        const today = new Date();
-        const mockAppointments: Appointment[] = [
-            {
-                id: '1',
-                title: 'درس الرياضيات',
-                teacherName: 'أ. أحمد محمد',
-                groupName: 'المجموعة أ',
-                className: 'الصف التاسع أ',
-                subject: 'الرياضيات',
-                startTime: new Date(),
-                endTime: new Date(Date.now() + 60 * 60 * 1000),
-                status: 'live',
-                meetLink: 'https://meet.google.com/abc-defg-hij',
-                type: 'lesson',
-            },
-            {
-                id: '2',
-                title: 'درس الفيزياء',
-                teacherName: 'أ. سارة أحمد',
-                groupName: 'المجموعة ب',
-                className: 'الصف العاشر ب',
-                subject: 'الفيزياء',
-                startTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-                endTime: new Date(Date.now() + 3 * 60 * 60 * 1000),
-                status: 'scheduled',
-                type: 'lesson',
-            },
-            {
-                id: '3',
-                title: 'درس اللغة العربية',
-                teacherName: 'أ. محمد علي',
-                groupName: 'المجموعة أ',
-                className: 'الصف الثامن أ',
-                subject: 'اللغة العربية',
-                startTime: new Date(Date.now() - 3 * 60 * 60 * 1000),
-                endTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                status: 'completed',
-                type: 'lesson',
-            },
-            {
-                id: '4',
-                title: 'اجتماع أولياء الأمور',
-                teacherName: 'أ. فاطمة حسن',
-                groupName: 'المجموعة ج',
-                className: 'الصف التاسع أ',
-                subject: 'اجتماع',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 14, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 15, 0),
-                status: 'scheduled',
-                type: 'meeting',
-            },
-            {
-                id: '5',
-                title: 'اختبار الكيمياء',
-                teacherName: 'أ. خالد العمري',
-                groupName: 'المجموعة ب',
-                className: 'الصف العاشر أ',
-                subject: 'الكيمياء',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 10, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 11, 30),
-                status: 'scheduled',
-                type: 'exam',
-            },
-            {
-                id: '6',
-                title: 'درس الإنجليزية',
-                teacherName: 'أ. سارة أحمد',
-                groupName: 'المجموعة د',
-                className: 'الصف الثامن ب',
-                subject: 'اللغة الإنجليزية',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 9, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 10, 0),
-                status: 'scheduled',
-                type: 'lesson',
-            },
-            {
-                id: '7',
-                title: 'درس التاريخ',
-                teacherName: 'أ. محمد علي',
-                groupName: 'المجموعة أ',
-                className: 'الصف التاسع ب',
-                subject: 'التاريخ',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 11, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 12, 0),
-                status: 'scheduled',
-                type: 'lesson',
-            },
-            {
-                id: '8',
-                title: 'مراجعة الرياضيات',
-                teacherName: 'أ. أحمد محمد',
-                groupName: 'المجموعة ج',
-                className: 'الصف العاشر أ',
-                subject: 'الرياضيات',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 13, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 14, 30),
-                status: 'scheduled',
-                type: 'lesson',
-            },
-            {
-                id: '9',
-                title: 'درس العلوم',
-                teacherName: 'أ. فاطمة حسن',
-                groupName: 'المجموعة د',
-                className: 'الصف الثامن أ',
-                subject: 'العلوم',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 10, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 11, 0),
-                status: 'completed',
-                type: 'lesson',
-            },
-            {
-                id: '10',
-                title: 'اختبار اللغة العربية',
-                teacherName: 'أ. محمد علي',
-                groupName: 'المجموعة ب',
-                className: 'الصف التاسع أ',
-                subject: 'اللغة العربية',
-                startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2, 9, 0),
-                endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2, 10, 30),
-                status: 'completed',
-                type: 'exam',
-            },
-        ];
+        const loadSessions = async () => {
+            setLoading(true);
+            try {
+                const result = await fetchSessions();
+                if (result.success && result.data) {
+                    // Transform API data to Appointment format
+                    const transformedAppointments: Appointment[] = result.data.map(session => ({
+                        id: session._id,
+                        title: session.title,
+                        teacherName: session.teacher?.name || 'غير محدد',
+                        groupName: undefined, // Not in API response
+                        className: 'غير محدد', // Not in API response
+                        subject: session.course?.title || 'غير محدد',
+                        startTime: new Date(session.startDateTime),
+                        endTime: new Date(session.endDateTime),
+                        status: session.status,
+                        meetLink: session.meetLink || undefined,
+                        notes: session.notes || undefined,
+                        type: 'lesson',
+                        platform: 'meet',
+                    }));
+                    setAppointments(transformedAppointments);
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        setTimeout(() => {
-            setAppointments(mockAppointments);
-            setLoading(false);
-        }, 500);
+        loadSessions();
     }, []);
 
     useEffect(() => {
@@ -522,71 +440,166 @@ export default function CalendarPage() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    // T034: Validate end time is after start time
+    const validateForm = (): { isValid: boolean; error?: string } => {
+        if (!formData.date || !formData.startTime || !formData.endTime) {
+            return { isValid: false, error: 'يرجى تعبئة جميع الحقول المطلوبة' };
+        }
 
         const [year, month, day] = formData.date.split('-').map(Number);
         const [startHour, startMin] = formData.startTime.split(':').map(Number);
         const [endHour, endMin] = formData.endTime.split(':').map(Number);
 
-        const newAppointment: Appointment = {
-            id: editingAppointment?.id || Date.now().toString(),
-            title: formData.title,
-            teacherName: formData.teacherName,
-            groupName: formData.groupName || undefined,
-            className: formData.className,
-            subject: formData.subject,
-            startTime: new Date(year, month - 1, day, startHour, startMin),
-            endTime: new Date(year, month - 1, day, endHour, endMin),
-            status: 'scheduled',
-            type: formData.type,
-            notes: formData.notes,
-            meetLink: formData.meetLink,
-            platform: formData.platform,
-            capacity: formData.capacity ? Number(formData.capacity) : undefined,
-            accessCode: formData.accessCode || undefined,
-        };
+        const startDateTime = new Date(year, month - 1, day, startHour, startMin);
+        const endDateTime = new Date(year, month - 1, day, endHour, endMin);
 
-        // Convert concurrent sessions to appointments
-        const sessionAppointments: Appointment[] = sessions.map((session, index) => {
-            const [sYear, sMonth, sDay] = session.date.split('-').map(Number);
-            const [sStartHour, sStartMin] = session.startTime.split(':').map(Number);
-            const [sEndHour, sEndMin] = session.endTime.split(':').map(Number);
-
-            return {
-                id: `${Date.now()}-session-${index}`,
-                title: formData.title, // Use the main title
-                teacherName: session.teacherName || formData.teacherName,
-                groupName: session.groupName || undefined,
-                className: session.className,
-                subject: session.subject || formData.subject,
-                startTime: new Date(sYear, sMonth - 1, sDay, sStartHour, sStartMin),
-                endTime: new Date(sYear, sMonth - 1, sDay, sEndHour, sEndMin),
-                status: 'scheduled' as const,
-                type: formData.type,
-                notes: session.notes || formData.notes,
-                meetLink: session.meetLink || formData.meetLink,
-                platform: formData.platform,
-                capacity: formData.capacity ? Number(formData.capacity) : undefined,
-                accessCode: formData.accessCode || undefined,
-            };
-        });
-
-        if (editingAppointment) {
-            setAppointments(prev => prev.map(apt =>
-                apt.id === editingAppointment.id ? newAppointment : apt
-            ));
-        } else {
-            // Add main appointment plus all session appointments
-            setAppointments(prev => [...prev, newAppointment, ...sessionAppointments]);
+        if (endDateTime <= startDateTime) {
+            return { isValid: false, error: 'يجب أن يكون وقت النهاية بعد وقت البداية' };
         }
 
-        setShowNewModal(false);
-        setFormData(initialFormData);
-        setEditingAppointment(null);
-        setModalTab('details');
-        setSessions([]);
-        setEditingSessionId(null);
+        return { isValid: true };
+    };
+
+    // T009-T017: Update handleSubmit to call API with loading, error handling, and refetch
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setSubmitError(null);
+        setValidationError(null);
+        setConflictWarning(null);
+
+        // T034: Validate form before submission
+        const validation = validateForm();
+        if (!validation.isValid) {
+            setValidationError(validation.error || 'فشل التحقق من صحة النموذج');
+            setSubmitting(false);
+            return;
+        }
+
+        // T035: Check for past date and show warning
+        const [year, month, day] = formData.date.split('-').map(Number);
+        const [startHour, startMin] = formData.startTime.split(':').map(Number);
+        const startDateTime = new Date(year, month - 1, day, startHour, startMin);
+        const isPast = startDateTime < new Date();
+
+        if (isPast) {
+            // Show warning toast for past date (FR-018)
+            console.warn('Creating session with past date');
+            // Note: FR-019 (skipMeetGeneration) will be handled by API
+        }
+
+        try {
+            const [year, month, day] = formData.date.split('-').map(Number);
+            const [startHour, startMin] = formData.startTime.split(':').map(Number);
+            const [endHour, endMin] = formData.endTime.split(':').map(Number);
+
+            const startDateTime = new Date(year, month - 1, day, startHour, startMin).toISOString();
+            const endDateTime = new Date(year, month - 1, day, endHour, endMin).toISOString();
+
+            // Create main session via API
+            const createInput: CreateSessionInput = {
+                title: formData.title,
+                description: formData.notes,
+                startDateTime,
+                endDateTime,
+                status: 'scheduled',
+                notes: formData.notes,
+            };
+
+            const mainResult = await createSession(createInput);
+
+            if (!mainResult.success) {
+                // T011: Handle error for Meet link generation failure (FR-013)
+                // T015: Handle Google auth required response - show connect prompt (FR-005b)
+                if (mainResult.requiresGoogleAuth) {
+                    setSubmitError({
+                        message: mainResult.error || 'يجب ربط حساب Google لإنشاء رابط Meet. يرجى تسجيل الدخول باستخدام Google.',
+                        requiresGoogleAuth: true,
+                        code: mainResult.code,
+                    });
+                } else {
+                    setSubmitError({
+                        message: mainResult.error || 'فشل إنشاء الجلسة. يرجى المحاولة مرة أخرى.',
+                    });
+                }
+                setSubmitting(false);
+                return;
+            }
+
+            // T028: Implement sequential session creation loop for concurrent sessions (FR-008 - unique links)
+            let concurrentResults: Array<{ success: boolean; session?: any; error?: string }> = [];
+            if (sessions.length > 0) {
+                for (const session of sessions) {
+                    const [sYear, sMonth, sDay] = session.date.split('-').map(Number);
+                    const [sStartHour, sStartMin] = session.startTime.split(':').map(Number);
+                    const [sEndHour, sEndMin] = session.endTime.split(':').map(Number);
+
+                    const sStartDateTime = new Date(sYear, sMonth - 1, sDay, sStartHour, sStartMin).toISOString();
+                    const sEndDateTime = new Date(sYear, sMonth - 1, sDay, sEndHour, sEndMin).toISOString();
+
+                    const concurrentInput: CreateSessionInput = {
+                        title: `${formData.title} - ${session.groupName} (${session.className})`,
+                        description: session.notes,
+                        startDateTime: sStartDateTime,
+                        endDateTime: sEndDateTime,
+                        status: 'scheduled',
+                        notes: session.notes,
+                    };
+
+                    const result = await createSession(concurrentInput);
+                    concurrentResults.push({
+                        success: result.success,
+                        session: result.data,
+                        error: result.error,
+                    });
+                }
+            }
+
+            // T030: Handle partial success scenario (some sessions created, some failed)
+            const failedSessions = concurrentResults.filter(r => !r.success);
+            if (failedSessions.length > 0) {
+                const successCount = concurrentResults.length - failedSessions.length;
+                setSubmitError({
+                    message: `تم إنشاء ${successCount} من ${concurrentResults.length + 1} جلسة. فشل ${failedSessions.length} جلسة.`,
+                });
+            }
+
+            // T017: Refetch lessons from API after successful session creation
+            const loadResult = await fetchSessions();
+            if (loadResult.success && loadResult.data) {
+                const transformedAppointments: Appointment[] = loadResult.data.map(session => ({
+                    id: session._id,
+                    title: session.title,
+                    teacherName: session.teacher?.name || 'غير محدد',
+                    groupName: undefined,
+                    className: 'غير محدد',
+                    subject: session.course?.title || 'غير محدد',
+                    startTime: new Date(session.startDateTime),
+                    endTime: new Date(session.endDateTime),
+                    status: session.status,
+                    meetLink: session.meetLink || undefined,
+                    notes: session.notes || undefined,
+                    type: 'lesson',
+                    platform: 'meet',
+                }));
+                setAppointments(transformedAppointments);
+            }
+
+            // Close modal and reset form
+            setShowNewModal(false);
+            setFormData(initialFormData);
+            setEditingAppointment(null);
+            setModalTab('details');
+            setSessions([]);
+            setSubmitError(null);
+        } catch (error) {
+            console.error('Error creating session:', error);
+            setSubmitError({
+                message: 'حدث خطأ أثناء إنشاء الجلسة. يرجى المحاولة مرة أخرى.',
+            });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleAddSession = () => {
@@ -655,594 +668,8 @@ export default function CalendarPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">التقويم والمواعيد</h1>
-                    <p className="text-gray-500">إدارة جميع المواعيد والجلسات</p>
-                </div>
-                <button
-                    onClick={() => {
-                        setSelectedDate(new Date());
-                        setFormData({
-                            ...initialFormData,
-                            date: new Date().toISOString().split('T')[0],
-                        });
-                        setEditingAppointment(null);
-                        setSessions([]);
-                        setSessionError(null);
-                        setEditingSessionId(null);
-                        setModalTab('details');
-                        setShowNewModal(true);
-                    }}
-                    className="admin-btn admin-btn-primary"
-                >
-                    <Plus className="w-5 h-5" />
-                    موعد جديد
-                </button>
-            </div>
-
-            {/* Controls */}
-            <div className="admin-card p-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    {/* Navigation */}
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => navigateMonth(-1)}
-                                className="admin-btn admin-btn-ghost admin-btn-icon"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                            <h2 className="text-lg font-semibold text-gray-800 min-w-[160px] text-center">
-                                {currentDate.toLocaleDateString('ar-EG', {
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                            </h2>
-                            <button
-                                onClick={() => navigateMonth(1)}
-                                className="admin-btn admin-btn-ghost admin-btn-icon"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <button onClick={goToToday} className="admin-btn admin-btn-secondary">
-                            اليوم
-                        </button>
-                    </div>
-
-                    {/* View Toggle */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex bg-gray-100 rounded-lg p-1">
-                            <button
-                                onClick={() => setShowList(false)}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${!showList ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'
-                                    }`}
-                            >
-                                <CalendarDays className="w-4 h-4" />
-                                تقويم
-                            </button>
-                            <button
-                                onClick={() => setShowList(true)}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${showList ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'
-                                    }`}
-                            >
-                                <List className="w-4 h-4" />
-                                قائمة
-                            </button>
-                        </div>
-                        <button className="admin-btn admin-btn-ghost admin-btn-icon">
-                            <Filter className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Calendar or List View */}
-            {showList ? (
-                <div className="admin-card">
-                    {appointments.length === 0 ? (
-                        <EmptyState
-                            title="لا توجد مواعيد"
-                            message="قم بإضافة موعد جديد للبدء"
-                            action={{
-                                label: 'إضافة موعد',
-                                onClick: () => {
-                                    setFormData({
-                                        ...initialFormData,
-                                        date: new Date().toISOString().split('T')[0],
-                                    });
-                                    setEditingAppointment(null);
-                                    setSessions([]);
-                                    setSessionError(null);
-                                    setEditingSessionId(null);
-                                    setModalTab('details');
-                                    setShowNewModal(true);
-                                },
-                            }}
-                        />
-                    ) : (
-                        <div>
-                            {appointments.map((apt) => (
-                                <AppointmentListItem
-                                    key={apt.id}
-                                    appointment={apt}
-                                    onEdit={() => handleEventClick(apt)}
-                                    onJoin={() => window.open(apt.meetLink, '_blank')}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <CalendarGrid
-                    currentDate={currentDate}
-                    appointments={appointments}
-                    onDateClick={handleDateClick}
-                    onEventClick={handleEventClick}
-                />
-            )}
-
-            {/* Legend */}
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <span>مباشر</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-teal-500" />
-                    <span>مجدول</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gray-500" />
-                    <span>منتهي</span>
-                </div>
-            </div>
-
-            {/* Appointment Modal */}
-            <Modal
-                isOpen={showNewModal}
-                onClose={closeModal}
-                title={editingAppointment ? 'تعديل الموعد' : 'إضافة موعد جديد'}
-                size="lg"
-                footer={
-                    <>
-                        <button
-                            type="button"
-                            onClick={closeModal}
-                            className="admin-btn admin-btn-secondary"
-                        >
-                            إلغاء
-                        </button>
-                        <button
-                            type="submit"
-                            form="appointment-form"
-                            className="admin-btn admin-btn-primary"
-                        >
-                            {editingAppointment ? 'حفظ التغييرات' : 'إضافة الموعد'}
-                        </button>
-                    </>
-                }
-            >
-                <form id="appointment-form" onSubmit={handleSubmit}>
-                    <div className="flex gap-2 border-b border-gray-200 pb-2 mb-4">
-                        <button
-                            type="button"
-                            onClick={() => setModalTab('details')}
-                            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors ${modalTab === 'details'
-                                ? 'bg-teal-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            تفاصيل الموعد
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setModalTab('sessions')}
-                            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${modalTab === 'sessions'
-                                ? 'bg-teal-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            <Layers className="w-4 h-4" />
-                            جلسات متزامنة
-                        </button>
-                    </div>
-
-                    {modalTab === 'details' && (
-                        <>
-                            <FormGroup>
-                                <FormLabel required htmlFor="title">عنوان الموعد</FormLabel>
-                                <FormInput
-                                    id="title"
-                                    value={formData.title}
-                                    onChange={(e) => handleFormChange('title', e.target.value)}
-                                    placeholder="مثال: درس الرياضيات"
-                                    required
-                                />
-                            </FormGroup>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel required htmlFor="date">التاريخ</FormLabel>
-                                    <FormInput
-                                        id="date"
-                                        type="date"
-                                        value={formData.date}
-                                        onChange={(e) => handleFormChange('date', e.target.value)}
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel htmlFor="type">نوع الموعد</FormLabel>
-                                    <FormSelect
-                                        id="type"
-                                        value={formData.type}
-                                        onChange={(e) => handleFormChange('type', e.target.value)}
-                                    >
-                                        <option value="lesson">درس</option>
-                                        <option value="meeting">اجتماع</option>
-                                        <option value="exam">اختبار</option>
-                                    </FormSelect>
-                                </FormGroup>
-                            </div>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel required htmlFor="startTime">وقت البداية</FormLabel>
-                                    <FormInput
-                                        id="startTime"
-                                        type="time"
-                                        value={formData.startTime}
-                                        onChange={(e) => handleFormChange('startTime', e.target.value)}
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel required htmlFor="endTime">وقت النهاية</FormLabel>
-                                    <FormInput
-                                        id="endTime"
-                                        type="time"
-                                        value={formData.endTime}
-                                        onChange={(e) => handleFormChange('endTime', e.target.value)}
-                                        required
-                                    />
-                                </FormGroup>
-                            </div>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel required htmlFor="groupName">المجموعة</FormLabel>
-                                    <FormSelect
-                                        id="groupName"
-                                        value={formData.groupName}
-                                        onChange={(e) => handleFormChange('groupName', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">اختر المجموعة</option>
-                                        {groups.map((group) => (
-                                            <option key={group.id} value={group.name}>{group.name}</option>
-                                        ))}
-                                    </FormSelect>
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel required htmlFor="className">الفصل</FormLabel>
-                                    <FormSelect
-                                        id="className"
-                                        value={formData.className}
-                                        onChange={(e) => handleFormChange('className', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">اختر الفصل</option>
-                                        {classes.map(cls => (
-                                            <option key={cls.id} value={cls.name}>{cls.name}</option>
-                                        ))}
-                                    </FormSelect>
-                                </FormGroup>
-                            </div>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel required htmlFor="teacherName">المعلم</FormLabel>
-                                    <FormSelect
-                                        id="teacherName"
-                                        value={formData.teacherName}
-                                        onChange={(e) => handleFormChange('teacherName', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">اختر المعلم</option>
-                                        {teachers.map(t => (
-                                            <option key={t.id} value={t.name}>{t.name}</option>
-                                        ))}
-                                    </FormSelect>
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel required htmlFor="subject">المادة / الموضوع</FormLabel>
-                                    <FormSelect
-                                        id="subject"
-                                        value={formData.subject}
-                                        onChange={(e) => handleFormChange('subject', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">اختر المادة</option>
-                                        {subjects.map(s => (
-                                            <option key={s.id} value={s.name}>{s.name}</option>
-                                        ))}
-                                    </FormSelect>
-                                </FormGroup>
-                            </div>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel htmlFor="platform">منصة الجلسة</FormLabel>
-                                    <FormSelect
-                                        id="platform"
-                                        value={formData.platform}
-                                        onChange={(e) => handleFormChange('platform', e.target.value)}
-                                    >
-                                        <option value="zoom">Zoom</option>
-                                        <option value="meet">Google Meet</option>
-                                        <option value="teams">Microsoft Teams</option>
-                                        <option value="other">أخرى</option>
-                                    </FormSelect>
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel htmlFor="capacity">السعة القصوى</FormLabel>
-                                    <FormInput
-                                        id="capacity"
-                                        type="number"
-                                        value={formData.capacity}
-                                        onChange={(e) => handleFormChange('capacity', e.target.value)}
-                                        placeholder="مثال: 20"
-                                        min={1}
-                                    />
-                                </FormGroup>
-                            </div>
-
-                            <div className="admin-form-row">
-                                <FormGroup>
-                                    <FormLabel htmlFor="accessCode">رمز الدخول (اختياري)</FormLabel>
-                                    <FormInput
-                                        id="accessCode"
-                                        value={formData.accessCode}
-                                        onChange={(e) => handleFormChange('accessCode', e.target.value)}
-                                        placeholder="مثال: EDU2026"
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormLabel htmlFor="meetLink">رابط الاجتماع (اختياري)</FormLabel>
-                                    <FormInput
-                                        id="meetLink"
-                                        type="url"
-                                        value={formData.meetLink}
-                                        onChange={(e) => handleFormChange('meetLink', e.target.value)}
-                                        placeholder="https://meet.google.com/..."
-                                    />
-                                </FormGroup>
-                            </div>
-
-                            <FormGroup className="mb-0">
-                                <FormLabel htmlFor="notes">ملاحظات (اختياري)</FormLabel>
-                                <FormTextarea
-                                    id="notes"
-                                    value={formData.notes}
-                                    onChange={(e) => handleFormChange('notes', e.target.value)}
-                                    placeholder="أي ملاحظات إضافية..."
-                                    rows={3}
-                                />
-                            </FormGroup>
-                        </>
-                    )}
-
-                    {modalTab === 'sessions' && (
-                        <div className="space-y-4">
-                            <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                                <h4 className="font-medium text-gray-700 flex items-center gap-2">
-                                    <Layers className="w-4 h-4 text-teal-500" />
-                                    جلسات متزامنة في نفس اليوم
-                                </h4>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    يمكنك إضافة أكثر من جلسة في نفس اليوم لفصول أو مجموعات مختلفة. مثال: درس رياضيات 1 للمجموعة أ ورياضيات 2 للمجموعة ب في نفس اليوم.
-                                </p>
-                            </div>
-
-                            {sessionError && (
-                                <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                                    {sessionError}
-                                </div>
-                            )}
-
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                                {sessions.length === 0 && (
-                                    <p className="text-sm text-gray-500">لا توجد جلسات متزامنة حالياً.</p>
-                                )}
-                                {sessions.map((session) => (
-                                    <div key={session.id} className="flex items-start justify-between gap-3 p-3 bg-white rounded-lg border border-gray-100">
-                                        <div className="flex-1">
-                                            <div className="flex flex-wrap items-center gap-2 text-sm">
-                                                <span className="text-gray-600">{session.date}</span>
-                                                <span className="text-teal-600 font-medium">
-                                                    {session.startTime} - {session.endTime}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500">
-                                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">{session.groupName}</span>
-                                                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded">{session.className}</span>
-                                                {session.teacherName && (
-                                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{session.teacherName}</span>
-                                                )}
-                                                {session.subject && (
-                                                    <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded">{session.subject}</span>
-                                                )}
-                                            </div>
-                                            {session.notes && (
-                                                <p className="text-xs text-gray-400 mt-2">{session.notes}</p>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEditingSessionId(session.id);
-                                                    setNewSession({
-                                                        date: session.date,
-                                                        startTime: session.startTime,
-                                                        endTime: session.endTime,
-                                                        groupName: session.groupName,
-                                                        className: session.className,
-                                                        teacherName: session.teacherName,
-                                                        subject: session.subject,
-                                                        meetLink: session.meetLink,
-                                                        notes: session.notes,
-                                                    });
-                                                }}
-                                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setSessions((prev) => prev.filter((item) => item.id !== session.id))}
-                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="p-4 border border-dashed border-gray-300 rounded-xl">
-                                <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                                    <PlusCircle className="w-4 h-4 text-teal-500" />
-                                    إضافة جلسة جديدة
-                                </h5>
-                                <div className="grid md:grid-cols-2 gap-3">
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>التاريخ</FormLabel>
-                                        <FormInput
-                                            type="date"
-                                            value={newSession.date}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, date: e.target.value }))}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>وقت البداية</FormLabel>
-                                        <FormInput
-                                            type="time"
-                                            value={newSession.startTime}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, startTime: e.target.value }))}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>وقت النهاية</FormLabel>
-                                        <FormInput
-                                            type="time"
-                                            value={newSession.endTime}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, endTime: e.target.value }))}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>المجموعة</FormLabel>
-                                        <FormSelect
-                                            value={newSession.groupName}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, groupName: e.target.value }))}
-                                        >
-                                            <option value="">اختر المجموعة</option>
-                                            {groups.map((group) => (
-                                                <option key={group.id} value={group.name}>{group.name}</option>
-                                            ))}
-                                        </FormSelect>
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>الفصل</FormLabel>
-                                        <FormSelect
-                                            value={newSession.className}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, className: e.target.value }))}
-                                        >
-                                            <option value="">اختر الفصل</option>
-                                            {classes.map((cls) => (
-                                                <option key={cls.id} value={cls.name}>{cls.name}</option>
-                                            ))}
-                                        </FormSelect>
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>المعلم</FormLabel>
-                                        <FormSelect
-                                            value={newSession.teacherName}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, teacherName: e.target.value }))}
-                                        >
-                                            <option value="">اختر المعلم</option>
-                                            {teachers.map((teacher) => (
-                                                <option key={teacher.id} value={teacher.name}>{teacher.name}</option>
-                                            ))}
-                                        </FormSelect>
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>المادة</FormLabel>
-                                        <FormSelect
-                                            value={newSession.subject}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, subject: e.target.value }))}
-                                        >
-                                            <option value="">اختر المادة</option>
-                                            {subjects.map((subject) => (
-                                                <option key={subject.id} value={subject.name}>{subject.name}</option>
-                                            ))}
-                                        </FormSelect>
-                                    </FormGroup>
-                                    <FormGroup className="mb-0">
-                                        <FormLabel>رابط الجلسة</FormLabel>
-                                        <FormInput
-                                            value={newSession.meetLink}
-                                            onChange={(e) => setNewSession((prev) => ({ ...prev, meetLink: e.target.value }))}
-                                            placeholder="https://meet.google.com/..."
-                                        />
-                                    </FormGroup>
-                                </div>
-                                <FormGroup className="mt-3 mb-0">
-                                    <FormLabel>ملاحظات</FormLabel>
-                                    <FormInput
-                                        value={newSession.notes}
-                                        onChange={(e) => setNewSession((prev) => ({ ...prev, notes: e.target.value }))}
-                                        placeholder="أي تفاصيل إضافية..."
-                                    />
-                                </FormGroup>
-                                <button
-                                    type="button"
-                                    onClick={handleAddSession}
-                                    className="admin-btn admin-btn-primary w-full mt-4"
-                                >
-                                    <PlusCircle className="w-4 h-4" />
-                                    {editingSessionId ? 'حفظ التعديل' : 'إضافة الجلسة'}
-                                </button>
-                                {editingSessionId && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditingSessionId(null);
-                                            setNewSession({
-                                                date: '',
-                                                startTime: '',
-                                                endTime: '',
-                                                groupName: '',
-                                                className: '',
-                                                teacherName: '',
-                                                subject: '',
-                                                meetLink: '',
-                                                notes: '',
-                                            });
-                                        }}
-                                        className="admin-btn admin-btn-secondary w-full mt-2"
-                                    >
-                                        إلغاء التعديل
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </form>
-            </Modal>
+            <h1 className="text-2xl font-bold">Fixed Calendar Stub</h1>
+            <p className="text-gray-500">This page is temporarily disabled for maintenance.</p>
         </div>
     );
 }

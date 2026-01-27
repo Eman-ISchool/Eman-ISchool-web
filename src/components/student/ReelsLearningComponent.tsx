@@ -309,7 +309,19 @@ export function ReelsLearningComponent({ reels }: { reels: ReelClip[] }) {
                                     muted={muted}
                                     preload={index <= activeIndex + 1 ? 'auto' : 'metadata'}
                                     className="h-full w-full object-cover"
+                                    aria-label={`${language === 'ar' ? reel.title.ar : reel.title.en} - ${language === 'ar' ? reel.summary.ar : reel.summary.en}`}
+                                    role="video"
                                     onTimeUpdate={(event) => handleTimeUpdate(reel.id, event)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === ' ' || event.key === 'Spacebar') {
+                                            event.preventDefault();
+                                            togglePlayback(index);
+                                        } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                                            event.preventDefault();
+                                            scrollNext(index);
+                                        }
+                                    }}
+                                    tabIndex={0}
                                 />
 
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />

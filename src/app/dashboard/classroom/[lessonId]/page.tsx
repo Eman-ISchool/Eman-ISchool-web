@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video, Mic, VideoOff, MicOff, AlertTriangle, CheckCircle, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
+import { validateMeetLinkForJoining } from '@/lib/meet-utils';
 
 export default function ClassroomPage() {
     const { data: session } = useSession();
@@ -151,9 +152,20 @@ export default function ClassroomPage() {
     };
 
     const openMeet = () => {
-        if (lesson?.meetLink) {
-            window.open(lesson.meetLink, '_blank');
+        if (!lesson?.meetLink) {
+            alert('لا يوجد رابط اجتماع متاح لهذا الدرس. يرجى التواصل مع المعلم.');
+            return;
         }
+
+        // Validate the Meet link before opening
+        const validation = validateMeetLinkForJoining(lesson.meetLink);
+        if (!validation.isValid) {
+            alert(validation.error || 'رابط الاجتماع غير صالح');
+            return;
+        }
+
+        // Open the valid Meet link
+        window.open(lesson.meetLink, '_blank');
     };
 
     const verifyPresence = () => {

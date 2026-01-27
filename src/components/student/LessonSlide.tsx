@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Video, Clock, User } from 'lucide-react';
+import { Video, Clock, User, AlertCircle } from 'lucide-react';
+import { checkMeetingFeasibility, formatTimeRemaining, type LessonInfo } from '@/lib/meeting-feasibility';
 
 export interface Lesson {
     id: string;
@@ -70,8 +71,23 @@ export function LessonSlide({ lesson }: LessonSlideProps) {
     };
 
     const handleJoin = () => {
-        if (canJoin && lesson.meetLink) {
-            window.open(lesson.meetLink, '_blank');
+        // Use meeting feasibility check
+        const lessonInfo: LessonInfo = {
+            id: lesson.id,
+            title: lesson.title,
+            startDateTime: lesson.startDateTime,
+            endDateTime: lesson.endDateTime,
+            meetLink: lesson.meetLink,
+            status: lesson.status,
+        };
+
+        const feasibility = checkMeetingFeasibility(lessonInfo);
+
+        if (feasibility.canJoin && feasibility.meetLink) {
+            window.open(feasibility.meetLink, '_blank');
+        } else {
+            // Could show a toast or alert here with feasibility.reason
+            console.warn('Cannot join meeting:', feasibility.reason);
         }
     };
 

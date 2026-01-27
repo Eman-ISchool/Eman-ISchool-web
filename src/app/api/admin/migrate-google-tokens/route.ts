@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -6,6 +8,19 @@ import { supabaseAdmin } from '@/lib/supabase';
  * This adds the necessary columns to store Google OAuth tokens
  */
 export async function GET() {
+    // Security: Verify user is authenticated and is an admin
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    }
+
+    const currentUser = await getCurrentUser(session);
+
+    if (!currentUser || !isAdmin(currentUser.role)) {
+        return NextResponse.json({ error: 'غير مصرح. يحتاج لصلاحيات مدير.' }, { status: 403 });
+    }
+
     if (!supabaseAdmin) {
         return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
     }

@@ -4,8 +4,19 @@ import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/au
 import { supabaseAdmin } from '@/lib/supabase';
 
 // GET - Fetch courses with filters
+// Note: This endpoint has role-based filtering:
+// - Admin/Teacher: Can see all courses (published and unpublished)
+// - Students/Public: Can only see published courses
 export async function GET(req: Request) {
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+        }
+
+        const session = await getServerSession(authOptions);
+        const currentUser = session?.user ? await getCurrentUser(session) : null;
+        const canSeeUnpublished = currentUser && isTeacherOrAdmin(currentUser.role);
+
         const { searchParams } = new URL(req.url);
         const subject = searchParams.get('subject');
         const teacherId = searchParams.get('teacherId');
@@ -32,8 +43,14 @@ export async function GET(req: Request) {
             query = query.eq('teacher_id', teacherId);
         }
 
-        if (published === 'true') {
+        // Non-admin/teacher users can only see published courses
+        if (!canSeeUnpublished) {
             query = query.eq('is_published', true);
+        } else if (published === 'true') {
+            // Admin/teacher can filter by published if requested
+            query = query.eq('is_published', true);
+        } else if (published === 'false') {
+            query = query.eq('is_published', false);
         }
 
         if (search) {

@@ -424,5 +424,4 @@ export function CellScene({
   );
 }
 
-export { ORGANELLES_DATA };
-export type { OrganelleData };
+

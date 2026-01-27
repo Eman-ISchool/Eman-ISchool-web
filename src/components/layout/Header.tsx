@@ -72,6 +72,8 @@ export function Header() {
                         onClick={toggleLanguage}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors font-bold text-gray-700 w-10 h-10 flex items-center justify-center text-sm"
                         title="Switch Language"
+                        data-testid="language-toggle-button"
+                        aria-label={language === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
                     >
                         {language === 'ar' ? 'EN' : 'ع'}
                     </button>

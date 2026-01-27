@@ -1,0 +1,248 @@
+{
+  "tech_stack": [
+    "TypeScript 5.x",
+    "Next.js 14.2.35",
+    "React 18.3.1",
+    "Supabase",
+    "NextAuth 4.24.13",
+    "Zustand 5.0.9",
+    "Tailwind CSS 4",
+    "Three.js 0.171.0",
+    "@react-three/fiber",
+    "@react-three/xr",
+    "googleapis 169.0.0",
+    "Sanity CMS 3.99.0",
+    "next-intl"
+  ],
+  "features": [
+    {
+      "name": "Authentication",
+      "description": "Multi-role authentication system with NextAuth supporting Google OAuth and credentials. Supports student, teacher, admin, and parent roles.",
+      "files": [
+        "src/app/(auth)/login/page.tsx",
+        "src/app/(auth)/login/student/page.tsx",
+        "src/app/(auth)/login/teacher/page.tsx",
+        "src/app/(auth)/login/admin/page.tsx",
+        "src/app/(auth)/register/page.tsx",
+        "src/app/(auth)/layout.tsx",
+        "src/components/auth/LoginForm.tsx",
+        "src/components/auth/RoleCard.tsx",
+        "src/components/AuthProvider.tsx",
+        "src/lib/auth.ts",
+        "src/lib/google-token.ts"
+      ]
+    },
+    {
+      "name": "Lesson & Meeting Management",
+      "description": "Scheduling and managing lessons with Google Meet integration for live video classrooms.",
+      "files": [
+        "src/app/dashboard/page.tsx",
+        "src/app/dashboard/classroom/[lessonId]/page.tsx",
+        "src/app/admin/calendar/page.tsx",
+        "src/app/teacher/calendar/page.tsx",
+        "src/components/JoinMeetButton.tsx",
+        "src/components/dashboard/CalendarView.tsx",
+        "src/components/dashboard/NextLessonCard.tsx",
+        "src/lib/meet.ts",
+        "src/lib/meet-utils.ts",
+        "src/lib/session-api.ts",
+        "src/types/session-form.ts",
+        "src/app/api/lessons/route.ts",
+        "src/app/api/attendance/route.ts"
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "description": "Comprehensive admin panel for managing students, teachers, attendance, lessons, fees, content, and system settings.",
+      "files": [
+        "src/app/admin/page.tsx",
+        "src/app/admin/students/page.tsx",
+        "src/app/admin/teachers/page.tsx",
+        "src/app/admin/attendance/page.tsx",
+        "src/app/admin/lessons/page.tsx",
+        "src/app/admin/meetings/page.tsx",
+        "src/app/admin/users/page.tsx",
+        "src/app/admin/content/page.tsx",
+        "src/app/admin/settings/page.tsx",
+        "src/app/admin/quizzes-exams/page.tsx",
+        "src/app/admin/fees/page.tsx",
+        "src/app/admin/coupons-expenses/page.tsx",
+        "src/app/admin/currency-compare/page.tsx",
+        "src/app/admin/live/page.tsx",
+        "src/app/admin/messages-audit/page.tsx",
+        "src/components/admin/AdminLayout.tsx",
+        "src/components/admin/DataTable.tsx",
+        "src/components/admin/Modal.tsx",
+        "src/components/admin/DropdownMenu.tsx",
+        "src/components/admin/KPIStatCard.tsx",
+        "src/components/admin/StateComponents.tsx",
+        "src/app/api/admin/stats/route.ts",
+        "src/app/api/admin/users/route.ts",
+        "src/app/api/admin/audit/route.ts"
+      ]
+    },
+    {
+      "name": "Student Learning Experience",
+      "description": "Student portal with lessons carousel, subject grid, assignments, chat, and educational video reels.",
+      "files": [
+        "src/app/student/home/page.tsx",
+        "src/app/student/calendar/page.tsx",
+        "src/app/student/chat/page.tsx",
+        "src/app/student/reels/page.tsx",
+        "src/app/student/profile/page.tsx",
+        "src/components/student/LessonCarousel.tsx",
+        "src/components/student/LessonSlide.tsx",
+        "src/components/student/SubjectGrid.tsx",
+        "src/components/student/TeacherCardList.tsx",
+        "src/components/student/AssignmentList.tsx",
+        "src/components/student/ReelsLearningComponent.tsx",
+        "src/components/student/AnnouncementCard.tsx",
+        "src/components/student/SideNav.tsx"
+      ]
+    },
+    {
+      "name": "Teacher Portal",
+      "description": "Teacher interface for managing calendar, materials, chat, and AI-powered educational reel generation.",
+      "files": [
+        "src/app/teacher/home/page.tsx",
+        "src/app/teacher/calendar/page.tsx",
+        "src/app/teacher/materials/page.tsx",
+        "src/app/teacher/chat/page.tsx",
+        "src/app/teacher/reels/page.tsx",
+        "src/app/teacher/profile/page.tsx",
+        "src/components/teacher/ReelGenerateButton.tsx",
+        "src/components/teacher/ReelMetadataEditor.tsx",
+        "src/components/teacher/ReelPreviewModal.tsx",
+        "src/components/teacher/ReelStatusBadge.tsx",
+        "src/components/teacher/StudentQuizList.tsx",
+        "src/components/teacher/AnnouncementBar.tsx",
+        "src/components/teacher/TeacherSideNav.tsx",
+        "src/app/api/reels/route.ts",
+        "src/app/api/reels/generate/route.ts"
+      ]
+    },
+    {
+      "name": "VR Educational Experiences",
+      "description": "Immersive VR learning experiences using Three.js and WebXR for science simulations and virtual field trips to Egyptian landmarks.",
+      "files": [
+        "src/app/vr-eduverse/page.tsx",
+        "src/app/vr-eduverse/science/page.tsx",
+        "src/app/vr-eduverse/science/solar-system/page.tsx",
+        "src/app/vr-eduverse/science/human-cell/page.tsx",
+        "src/app/vr-eduverse/field-trips/page.tsx",
+        "src/app/vr-eduverse/field-trips/pyramids-of-giza/page.tsx",
+        "src/app/vr-eduverse/field-trips/egyptian-museum/page.tsx",
+        "src/app/vr-eduverse/field-trips/abu-simbel/page.tsx",
+        "src/components/vr/canvas/VRCanvas.tsx",
+        "src/components/vr/canvas/VRControls.tsx",
+        "src/components/vr/experiences/SolarSystemScene.tsx",
+        "src/components/vr/experiences/CellScene.tsx",
+        "src/components/vr/hotspots/BaseHotspot.tsx",
+        "src/components/vr/hotspots/InfoHotspot.tsx",
+        "src/components/vr/ui/VRNavigation.tsx",
+        "src/components/vr/ui/VRInfoPanel.tsx",
+        "src/lib/vr/hooks/useVRCapabilities.ts",
+        "src/types/vr.ts"
+      ]
+    },
+    {
+      "name": "Exam & Assessment System",
+      "description": "Exam simulation and readiness scoring system for students to practice and assess their knowledge.",
+      "files": [
+        "src/app/exam-simulation/page.tsx"
+      ]
+    },
+    {
+      "name": "Parent Dashboard",
+      "description": "Parent monitoring dashboard to track child progress and educational activities.",
+      "files": [
+        "src/app/parent-dashboard/page.tsx"
+      ]
+    },
+    {
+      "name": "Curriculum Pages",
+      "description": "Educational curriculum pages for National, Azhar, and Egyptian curriculum tracks.",
+      "files": [
+        "src/app/national-school/page.tsx",
+        "src/app/al-azhar-school/page.tsx",
+        "src/app/egypt-curriculum/page.tsx",
+        "src/lib/curriculum.ts"
+      ]
+    },
+    {
+      "name": "Marketing & Public Pages",
+      "description": "Landing page, about us, policies, blogs, and product catalog for marketing purposes.",
+      "files": [
+        "src/app/page.tsx",
+        "src/app/about-us/page.tsx",
+        "src/app/policy/page.tsx",
+        "src/app/blogs/page.tsx",
+        "src/app/product/by-subject/page.tsx",
+        "src/app/search/page.tsx",
+        "src/app/cart/page.tsx",
+        "src/app/checkout/page.tsx"
+      ]
+    },
+    {
+      "name": "Notification System",
+      "description": "Multi-channel notification system supporting email, SMS, and push notifications with timezone handling.",
+      "files": [
+        "src/lib/notifications/service.ts",
+        "src/lib/notifications/templates.ts",
+        "src/lib/notifications/timezone.ts",
+        "src/lib/sms.ts"
+      ]
+    },
+    {
+      "name": "UI Components Library",
+      "description": "Reusable UI components following Shadcn/ui patterns with Tailwind CSS styling.",
+      "files": [
+        "src/components/ui/button.tsx",
+        "src/components/ui/card.tsx",
+        "src/components/ui/input.tsx",
+        "src/components/ui/label.tsx",
+        "src/components/ui/textarea.tsx",
+        "src/components/ui/alert.tsx",
+        "src/components/ui/badge.tsx",
+        "src/components/ui/skeleton.tsx",
+        "src/components/ui/toast.tsx"
+      ]
+    },
+    {
+      "name": "Internationalization",
+      "description": "Multi-language support with Arabic and English using next-intl library.",
+      "files": [
+        "src/context/LanguageContext.tsx",
+        "src/i18n.ts",
+        "src/components/LanguageProviderWrapper.tsx"
+      ]
+    },
+    {
+      "name": "State Management",
+      "description": "Application state management using Zustand for cart and session state.",
+      "files": [
+        "src/lib/store.ts"
+      ]
+    },
+    {
+      "name": "Supabase Integration",
+      "description": "Database client and utilities for Supabase backend.",
+      "files": [
+        "src/lib/supabase.ts"
+      ]
+    },
+    {
+      "name": "API Routes",
+      "description": "Backend API routes for courses, users, assignments, enrollments, blogs, and dashboard statistics.",
+      "files": [
+        "src/app/api/courses/route.ts",
+        "src/app/api/users/route.ts",
+        "src/app/api/assignments/route.ts",
+        "src/app/api/enrollments/route.ts",
+        "src/app/api/blogs/route.ts",
+        "src/app/api/currencies/route.ts",
+        "src/app/api/dashboard/stats/route.ts"
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logApprovalNotification, logRejectionNotification } from '@/lib/reel-notifications';
 import type { Database } from '@/types/database';
 
 type Reel = Database['public']['Tables']['reels']['Row'];
@@ -93,6 +94,28 @@ export async function PATCH(
             );
         }
 
+        // Fetch current reel to check status
+        const { data: currentReel, error: fetchError } = await (supabaseAdmin
+            .from('reels')
+            .select('status')
+            .eq('id', reelId)
+            .single() as any);
+
+        if (fetchError) {
+            console.error('Error fetching current reel:', fetchError);
+            return NextResponse.json(
+                { error: 'Failed to fetch reel' },
+                { status: 500 }
+            );
+        }
+
+        if (!currentReel) {
+            return NextResponse.json(
+                { error: 'Reel not found' },
+                { status: 404 }
+            );
+        }
+
         // Validate status if provided
         const validStatuses = ['queued', 'processing', 'pending_review', 'approved', 'rejected', 'failed'];
         if (body.status && !validStatuses.includes(body.status)) {
@@ -114,22 +137,23 @@ export async function PATCH(
 
         // Handle approve action
         if (body.action === 'approve') {
-            if (reel.status !== 'pending_review') {
+            if (currentReel.status !== 'pending_review') {
                 return NextResponse.json(
                     { error: 'Can only approve reels in pending_review status' },
                     { status: 400 }
                 );
             }
 
-            const { data: approvedReel, error: approveError } = await supabaseAdmin
+            const { data: approvedReel, error: approveError } = await (supabaseAdmin
                 .from('reels')
+                // @ts-expect-error - Supabase update type inference issue
                 .update({
                     status: 'approved',
                     approved_at: new Date().toISOString(),
                 } as any)
                 .eq('id', reelId)
                 .select()
-                .single();
+                .single() as any);
 
             if (approveError) {
                 console.error('Error approving reel:', approveError);
@@ -139,12 +163,20 @@ export async function PATCH(
                 );
             }
 
+            // Trigger approval notification
+            await logApprovalNotification(
+                approvedReel?.teacher_id || '',
+                reelId,
+                approvedReel?.lesson_id || null,
+                approvedReel?.lesson_material_id || ''
+            );
+
             return NextResponse.json({ data: approvedReel });
         }
 
         // Handle reject action
         if (body.action === 'reject') {
-            if (reel.status !== 'pending_review') {
+            if (currentReel.status !== 'pending_review') {
                 return NextResponse.json(
                     { error: 'Can only reject reels in pending_review status' },
                     { status: 400 }
@@ -153,15 +185,16 @@ export async function PATCH(
 
             const rejectionReason = body.rejection_reason || null;
 
-            const { data: rejectedReel, error: rejectError } = await supabaseAdmin
+            const { data: rejectedReel, error: rejectError } = await (supabaseAdmin
                 .from('reels')
+                // @ts-expect-error - Supabase update type inference issue
                 .update({
                     status: 'rejected',
                     rejection_reason: rejectionReason,
                 } as any)
                 .eq('id', reelId)
                 .select()
-                .single();
+                .single() as any);
 
             if (rejectError) {
                 console.error('Error rejecting reel:', rejectError);
@@ -170,6 +203,15 @@ export async function PATCH(
                     { status: 500 }
                 );
             }
+
+            // Trigger rejection notification
+            await logRejectionNotification(
+                rejectedReel?.teacher_id || '',
+                reelId,
+                rejectedReel?.lesson_id || null,
+                rejectedReel?.lesson_material_id || '',
+                rejectionReason || 'No reason provided'
+            );
 
             return NextResponse.json({ data: rejectedReel });
         }
@@ -180,6 +222,9 @@ export async function PATCH(
         const allowedFields = [
             'title_en', 'title_ar',
             'description_en', 'description_ar',
+            'keywords_en', 'keywords_ar',
+            'topics_en', 'topics_ar',
+            'captions_en', 'captions_ar',
             'video_url', 'thumbnail_url',
             'duration_seconds', 'status',
             'subject', 'grade_level',
@@ -196,6 +241,7 @@ export async function PATCH(
         // Update reel
         const { data: reel, error } = await (supabaseAdmin
             .from('reels')
+            // @ts-expect-error - Supabase update type inference issue
             .update(updateData as any)
             .eq('id', reelId)
             .select()

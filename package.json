@@ -6,15 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed.ts"
   },
   "dependencies": {
     "@portabletext/react": "^4.0.3",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@react-three/drei": "^9.114.3",
-    "@react-three/fiber": "^8.17.10",
-    "@react-three/xr": "^6.2.5",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@react-three/xr": "^6.6.29",
     "@sanity/image-url": "^1.2.0",
     "@sanity/vision": "^5.1.0",
     "@supabase/supabase-js": "^2.78.0",
@@ -24,10 +25,13 @@
     "clsx": "^2.1.1",
     "googleapis": "^169.0.0",
     "lucide-react": "^0.460.0",
+    "mammoth": "^1.11.0",
     "next": "14.2.35",
     "next-auth": "^4.24.13",
     "next-intl": "^4.7.0",
     "next-sanity": "^9.12.3",
+    "openai": "^6.16.0",
+    "pdf-parse": "^2.2.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-is": "^19.2.3",
@@ -35,6 +39,7 @@
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.4.0",
     "three": "^0.171.0",
+    "tus-js-client": "^4.3.1",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

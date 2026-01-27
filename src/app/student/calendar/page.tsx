@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Video, Clock, User, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Video, Clock, User, X, AlertCircle, CalendarDays } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { fetchSessions, Session } from '@/lib/session-api';
 
 interface Lesson {
     id: string;
@@ -44,102 +45,51 @@ function getSubjectColor(name?: string): string {
     return subjectColors[name] || subjectColors[key] || subjectColors.default;
 }
 
-// Mock lessons data - English
-const mockLessonsEn: Lesson[] = [
-    {
-        id: '1',
-        title: 'Introduction to Algebra',
-        subject: 'Mathematics',
-        startDateTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/abc-defg-hij',
-        status: 'scheduled',
-        teacher: { name: 'Dr. Ahmed Hassan' },
-    },
-    {
-        id: '2',
-        title: 'English Literature',
-        subject: 'English',
-        startDateTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/xyz-uvwx-yz',
-        status: 'scheduled',
-        teacher: { name: 'Ms. Sarah Johnson' },
-    },
-    {
-        id: '3',
-        title: 'Physics Lab',
-        subject: 'Science',
-        startDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/qrs-tuvw-xyz',
-        status: 'scheduled',
-        teacher: { name: 'Prof. Michael Chen' },
-    },
-    {
-        id: '4',
-        title: 'Arabic Grammar',
-        subject: 'Arabic',
-        startDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 49 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/abc-xyz-123',
-        status: 'scheduled',
-        teacher: { name: 'Mrs. Fatima Ali' },
-    },
-];
-
-// Mock lessons data - Arabic
-const mockLessonsAr: Lesson[] = [
-    {
-        id: '1',
-        title: 'مقدمة في الجبر',
-        subject: 'رياضيات',
-        startDateTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/abc-defg-hij',
-        status: 'scheduled',
-        teacher: { name: 'د. أحمد حسن' },
-    },
-    {
-        id: '2',
-        title: 'الأدب الإنجليزي',
-        subject: 'لغة إنجليزية',
-        startDateTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/xyz-uvwx-yz',
-        status: 'scheduled',
-        teacher: { name: 'أ. سارة جونسون' },
-    },
-    {
-        id: '3',
-        title: 'معمل الفيزياء',
-        subject: 'علوم',
-        startDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/qrs-tuvw-xyz',
-        status: 'scheduled',
-        teacher: { name: 'د. مايكل تشين' },
-    },
-    {
-        id: '4',
-        title: 'قواعد النحو',
-        subject: 'لغة عربية',
-        startDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        endDateTime: new Date(Date.now() + 49 * 60 * 60 * 1000).toISOString(),
-        meetLink: 'https://meet.google.com/abc-xyz-123',
-        status: 'scheduled',
-        teacher: { name: 'أ. فاطمة علي' },
-    },
-];
-
 export default function StudentCalendarPage() {
     const { t, language } = useLanguage();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
     const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Select lessons based on language
-    const lessons = language === 'ar' ? mockLessonsAr : mockLessonsEn;
+    // T019, T020, T023, T025: Fetch real sessions from API with loading and error handling
+    useEffect(() => {
+        const loadLessons = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const result = await fetchSessions({ upcoming: true });
+                if (result.success && result.data) {
+                    // Transform API data to Lesson format
+                    const transformedLessons: Lesson[] = result.data.map(session => ({
+                        id: session._id,
+                        title: session.title,
+                        subject: session.course?.title || undefined,
+                        startDateTime: session.startDateTime,
+                        endDateTime: session.endDateTime,
+                        meetLink: session.meetLink || undefined,
+                        status: session.status,
+                        teacher: session.teacher ? {
+                            name: session.teacher.name,
+                            image: session.teacher.image,
+                        } : undefined,
+                    }));
+                    setLessons(transformedLessons);
+                } else {
+                    setError(result.error || 'فشل تحميل الجلسات');
+                }
+            } catch (err) {
+                console.error('Error loading lessons:', err);
+                setError('حدث خطأ أثناء تحميل الجلسات. يرجى المحاولة مرة أخرى.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadLessons();
+    }, []);
 
     // formatting helpers
     const getMonthName = (date: Date) => {
@@ -206,6 +156,14 @@ export default function StudentCalendarPage() {
         return now >= joinWindow && now <= end && !!lesson.meetLink;
     };
 
+    // T040: Get styling for cancelled sessions (FR-012a)
+    const getLessonStyle = (status: string) => ({
+        cancelled: 'line-through opacity-50 text-gray-400',
+        completed: 'opacity-70',
+        live: 'bg-red-100 border-red-500',
+        scheduled: 'bg-teal-100 border-teal-500'
+    }[status] || 'bg-teal-100 border-teal-500');
+
     const renderCalendarDays = () => {
         const daysInMonth = getDaysInMonth(currentDate);
         const firstDay = getFirstDayOfMonth(currentDate);
@@ -234,14 +192,15 @@ export default function StudentCalendarPage() {
                             <button
                                 key={lesson.id}
                                 onClick={() => setSelectedLesson(lesson)}
-                                className={`w-full text-start px-2 py-1 rounded text-xs text-white truncate ${getSubjectColor(lesson.subject)}`}
+                                className={`w-full text-start px-2 py-1 rounded text-xs text-white truncate ${getSubjectColor(lesson.subject)} ${getLessonStyle(lesson.status)}`}
                             >
                                 {lesson.title}
                             </button>
                         ))}
+                        {/* T032: Add overflow indicator to student calendar view */}
                         {daysLessons.length > 2 && (
                             <span className="text-xs text-[var(--color-text-muted)]">
-                                +{daysLessons.length - 2}
+                                +{daysLessons.length - 2} أخرى
                             </span>
                         )}
                     </div>
@@ -251,6 +210,39 @@ export default function StudentCalendarPage() {
 
         return days;
     };
+
+    // T023, T025: Show loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+                    <p className="text-[var(--color-text-secondary)]">{t('calendar.loading') || 'جاري تحميل الجلسات...'}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // T025: Show error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center max-w-md">
+                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+                        {t('calendar.error') || 'حدث خطأ'}
+                    </h3>
+                    <p className="text-[var(--color-text-secondary)] mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="btn-primary"
+                    >
+                        {t('calendar.retry') || 'إعادة المحاولة'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -318,31 +310,206 @@ export default function StudentCalendarPage() {
                 </div>
             </div>
 
-            {/* Upcoming Lessons List */}
-            <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('calendar.upcoming')}</h3>
-                <div className="space-y-2">
-                    {lessons.slice(0, 4).map((lesson) => (
-                        <div
-                            key={lesson.id}
-                            className="card-soft p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => setSelectedLesson(lesson)}
-                        >
-                            <div className={`w-1 h-12 rounded-full ${getSubjectColor(lesson.subject)}`} />
-                            <div className="flex-1">
-                                <h4 className="font-medium text-[var(--color-text-primary)]">{lesson.title}</h4>
-                                <p className="text-sm text-[var(--color-text-secondary)]">
-                                    {new Date(lesson.startDateTime).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    {' • '}
-                                    {new Date(lesson.startDateTime).toLocaleTimeString(language === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </div>
-                            {lesson.meetLink && (
-                                <Video className="w-5 h-5 text-[var(--color-primary)]" />
-                            )}
-                        </div>
-                    ))}
+            {/* Upcoming Lessons - Interactive Table */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('calendar.upcoming')}</h3>
+                    {lessons.length > 4 && (
+                        <button className="text-sm font-medium text-[var(--color-primary)] hover:underline">
+                            {t('home.viewAll') || 'عرض الكل'} ({lessons.length})
+                        </button>
+                    )}
                 </div>
+
+                {lessons.length === 0 ? (
+                    <div className="card-soft p-8 text-center">
+                        <CalendarDays className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
+                        <p className="text-[var(--color-text-secondary)]">
+                            {t('calendar.noLessons') || 'لا توجد جلسات قادمة'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="card-soft overflow-hidden">
+                        {/* Table Header - Desktop Only */}
+                        <div className="hidden md:grid md:grid-cols-12 gap-4 p-4 bg-gray-50 border-b border-gray-100 text-sm font-medium text-[var(--color-text-secondary)]">
+                            <div className="col-span-4">الدرس</div>
+                            <div className="col-span-3">المعلم</div>
+                            <div className="col-span-2">الوقت</div>
+                            <div className="col-span-2">الحالة</div>
+                            <div className="col-span-1"></div>
+                        </div>
+
+                        {/* Table Rows */}
+                        <div className="divide-y divide-gray-100">
+                            {lessons.slice(0, 6).map((lesson, index) => {
+                                const isLive = lesson.status === 'live';
+                                const isCancelled = lesson.status === 'cancelled';
+                                const startTime = new Date(lesson.startDateTime);
+                                const now = new Date();
+                                const minutesUntil = Math.floor((startTime.getTime() - now.getTime()) / (60 * 1000));
+                                const canJoinNow = minutesUntil <= 10 && minutesUntil >= -60 && !isCancelled;
+
+                                return (
+                                    <div
+                                        key={lesson.id}
+                                        className={`group p-4 hover:bg-gray-50/80 transition-all duration-200 cursor-pointer ${isLive ? 'bg-green-50/50 border-l-4 border-green-500' : ''
+                                            } ${isCancelled ? 'opacity-60' : ''}`}
+                                        onClick={() => setSelectedLesson(lesson)}
+                                    >
+                                        {/* Mobile Layout */}
+                                        <div className="md:hidden space-y-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`w-1 h-14 rounded-full shrink-0 ${getSubjectColor(lesson.subject)}`} />
+                                                    <div>
+                                                        <h4 className={`font-semibold text-[var(--color-text-primary)] ${isCancelled ? 'line-through' : ''}`}>
+                                                            {lesson.title}
+                                                        </h4>
+                                                        <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
+                                                            {lesson.subject}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {/* Status Badge */}
+                                                {isLive ? (
+                                                    <span className="shrink-0 px-2.5 py-1 bg-green-500 text-white text-xs font-medium rounded-full animate-pulse">
+                                                        🔴 مباشر
+                                                    </span>
+                                                ) : isCancelled ? (
+                                                    <span className="shrink-0 px-2.5 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full">
+                                                        ملغي
+                                                    </span>
+                                                ) : canJoinNow ? (
+                                                    <span className="shrink-0 px-2.5 py-1 bg-[var(--color-primary)] text-white text-xs font-medium rounded-full">
+                                                        يمكن الانضمام
+                                                    </span>
+                                                ) : (
+                                                    <span className="shrink-0 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                                        قريباً
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+                                                    <User className="w-4 h-4" />
+                                                    <span>{lesson.teacher?.name || 'غير محدد'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+                                                    <Clock className="w-4 h-4" />
+                                                    <span>
+                                                        {startTime.toLocaleTimeString(language === 'ar' ? 'ar-EG' : 'en-US', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Desktop Layout */}
+                                        <div className="hidden md:grid md:grid-cols-12 gap-4 items-center">
+                                            {/* Lesson Info */}
+                                            <div className="col-span-4 flex items-center gap-3">
+                                                <div className={`w-1.5 h-12 rounded-full shrink-0 ${getSubjectColor(lesson.subject)}`} />
+                                                <div>
+                                                    <h4 className={`font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors ${isCancelled ? 'line-through' : ''}`}>
+                                                        {lesson.title}
+                                                    </h4>
+                                                    <p className="text-sm text-[var(--color-text-secondary)]">
+                                                        {lesson.subject}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Teacher Info */}
+                                            <div className="col-span-3 flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center overflow-hidden">
+                                                    {lesson.teacher?.image ? (
+                                                        <img
+                                                            src={lesson.teacher.image}
+                                                            alt={lesson.teacher.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <User className="w-4 h-4 text-[var(--color-primary)]" />
+                                                    )}
+                                                </div>
+                                                <span className="text-sm text-[var(--color-text-primary)] truncate">
+                                                    {lesson.teacher?.name || 'غير محدد'}
+                                                </span>
+                                            </div>
+
+                                            {/* Time */}
+                                            <div className="col-span-2">
+                                                <div className="text-sm font-medium text-[var(--color-text-primary)]">
+                                                    {startTime.toLocaleTimeString(language === 'ar' ? 'ar-EG' : 'en-US', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </div>
+                                                <div className="text-xs text-[var(--color-text-muted)]">
+                                                    {startTime.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            {/* Status */}
+                                            <div className="col-span-2">
+                                                {isLive ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
+                                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                                        مباشر الآن
+                                                    </span>
+                                                ) : isCancelled ? (
+                                                    <span className="px-2.5 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full">
+                                                        ملغي
+                                                    </span>
+                                                ) : canJoinNow ? (
+                                                    <span className="px-2.5 py-1 bg-[var(--color-primary)] text-white text-xs font-medium rounded-full">
+                                                        جاهز للانضمام
+                                                    </span>
+                                                ) : minutesUntil > 0 ? (
+                                                    <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                                                        بعد {minutesUntil < 60 ? `${minutesUntil} دقيقة` : `${Math.floor(minutesUntil / 60)} ساعة`}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                                        مجدول
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Action */}
+                                            <div className="col-span-1 flex justify-end">
+                                                <button
+                                                    className="p-2 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--color-primary)] hover:text-white"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedLesson(lesson);
+                                                    }}
+                                                >
+                                                    <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* View More Footer */}
+                        {lessons.length > 6 && (
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+                                <button className="text-sm font-medium text-[var(--color-primary)] hover:underline">
+                                    عرض {lessons.length - 6} جلسات إضافية →
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Lesson Details Drawer */}
@@ -356,7 +523,7 @@ export default function StudentCalendarPage() {
                             </button>
                         </div>
 
-                        <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                        <h3 className={`text-xl font-bold text-[var(--color-text-primary)] mb-2 ${selectedLesson.status === 'cancelled' ? 'line-through' : ''}`}>
                             {selectedLesson.title}
                         </h3>
 
@@ -375,7 +542,15 @@ export default function StudentCalendarPage() {
                             </div>
                         </div>
 
-                        {selectedLesson.meetLink && (
+                        {/* T041: Show message when attempting to join cancelled session (FR-012b) */}
+                        {selectedLesson.status === 'cancelled' && (
+                            <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+                                <AlertCircle className="w-5 h-5 text-red-500 mb-2" />
+                                <p className="text-sm text-red-700">هذه الجلسة ملغية ولا يمكن الانضمام إليها</p>
+                            </div>
+                        )}
+
+                        {selectedLesson.meetLink && selectedLesson.status !== 'cancelled' && (
                             <button
                                 onClick={() => {
                                     if (canJoinLesson(selectedLesson)) {

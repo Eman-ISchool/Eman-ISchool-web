@@ -14,7 +14,15 @@ export type UserRole = 'student' | 'teacher' | 'admin' | 'parent';
 export type LessonStatus = 'scheduled' | 'live' | 'completed' | 'cancelled';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'early_exit';
 export type EnrollmentStatus = 'active' | 'completed' | 'dropped' | 'pending';
-export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed';
+export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed' | 'draft' | 'pending_review' | 'published' | 'unpublished' | 'deleted';
+
+// AI Video Reels Pipeline types
+export type SourceContentType = 'video' | 'document' | 'recording' | 'external_link';
+export type SourceStatus = 'uploaded' | 'processing' | 'transcribing' | 'ready' | 'failed';
+export type ProcessingJobStatus = 'pending' | 'processing' | 'paused' | 'completed' | 'failed';
+export type ProcessingJobType = 'transcription' | 'segmentation' | 'generation';
+export type VisibilityType = 'class' | 'grade_level' | 'group';
+export type ExternalVideoProvider = 'youtube' | 'vimeo' | 'other';
 
 // Notification system types
 export type NotificationChannel = 'email' | 'push' | 'sms' | 'in_app';
@@ -555,6 +563,11 @@ export interface Database {
                     generation_request_id: string | null;
                     is_published: boolean;
                     view_count: number;
+                    source_id: string | null;
+                    source_type: string | null;
+                    segment_index: number | null;
+                    segment_of: string | null;
+                    storyboard_id: string | null;
                     created_at: string;
                     updated_at: string;
                 };
@@ -576,6 +589,11 @@ export interface Database {
                     generation_request_id?: string | null;
                     is_published?: boolean;
                     view_count?: number;
+                    source_id?: string | null;
+                    source_type?: string | null;
+                    segment_index?: number | null;
+                    segment_of?: string | null;
+                    storyboard_id?: string | null;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -597,6 +615,11 @@ export interface Database {
                     generation_request_id?: string | null;
                     is_published?: boolean;
                     view_count?: number;
+                    source_id?: string | null;
+                    source_type?: string | null;
+                    segment_index?: number | null;
+                    segment_of?: string | null;
+                    storyboard_id?: string | null;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -610,6 +633,11 @@ export interface Database {
                     is_completed: boolean;
                     is_saved: boolean;
                     last_watched_at: string;
+                    is_bookmarked: boolean;
+                    marked_understood: boolean;
+                    understood_at: string | null;
+                    replay_count: number;
+                    last_position: number;
                     created_at: string;
                     updated_at: string;
                 };
@@ -621,6 +649,11 @@ export interface Database {
                     is_completed?: boolean;
                     is_saved?: boolean;
                     last_watched_at?: string;
+                    is_bookmarked?: boolean;
+                    marked_understood?: boolean;
+                    understood_at?: string | null;
+                    replay_count?: number;
+                    last_position?: number;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -632,6 +665,11 @@ export interface Database {
                     is_completed?: boolean;
                     is_saved?: boolean;
                     last_watched_at?: string;
+                    is_bookmarked?: boolean;
+                    marked_understood?: boolean;
+                    understood_at?: string | null;
+                    replay_count?: number;
+                    last_position?: number;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -855,6 +893,237 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            source_content: {
+                Row: {
+                    id: string;
+                    teacher_id: string;
+                    type: SourceContentType;
+                    file_url: string | null;
+                    file_hash: string | null;
+                    original_filename: string;
+                    file_size: number | null;
+                    mime_type: string | null;
+                    duration_seconds: number | null;
+                    page_count: number | null;
+                    status: SourceStatus;
+                    transcript_id: string | null;
+                    metadata: Json;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    teacher_id: string;
+                    type: SourceContentType;
+                    file_url?: string | null;
+                    file_hash?: string | null;
+                    original_filename: string;
+                    file_size?: number | null;
+                    mime_type?: string | null;
+                    duration_seconds?: number | null;
+                    page_count?: number | null;
+                    status?: SourceStatus;
+                    transcript_id?: string | null;
+                    metadata?: Json;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    teacher_id?: string;
+                    type?: SourceContentType;
+                    file_url?: string | null;
+                    file_hash?: string | null;
+                    original_filename?: string;
+                    file_size?: number | null;
+                    mime_type?: string | null;
+                    duration_seconds?: number | null;
+                    page_count?: number | null;
+                    status?: SourceStatus;
+                    transcript_id?: string | null;
+                    metadata?: Json;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            transcripts: {
+                Row: {
+                    id: string;
+                    source_id: string;
+                    text: string;
+                    segments: Json;
+                    language: string;
+                    confidence: number | null;
+                    word_count: number;
+                    is_manual: boolean;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    source_id: string;
+                    text: string;
+                    segments: Json;
+                    language: string;
+                    confidence?: number | null;
+                    word_count: number;
+                    is_manual?: boolean;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    source_id?: string;
+                    text?: string;
+                    segments?: Json;
+                    language?: string;
+                    confidence?: number | null;
+                    word_count?: number;
+                    is_manual?: boolean;
+                    created_at?: string;
+                };
+            };
+            storyboards: {
+                Row: {
+                    id: string;
+                    source_id: string;
+                    target_audience: string;
+                    scenes: Json;
+                    summary: string;
+                    estimated_duration: number;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    source_id: string;
+                    target_audience: string;
+                    scenes: Json;
+                    summary: string;
+                    estimated_duration: number;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    source_id?: string;
+                    target_audience?: string;
+                    scenes?: Json;
+                    summary?: string;
+                    estimated_duration?: number;
+                    created_at?: string;
+                };
+            };
+            reel_visibility: {
+                Row: {
+                    id: string;
+                    reel_id: string;
+                    visibility_type: VisibilityType;
+                    class_id: string | null;
+                    grade_level: string | null;
+                    group_id: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    reel_id: string;
+                    visibility_type: VisibilityType;
+                    class_id?: string | null;
+                    grade_level?: string | null;
+                    group_id?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    reel_id?: string;
+                    visibility_type?: VisibilityType;
+                    class_id?: string | null;
+                    grade_level?: string | null;
+                    group_id?: string | null;
+                    created_at?: string;
+                };
+            };
+            external_video_links: {
+                Row: {
+                    id: string;
+                    reel_id: string;
+                    provider: ExternalVideoProvider;
+                    external_id: string;
+                    url: string;
+                    title: string | null;
+                    thumbnail_url: string | null;
+                    duration_seconds: number | null;
+                    is_available: boolean;
+                    last_checked_at: string;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    reel_id: string;
+                    provider: ExternalVideoProvider;
+                    external_id: string;
+                    url: string;
+                    title?: string | null;
+                    thumbnail_url?: string | null;
+                    duration_seconds?: number | null;
+                    is_available?: boolean;
+                    last_checked_at?: string;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    reel_id?: string;
+                    provider?: ExternalVideoProvider;
+                    external_id?: string;
+                    url?: string;
+                    title?: string | null;
+                    thumbnail_url?: string | null;
+                    duration_seconds?: number | null;
+                    is_available?: boolean;
+                    last_checked_at?: string;
+                    created_at?: string;
+                };
+            };
+            processing_jobs: {
+                Row: {
+                    id: string;
+                    source_id: string;
+                    type: ProcessingJobType;
+                    status: ProcessingJobStatus;
+                    current_step: string | null;
+                    progress_percent: number;
+                    error_message: string | null;
+                    retry_count: number;
+                    max_retries: number;
+                    started_at: string | null;
+                    completed_at: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    source_id: string;
+                    type: ProcessingJobType;
+                    status?: ProcessingJobStatus;
+                    current_step?: string | null;
+                    progress_percent?: number;
+                    error_message?: string | null;
+                    retry_count?: number;
+                    max_retries?: number;
+                    started_at?: string | null;
+                    completed_at?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    source_id?: string;
+                    type?: ProcessingJobType;
+                    status?: ProcessingJobStatus;
+                    current_step?: string | null;
+                    progress_percent?: number;
+                    error_message?: string | null;
+                    retry_count?: number;
+                    max_retries?: number;
+                    started_at?: string | null;
+                    completed_at?: string | null;
+                    created_at?: string;
+                };
+            };
         };
         Views: {
             lesson_stats: {
@@ -919,6 +1188,12 @@ export interface Database {
             attendance_status: AttendanceStatus;
             enrollment_status: EnrollmentStatus;
             reel_status: ReelStatus;
+            source_content_type: SourceContentType;
+            source_status: SourceStatus;
+            processing_job_status: ProcessingJobStatus;
+            processing_job_type: ProcessingJobType;
+            visibility_type: VisibilityType;
+            external_video_provider: ExternalVideoProvider;
         };
     };
 }

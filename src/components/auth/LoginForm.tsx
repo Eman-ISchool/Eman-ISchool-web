@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,22 @@ interface LoginFormProps {
     role: 'admin' | 'teacher' | 'student';
     title: string;
     description: string;
+}
+
+// Helper function to get role-based redirect URL
+function getRoleBasedRedirect(userRole: string | undefined): string {
+    switch (userRole) {
+        case 'admin':
+            return '/admin';
+        case 'teacher':
+            return '/teacher/dashboard';
+        case 'student':
+            return '/student/dashboard';
+        case 'parent':
+            return '/parent/dashboard';
+        default:
+            return '/dashboard';
+    }
 }
 
 export default function LoginForm({ role, title, description }: LoginFormProps) {
@@ -38,7 +54,11 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
             if (result?.error) {
                 setError('فشل تسجيل الدخول. يرجى التحقق من البريد الإلكتروني وكلمة المرور.');
             } else {
-                router.push('/dashboard');
+                // Get the updated session to check the user's role
+                const session = await getSession();
+                const userRole = (session?.user as any)?.role;
+                const redirectUrl = getRoleBasedRedirect(userRole);
+                router.push(redirectUrl);
                 router.refresh();
             }
         } catch (err) {
@@ -51,7 +71,9 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         try {
-            await signIn('google', { callbackUrl: '/dashboard' });
+            // For Google sign-in, we use a callback URL that will handle role-based redirect
+            // The middleware or a callback page will handle the proper redirect
+            await signIn('google', { callbackUrl: '/api/auth/role-redirect' });
         } catch (err) {
             setError('حدث خطأ أثناء الاتصال بـ Google.');
             setIsLoading(false);
@@ -78,7 +100,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="grid gap-5">
+                <form onSubmit={handleSubmit} className="grid gap-5" data-testid={`login-form-${role}`}>
                     <div className="space-y-2">
                         <Label htmlFor="email" className="text-gray-700 dark:text-gray-300 font-medium">البريد الإلكتروني</Label>
                         <div className="relative group">
@@ -91,6 +113,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={isLoading}
+                                data-testid="login-email-input"
                                 className="pr-10 bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 focus:border-brand-primary focus:ring-brand-primary/20 h-11 transition-all"
                             />
                         </div>
@@ -108,12 +131,14 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
+                                data-testid="login-password-input"
                                 className="pr-10 bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 focus:border-brand-primary focus:ring-brand-primary/20 h-11 transition-all"
                             />
                         </div>
                     </div>
                     <Button
                         type="submit"
+                        data-testid="login-submit-button"
                         className="w-full bg-brand-primary hover:bg-brand-primary-hover text-black font-bold h-11 shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5"
                         disabled={isLoading}
                     >

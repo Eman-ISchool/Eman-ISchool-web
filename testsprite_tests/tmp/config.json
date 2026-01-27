@@ -1,0 +1,16 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "eduverse",
+    "projectPath": "/Users/hazmy/ProgrammingProjects/2026/eduverse",
+    "testIds": [],
+    "additionalInstruction": "Use the following test credentials for authentication:\n- Admin login: email=\"admin@test.com\", password=\"TestAdmin123!\"\n- Teacher login: email=\"teacher@test.com\", password=\"TestTeacher123!\"\n- Student login: email=\"student@test.com\", password=\"TestStudent123!\"\n- Parent login: email=\"parent@test.com\", password=\"TestParent123!\"\n\nThe login pages are at:\n- Admin: /login/admin\n- Teacher: /login/teacher  \n- Student: /login/student\n- General: /login\n\nUse data-testid attributes to find elements:\n- data-testid=\"login-role-student\" for student login card\n- data-testid=\"login-role-teacher\" for teacher login card\n- data-testid=\"login-role-admin\" for admin login card\n- data-testid=\"login-email-input\" for email field\n- data-testid=\"login-password-input\" for password field\n- data-testid=\"login-submit-button\" for submit button\n- data-testid=\"language-toggle-button\" for language toggle\n\nFor VR experience, the main page at /vr-eduverse now links directly to /vr-eduverse/science/solar-system which has a 3D Solar System experience.",
+    "envs": {
+      "API_KEY": "sk-user-tn3hGdPmzR5OEAsYEy040GWGweJaOwqZz4qN4VFT1w3PMFIw-emb8VQ4CK4Sl2XVZHXbjpuI1vl_76jEyyaFJRhwiTcpMxpxpZvmW6RhJeNq6JkcQ8CYhtImJio6ux2gLxU"
+    }
+  },
+  "proxy": "http://629185e6-27cb-4562-9974-7f8c7696325d:hcTYoOabi6pd884VDavNWtsCoPkQa5LC@tun.testsprite.com:8080"
+}

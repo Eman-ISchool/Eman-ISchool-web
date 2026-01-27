@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Timer
 } from "lucide-react";
+import UserPortalSection from "@/components/UserPortalSection";
 
 export default function Home() {
   return (
@@ -460,6 +461,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* NEW: User Portal Section */}
+      <UserPortalSection />
 
       {/* NEW: Target Audience Clarity Banner */}
       <section className="py-12 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">

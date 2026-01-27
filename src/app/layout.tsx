@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html>
+    <html lang="ar" dir="rtl">
       <body className={`${cairo.variable} font-sans antialiased min-h-screen flex flex-col bg-gray-50`}>
         <AuthProvider>
           <LanguageProviderWrapper>

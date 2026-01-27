@@ -7,6 +7,7 @@ import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
 import { StudentQuizList } from '@/components/teacher/StudentQuizList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
+import { AIVideoGenerator } from '@/components/teacher/AIVideoGenerator';
 import { useLanguage } from '@/context/LanguageContext';
 
 // Skeleton loader component
@@ -184,6 +185,16 @@ export default function TeacherHomePage() {
                     onSeeAll={() => console.log('See all lessons')}
                 />
             )}
+
+            {/* AI Video Generator */}
+            {!loading && (
+                <AIVideoGenerator
+                    classId={mockLessons[0]?.id} // Use first lesson as class context
+                    subject={mockSubjects[0]?.name}
+                    gradeLevel="8"
+                />
+            )}
+
 
             {/* Student Submissions Tracking */}
             {loading ? (

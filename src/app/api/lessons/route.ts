@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { title, description, startDateTime, endDateTime, courseId } = body;
+        const { title, description, startDateTime, endDateTime, courseId, skipMeetGeneration, status: requestedStatus } = body;
 
         // Validate required fields
         if (!title || !startDateTime || !endDateTime) {
@@ -105,6 +105,7 @@ export async function POST(req: Request) {
         // Validate dates
         const start = new Date(startDateTime);
         const end = new Date(endDateTime);
+        const now = new Date();
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return NextResponse.json({ error: 'تنسيق التاريخ غير صالح' }, { status: 400 });
         }
@@ -112,42 +113,59 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'وقت الانتهاء يجب أن يكون بعد وقت البدء' }, { status: 400 });
         }
 
-        // Get valid Google token (from database, with auto-refresh)
-        const tokenResult = await getValidGoogleToken(currentUser.id);
+        // T006: Past session detection - set status to "completed" when start time is in past
+        const isPastSession = start < now;
+        const lessonStatus = requestedStatus || (isPastSession ? 'completed' : 'scheduled');
 
-        if (!tokenResult.success || !tokenResult.accessToken) {
-            // No valid Google token - require Google connection
-            return NextResponse.json({
-                error: tokenResult.error || 'يجب ربط حساب Google لإنشاء رابط Meet. يرجى تسجيل الدخول باستخدام Google.',
-                requiresGoogleAuth: true,
-                code: 'GOOGLE_AUTH_REQUIRED'
-            }, { status: 403 });
-        }
+        // T005: Handle skipMeetGeneration flag (FR-019)
+        const shouldGenerateMeet = !skipMeetGeneration && !isPastSession;
 
-        // Create Google Meet event using stored token
-        const meetResult = await createGoogleMeet(tokenResult.accessToken, {
-            summary: title,
-            description: description || `درس: ${title}`,
-            startTime: startDateTime,
-            endTime: endDateTime,
-        });
+        let meetLink: string | null = null;
+        let googleEventId: string | null = null;
+        let googleCalendarLink: string | null = null;
 
-        if (!meetResult.success) {
-            // Meet creation failed - check if re-auth needed
-            if (meetResult.requiresReauth) {
+        if (shouldGenerateMeet) {
+            // Get valid Google token (from database, with auto-refresh)
+            const tokenResult = await getValidGoogleToken(currentUser.id);
+
+            if (!tokenResult.success || !tokenResult.accessToken) {
+                // No valid Google token - require Google connection
                 return NextResponse.json({
-                    error: 'انتهت صلاحية ربط Google. يرجى إعادة تسجيل الدخول باستخدام Google.',
+                    error: tokenResult.error || 'يجب ربط حساب Google لإنشاء رابط Meet. يرجى تسجيل الدخول باستخدام Google.',
                     requiresGoogleAuth: true,
-                    code: 'GOOGLE_REAUTH_REQUIRED'
+                    code: 'GOOGLE_AUTH_REQUIRED'
                 }, { status: 403 });
             }
 
-            return NextResponse.json({
-                error: `فشل إنشاء رابط Meet: ${meetResult.error}`,
-            }, { status: 500 });
+            // Create Google Meet event using stored token
+            const meetResult = await createGoogleMeet(tokenResult.accessToken, {
+                summary: title,
+                description: description || `درس: ${title}`,
+                startTime: startDateTime,
+                endTime: endDateTime,
+            });
+
+            if (!meetResult.success) {
+                // Meet creation failed - check if re-auth needed
+                if (meetResult.requiresReauth) {
+                    return NextResponse.json({
+                        error: 'انتهت صلاحية ربط Google. يرجى إعادة تسجيل الدخول باستخدام Google.',
+                        requiresGoogleAuth: true,
+                        code: 'GOOGLE_REAUTH_REQUIRED'
+                    }, { status: 403 });
+                }
+
+                return NextResponse.json({
+                    error: `فشل إنشاء رابط Meet: ${meetResult.error}`,
+                }, { status: 500 });
+            }
+
+            meetLink = meetResult.meetLink || null;
+            googleEventId = meetResult.eventId || null;
+            googleCalendarLink = meetResult.htmlLink || null;
         }
 
-        // Insert lesson into Supabase with Google Meet link
+        // Insert lesson into Supabase with or without Google Meet link
         const { data: lesson, error: insertError } = await supabaseAdmin
             .from('lessons')
             .insert({
@@ -155,10 +173,10 @@ export async function POST(req: Request) {
                 description: description || '',
                 start_date_time: startDateTime,
                 end_date_time: endDateTime,
-                meet_link: meetResult.meetLink,
-                google_event_id: meetResult.eventId || null,
-                google_calendar_link: meetResult.htmlLink || null,
-                status: 'scheduled',
+                meet_link: meetLink,
+                google_event_id: googleEventId,
+                google_calendar_link: googleCalendarLink,
+                status: lessonStatus,
                 course_id: courseId || null,
                 teacher_id: currentUser.id,
             })
@@ -184,8 +202,8 @@ export async function POST(req: Request) {
         return NextResponse.json({
             _id: lesson.id,
             ...lesson,
-            meetLink: meetResult.meetLink,
-            message: 'تم إنشاء الدرس بنجاح مع رابط Google Meet',
+            meetLink: meetLink,
+            message: shouldGenerateMeet ? 'تم إنشاء الدرس بنجاح مع رابط Google Meet' : 'تم إنشاء الدرس بنجاح',
         });
     } catch (error: any) {
         console.error('Error creating lesson:', error);
