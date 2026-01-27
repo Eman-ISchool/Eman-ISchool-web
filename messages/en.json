@@ -1,0 +1,194 @@
+{
+  "common": {
+    "appName": "Eman-Academy",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success"
+  },
+  "nav": {
+    "home": "Home",
+    "aboutUs": "About Us",
+    "subjects": "Subjects",
+    "studyWithUs": "Study With Us",
+    "blog": "Blog",
+    "nationalSchool": "National Education (Languages)",
+    "alAzharSchool": "Al-Azhar Education",
+    "vrEducation": "VR Educational Experience ✨",
+    "examSimulation": "Exam Simulation",
+    "parentDashboard": "Parent Dashboard"
+  },
+  "header": {
+    "searchPlaceholder": "Search for a course...",
+    "registerNow": "Register Now",
+    "dashboard": "Dashboard",
+    "logout": "Logout"
+  },
+  "hero": {
+    "title": "Egyptian Education",
+    "titleHighlight": "Online",
+    "subtitle": "From Kindergarten to High School",
+    "description": "Enjoy a unique educational experience with Eman-Academy. We provide the Egyptian and Al-Azhar curriculum for your children with exceptional quality and competitive prices with a select group of the best teachers.",
+    "ctaPrimary": "Prepare Your Child Confidently",
+    "ctaSecondary": "Watch Simulation System"
+  },
+  "diasporaBanner": {
+    "badge": "For Egyptian Families Abroad",
+    "title": "You work far away,",
+    "titleHighlight": "while your child prepares professionally",
+    "description": "We understand work pressure abroad and time zone differences. We designed our platform to give you peace of mind while your child prepares for Egyptian exams professionally.",
+    "cta": "View Parent Dashboard"
+  },
+  "benefits": {
+    "sectionTitle": "Why Choose",
+    "sectionTitleHighlight": "Eman-Academy",
+    "sectionDescription": "We offer a comprehensive educational experience that ensures your children's excellence through the latest technologies and the best teaching staff",
+    "curriculum": {
+      "title": "Accredited Curricula",
+      "description": "Comprehensive explanation of Egyptian, Al-Azhar, and language curricula with high accuracy and compliance with the latest ministerial specifications."
+    },
+    "teachers": {
+      "title": "Elite Teachers",
+      "description": "A team of the best male and female teachers with extensive experience in online teaching and dealing with students."
+    },
+    "tracking": {
+      "title": "Continuous Monitoring",
+      "description": "Periodic tests, electronic homework, and detailed performance reports for parents to monitor student progress continuously."
+    }
+  },
+  "usp": {
+    "sectionTitle": "Why We Are",
+    "sectionTitleHighlight": "Different",
+    "quote": "\"Others teach lessons. We prepare your child for the real exam.\"",
+    "points": {
+      "dedicated": "100% dedicated to Egyptians abroad - we are not a general platform",
+      "notTutoring": "Not private tutoring - Egyptian exam readiness system",
+      "smartTracking": "Smart tracking that considers time zone differences",
+      "examSimulation": "Real exam simulation with advanced performance analysis"
+    }
+  },
+  "features": {
+    "sectionTitle": "What We Offer",
+    "sectionTitleHighlight": "For Your Family",
+    "liveClasses": {
+      "title": "Interactive Live Classes",
+      "description": "Live explanation from specialized teachers with the ability to interact and participate immediately."
+    },
+    "recordedLessons": {
+      "title": "Recorded Lessons Library",
+      "description": "All classes are available for viewing at any time with the ability to rewatch."
+    },
+    "homework": {
+      "title": "Interactive Homework",
+      "description": "Electronic exercises and homework with instant correction and performance improvement guidance."
+    },
+    "quizzes": {
+      "title": "Periodic Tests",
+      "description": "Regular assessment tests to measure progress and identify strengths and weaknesses."
+    },
+    "progress": {
+      "title": "Advanced Reports",
+      "description": "Accurate reports showing student level and skills acquired periodically."
+    },
+    "support": {
+      "title": "24/7 Technical Support",
+      "description": "Support team in constant contact with you and your child to solve any technical or educational problem."
+    }
+  },
+  "testimonials": {
+    "sectionTitle": "What Parents",
+    "sectionTitleHighlight": "Say",
+    "sectionDescription": "Real testimonials from parents who trust us",
+    "viewAll": "View More"
+  },
+  "pricing": {
+    "sectionTitle": "Pricing Plans",
+    "sectionDescription": "Choose the plan that suits your child's needs",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "annual": "Annual",
+    "perMonth": "/ month",
+    "selectPlan": "Select Plan",
+    "mostPopular": "Most Popular",
+    "features": {
+      "allCurricula": "All Curricula",
+      "liveClasses": "Live Classes",
+      "recordedLessons": "Recorded Lessons",
+      "homework": "Interactive Homework",
+      "quizzes": "Periodic Tests",
+      "progress": "Performance Reports",
+      "support": "Technical Support",
+      "certificates": "Achievement Certificates"
+    }
+  },
+  "cta": {
+    "sectionTitle": "Start Your Child's Educational Journey",
+    "sectionTitleHighlight": "Today",
+    "description": "Join thousands of families who chose Eman-Academy to educate their children",
+    "button": "Start Now For Free"
+  },
+  "footer": {
+    "about": "About Platform",
+    "aboutDescription": "Eman-Academy is a leading educational platform that provides Egyptian and Al-Azhar curricula with high quality for students in Egypt and abroad.",
+    "quickLinks": "Quick Links",
+    "support": "Support",
+    "legal": "Legal",
+    "contact": "Contact Us",
+    "email": "Email",
+    "phone": "Phone",
+    "followUs": "Follow Us",
+    "allRightsReserved": "All Rights Reserved",
+    "links": {
+      "aboutUs": "About Us",
+      "courses": "Courses",
+      "teachers": "Teachers",
+      "blog": "Blog",
+      "faq": "FAQ",
+      "helpCenter": "Help Center",
+      "contactUs": "Contact Us",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "refundPolicy": "Refund Policy"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Have an account?",
+    "signUp": "Sign Up Now",
+    "signIn": "Sign In"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "myProfile": "My Profile",
+    "myCourses": "My Courses",
+    "myProgress": "My Progress",
+    "settings": "Settings"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Shopping cart is empty",
+    "total": "Total",
+    "checkout": "Checkout",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove"
+  },
+  "courses": {
+    "allCourses": "All Courses",
+    "byCurriculum": "By Curriculum",
+    "byGrade": "By Grade",
+    "bySubject": "By Subject",
+    "enroll": "Enroll Now",
+    "details": "Details",
+    "instructor": "Instructor",
+    "duration": "Duration",
+    "students": "Students",
+    "lessons": "Lessons",
+    "level": "Level"
+  }
+}

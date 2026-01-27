@@ -1,49 +1,24 @@
+import createMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './i18n';
 
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+export default createMiddleware({
+  // A list of all locales that are supported
+  locales,
 
-export default withAuth(
-    function middleware(req) {
-        const token = req.nextauth.token;
-        const path = req.nextUrl.pathname;
+  // Used when no locale matches
+  defaultLocale,
 
-        // 1. Redirect unauthenticated users to login
-        if (!token) {
-            return NextResponse.redirect(new URL("/login", req.url));
-        }
+  // Strategy for locale detection
+  localeDetection: true,
 
-        const userRole = token.role as string;
-
-        // 2. Protect Admin Routes
-        if (path.startsWith("/admin")) {
-            if (userRole !== "admin") {
-                return NextResponse.redirect(new URL("/", req.url));
-            }
-        }
-
-        // 3. Protect Teacher Routes
-        if (path.startsWith("/teacher")) {
-            if (userRole !== "teacher" && userRole !== "admin") {
-                return NextResponse.redirect(new URL("/", req.url));
-            }
-        }
-
-        // 4. Protect Student Routes
-        if (path.startsWith("/student")) {
-            if (userRole !== "student" && userRole !== "admin") {
-                return NextResponse.redirect(new URL("/", req.url));
-            }
-        }
-
-        return NextResponse.next();
-    },
-    {
-        callbacks: {
-            authorized: ({ token }) => !!token,
-        },
-    }
-);
+  // Prefix default locale in URL (e.g., /ar/about instead of /about)
+  localePrefix: 'as-needed',
+});
 
 export const config = {
-    matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
+  // Match all pathnames except for
+  // - API routes (/api/*)
+  // - Static files (/_next/*, /images/*, etc.)
+  // - Public files in /public (/*.jpg, /*.svg, etc.)
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };

@@ -1,0 +1,194 @@
+{
+  "common": {
+    "appName": "Eman-Academy",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "aboutUs": "من نحن",
+    "subjects": "المواد الدراسية",
+    "studyWithUs": "ادرس معنا",
+    "blog": "المدونة",
+    "nationalSchool": "تعليم عام (لغات)",
+    "alAzharSchool": "تعليم أزهري",
+    "vrEducation": "تجربة VR التعليمية ✨",
+    "examSimulation": "محاكاة الامتحانات",
+    "parentDashboard": "لوحة ولي الأمر"
+  },
+  "header": {
+    "searchPlaceholder": "ابحث عن كورس...",
+    "registerNow": "سجل الآن",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج"
+  },
+  "hero": {
+    "title": "التعليم المصري",
+    "titleHighlight": "أونلاين",
+    "subtitle": "من رياض الأطفال للثانوية",
+    "description": "استمتع بتجربة تعليمية فريدة مع Eman-Academy. نقدم منهج التعليم المصري والأزهري لأطفالك بجودة استثنائية وأسعار تنافسية مع نخبة من أفضل المعلمين.",
+    "ctaPrimary": "حضّر طفلك بثقة",
+    "ctaSecondary": "شاهد نظام المحاكاة"
+  },
+  "diasporaBanner": {
+    "badge": "للعائلات المصرية في الخارج",
+    "title": "أنت تعمل بعيداً،",
+    "titleHighlight": "وطفلك يستعد باحترافية",
+    "description": "نفهم ضغط العمل في الخارج وفروق التوقيت. صممنا منصتنا لتمنحك راحة البال بينما يتحضر طفلك للامتحانات المصرية بشكل احترافي.",
+    "cta": "شاهد لوحة ولي الأمر"
+  },
+  "benefits": {
+    "sectionTitle": "لماذا تختار",
+    "sectionTitleHighlight": "Eman-Academy",
+    "sectionDescription": "نقدم تجربة تعليمية متكاملة تضمن تفوق أبنائك من خلال أحدث التقنيات وأفضل الكوادر التعليمية",
+    "curriculum": {
+      "title": "مناهج معتمدة",
+      "description": "شرح وافي للمناهج المصرية والأزهرية ومناهج اللغات بدقة عالية ومطابقة لأحدث المواصفات الوزارية."
+    },
+    "teachers": {
+      "title": "نخبة من المعلمين",
+      "description": "فريق من أفضل المعلمين والمعلمات ذوي الخبرة الطويلة في التدريس الأونلاين والتعامل مع الطلاب."
+    },
+    "tracking": {
+      "title": "متابعة مستمرة",
+      "description": "اختبارات دورية، واجبات إلكترونية، وتقارير أداء مفصلة لولي الأمر لمتابعة مستوى الطالب أولاً بأول."
+    }
+  },
+  "usp": {
+    "sectionTitle": "لماذا نحن",
+    "sectionTitleHighlight": "مختلفون",
+    "quote": "\"آخرون يشرحون الدروس. نحن نُعِد طفلك للامتحان الحقيقي.\"",
+    "points": {
+      "dedicated": "100% مخصص للمصريين بالخارج - لسنا منصة عامة",
+      "notTutoring": "ليس دروس خصوصية - نظام جاهزية للامتحان المصري",
+      "smartTracking": "متابعة ذكية تراعي فروق التوقيت",
+      "examSimulation": "محاكاة الامتحان الحقيقي مع تحليل أداء متقدم"
+    }
+  },
+  "features": {
+    "sectionTitle": "ماذا نقدم",
+    "sectionTitleHighlight": "لعائلتك",
+    "liveClasses": {
+      "title": "حصص مباشرة تفاعلية",
+      "description": "شرح مباشر من معلمين متخصصين مع إمكانية التفاعل والمشاركة الفورية."
+    },
+    "recordedLessons": {
+      "title": "مكتبة دروس مسجلة",
+      "description": "جميع الحصص متاحة للمشاهدة في أي وقت مع إمكانية إعادة المشاهدة."
+    },
+    "homework": {
+      "title": "واجبات تفاعلية",
+      "description": "تمارين وواجبات إلكترونية مع تصحيح فوري وتوجيهات تحسين الأداء."
+    },
+    "quizzes": {
+      "title": "اختبارات دورية",
+      "description": "اختبارات تقييمية منتظمة لقياس التقدم وتحديد نقاط القوة والضعف."
+    },
+    "progress": {
+      "title": "تقارير متقدمة",
+      "description": "تقارير دقيقة توضح مستوى الطالب والمهارات المكتسبة بشكل دوري."
+    },
+    "support": {
+      "title": "دعم فني 24/7",
+      "description": "فريق دعم متواصل معك ومع طفلك لحل أي مشكلة تقنية أو تعليمية."
+    }
+  },
+  "testimonials": {
+    "sectionTitle": "ماذا يقول",
+    "sectionTitleHighlight": "أولياء الأمور",
+    "sectionDescription": "آراء حقيقية من أولياء أمور يثقون بنا",
+    "viewAll": "عرض المزيد"
+  },
+  "pricing": {
+    "sectionTitle": "خطط الأسعار",
+    "sectionDescription": "اختر الخطة المناسبة لاحتياجات طفلك",
+    "monthly": "شهري",
+    "quarterly": "ربع سنوي",
+    "annual": "سنوي",
+    "perMonth": "/ شهرياً",
+    "selectPlan": "اختر الخطة",
+    "mostPopular": "الأكثر شيوعاً",
+    "features": {
+      "allCurricula": "جميع المناهج",
+      "liveClasses": "حصص مباشرة",
+      "recordedLessons": "دروس مسجلة",
+      "homework": "واجبات تفاعلية",
+      "quizzes": "اختبارات دورية",
+      "progress": "تقارير الأداء",
+      "support": "دعم فني",
+      "certificates": "شهادات إنجاز"
+    }
+  },
+  "cta": {
+    "sectionTitle": "ابدأ رحلة طفلك التعليمية",
+    "sectionTitleHighlight": "اليوم",
+    "description": "انضم لآلاف الأسر التي اختارت Eman-Academy لتعليم أطفالها",
+    "button": "ابدأ الآن مجاناً"
+  },
+  "footer": {
+    "about": "عن المنصة",
+    "aboutDescription": "Eman-Academy هي منصة تعليمية رائدة توفر المناهج المصرية والأزهرية بجودة عالية للطلاب في مصر والخارج.",
+    "quickLinks": "روابط سريعة",
+    "support": "الدعم",
+    "legal": "قانوني",
+    "contact": "تواصل معنا",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "followUs": "تابعنا",
+    "allRightsReserved": "جميع الحقوق محفوظة",
+    "links": {
+      "aboutUs": "من نحن",
+      "courses": "الكورسات",
+      "teachers": "المعلمون",
+      "blog": "المدونة",
+      "faq": "الأسئلة الشائعة",
+      "helpCenter": "مركز المساعدة",
+      "contactUs": "اتصل بنا",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfService": "شروط الخدمة",
+      "refundPolicy": "سياسة الاسترجاع"
+    }
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب؟",
+    "signUp": "سجل الآن",
+    "signIn": "دخول"
+  },
+  "dashboard": {
+    "welcome": "مرحباً",
+    "myProfile": "ملفي الشخصي",
+    "myCourses": "كورساتي",
+    "myProgress": "تقدمي",
+    "settings": "الإعدادات"
+  },
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "سلة التسوق فارغة",
+    "total": "الإجمالي",
+    "checkout": "إتمام الشراء",
+    "continueShopping": "متابعة التسوق",
+    "remove": "إزالة"
+  },
+  "courses": {
+    "allCourses": "جميع الكورسات",
+    "byCurriculum": "حسب المنهج",
+    "byGrade": "حسب الصف",
+    "bySubject": "حسب المادة",
+    "enroll": "سجل الآن",
+    "details": "التفاصيل",
+    "instructor": "المعلم",
+    "duration": "المدة",
+    "students": "الطلاب",
+    "lessons": "الدروس",
+    "level": "المستوى"
+  }
+}
