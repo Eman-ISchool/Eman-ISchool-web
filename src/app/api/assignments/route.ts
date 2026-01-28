@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/auth';

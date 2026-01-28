@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { UserRole, LessonStatus, AttendanceStatus, EnrollmentStatus } from '@/types/database';
+import type { UserRole, LessonStatus, AttendanceStatus, EnrollmentStatus } from '@/types/database';
 import bcrypt from 'bcryptjs';
 
 // Helper to generate UUIDs (simplified v4-like for demo if needed, but Supabase generates them usually.

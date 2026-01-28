@@ -1,4 +1,4 @@
-import { SourceContentType } from '@/types/database';
+import type { SourceContentType } from '@/types/database';
 
 // Default limits from environment variables
 const DEFAULT_MAX_VIDEO_SIZE_MB = parseInt(process.env.MAX_VIDEO_SIZE_MB || '500', 10);

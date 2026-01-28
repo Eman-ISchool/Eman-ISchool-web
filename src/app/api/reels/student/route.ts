@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 type Reel = Database['public']['Tables']['reels']['Row'];
 type Enrollment = Database['public']['Tables']['enrollments']['Row'];
 

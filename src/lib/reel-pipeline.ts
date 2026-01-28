@@ -2,9 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { transcribeVideo, validateTranscriptForSegmentation } from './transcription-api';
 import { segmentTranscript, validateSegmentation } from './content-segmenter';
 import { generateReel } from './runway-api';
-import { ProcessingJobType, ProcessingJobStatus, SourceStatus } from '@/types/database';
+import type { ProcessingJobType, ProcessingJobStatus, SourceStatus } from '@/types/database';
 import { notifyAdminOfAIFailure } from './reel-notifications';
-import { moderateContent } from './content-screening';
 import { moderateContent } from './content-screening';
 
 // Initialize Supabase client
@@ -49,8 +48,8 @@ export async function startPipeline(config: PipelineConfig): Promise<string> {
       .from('processing_jobs')
       .insert({
         source_id: config.sourceId,
-        type: ProcessingJobType.GENERATION,
-        status: ProcessingJobStatus.PENDING,
+        type: 'generation',
+        status: 'pending',
         current_step: 'Initializing',
         progress_percent: 0,
         retry_count: 0,
@@ -68,7 +67,7 @@ export async function startPipeline(config: PipelineConfig): Promise<string> {
     // Update source status
     await supabase
       .from('source_content')
-      .update({ status: SourceStatus.PROCESSING })
+      .update({ status: 'processing' })
       .eq('id', config.sourceId);
 
     // Start pipeline execution asynchronously
@@ -123,7 +122,7 @@ async function executePipeline(jobId: string, config: PipelineConfig): Promise<v
     await supabase
       .from('processing_jobs')
       .update({
-        status: ProcessingJobStatus.COMPLETED,
+        status: 'completed',
         current_step: 'Completed',
         progress_percent: 100,
         completed_at: new Date().toISOString(),
@@ -133,7 +132,7 @@ async function executePipeline(jobId: string, config: PipelineConfig): Promise<v
     // Update source status
     await supabase
       .from('source_content')
-      .update({ status: SourceStatus.READY })
+      .update({ status: 'ready' })
       .eq('id', config.sourceId);
 
     console.log('[Reel Pipeline] Pipeline completed successfully:', {
@@ -324,7 +323,7 @@ async function handlePipelineFailure(jobId: string, error: any): Promise<void> {
       .from('processing_jobs')
       .update({
         retry_count: newRetryCount,
-        status: ProcessingJobStatus.PENDING,
+        status: 'pending',
         error_message: error?.message || 'Unknown error',
       })
       .eq('id', jobId);
@@ -338,7 +337,7 @@ async function handlePipelineFailure(jobId: string, error: any): Promise<void> {
     await supabase
       .from('processing_jobs')
       .update({
-        status: ProcessingJobStatus.FAILED,
+        status: 'failed',
         error_message: error?.message || 'Unknown error',
       })
       .eq('id', jobId);
@@ -346,7 +345,7 @@ async function handlePipelineFailure(jobId: string, error: any): Promise<void> {
     // Update source status
     await supabase
       .from('source_content')
-      .update({ status: SourceStatus.FAILED })
+      .update({ status: 'failed' })
       .eq('id', job.source_id);
 
     // Notify admin of failure
@@ -376,7 +375,7 @@ export async function resumePipeline(jobId: string): Promise<void> {
     await supabase
       .from('processing_jobs')
       .update({
-        status: ProcessingJobStatus.PENDING,
+        status: 'pending',
         error_message: null,
       })
       .eq('id', jobId);
@@ -443,7 +442,7 @@ export async function pausePipeline(jobId: string): Promise<void> {
   const { error } = await supabase
     .from('processing_jobs')
     .update({
-      status: ProcessingJobStatus.PAUSED,
+      status: 'paused',
       current_step: 'Paused by user',
     })
     .eq('id', jobId);
@@ -463,7 +462,7 @@ export async function cancelPipeline(jobId: string): Promise<void> {
   const { error } = await supabase
     .from('processing_jobs')
     .update({
-      status: ProcessingJobStatus.FAILED,
+      status: 'failed',
       current_step: 'Cancelled',
       error_message: 'Job cancelled by user',
     })

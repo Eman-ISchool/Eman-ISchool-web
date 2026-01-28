@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 type ReelProgress = Database['public']['Tables']['reel_progress']['Row'];
 type User = Database['public']['Tables']['users']['Row'];
 type Reel = Database['public']['Tables']['reels']['Row'];

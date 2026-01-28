@@ -43,16 +43,16 @@ export async function POST(
         }
 
         // Update reel to mark as flagged
-        // @ts-ignore - Supabase update type inference issue
-        const { data: reel, error } = await supabaseAdmin
+        const admin = supabaseAdmin as any;
+        const { data: reel, error } = await admin
             .from('reels')
             .update({
                 status: 'rejected',
                 rejection_reason: `Flagged by admin: ${flagReason}`,
-            } as any)
+            })
             .eq('id', reelId)
             .select()
-            .single() as any;
+            .single();
 
         if (error) {
             console.error('Error flagging reel:', error);

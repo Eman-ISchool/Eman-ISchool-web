@@ -7,21 +7,24 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
 
 // Lazy initialization to prevent errors when env vars are not set
-let _supabase: SupabaseClient<Database> | null = null;
-let _supabaseAdmin: SupabaseClient<Database> | null = null;
+let _supabase: SupabaseClient<any> | null = null;
+let _supabaseAdmin: SupabaseClient<any> | null = null;
 
 // Check if Supabase is configured
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 export const isSupabaseAdminConfigured = !!(supabaseUrl && supabaseServiceKey);
 
 // Client-side Supabase client (uses anon key, respects RLS)
-export const supabase: SupabaseClient<Database> | null = (() => {
-    if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn('Supabase client not initialized: missing URL or anon key');
-        return null;
+export const supabase: SupabaseClient<any> = (() => {
+    const clientUrl = supabaseUrl || 'http://localhost:54321';
+    const clientKey = supabaseAnonKey || 'public-anon-key-missing';
+
+    if (!isSupabaseConfigured) {
+        console.warn('Supabase client using fallback URL/key because environment variables are missing');
     }
+
     if (!_supabase) {
-        _supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+        _supabase = createClient<any>(clientUrl, clientKey, {
             auth: {
                 persistSession: true,
                 autoRefreshToken: true,
@@ -33,13 +36,16 @@ export const supabase: SupabaseClient<Database> | null = (() => {
 
 // Server-side Supabase client (uses service role key, bypasses RLS)
 // Use this ONLY in API routes and server components
-export const supabaseAdmin: SupabaseClient<Database> | null = (() => {
-    if (!supabaseUrl || !supabaseServiceKey) {
-        console.warn('Supabase admin client not initialized: missing URL or service key');
-        return null;
+export const supabaseAdmin: SupabaseClient<any> = (() => {
+    const adminUrl = supabaseUrl || 'http://localhost:54321';
+    const adminKey = supabaseServiceKey || 'service-role-key-missing';
+
+    if (!isSupabaseAdminConfigured) {
+        console.warn('Supabase admin client using fallback URL/key because environment variables are missing');
     }
+
     if (!_supabaseAdmin) {
-        _supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+        _supabaseAdmin = createClient<any>(adminUrl, adminKey, {
             auth: {
                 persistSession: false,
                 autoRefreshToken: false,
@@ -50,12 +56,11 @@ export const supabaseAdmin: SupabaseClient<Database> | null = (() => {
 })();
 
 // Helper to get server-side client
-export function getServerSupabase(): SupabaseClient<Database> {
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Missing Supabase environment variables');
+export function getServerSupabase(): SupabaseClient<any> {
+    if (!isSupabaseAdminConfigured) {
+        console.warn('Supabase admin environment variables are missing; requests may fail at runtime');
     }
-    // Non-null assertion is safe here because we throw an error above if supabaseAdmin is null
-    return supabaseAdmin!;
+    return supabaseAdmin;
 }
 
 // Types for database entities

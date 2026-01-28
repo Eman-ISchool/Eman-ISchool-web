@@ -63,7 +63,7 @@ export async function moderateContent(
     // Check for suspicious patterns (excessive special characters, repeated patterns)
     const suspiciousPatterns = [
       /[!@#$%^&*()_+=\[\]{}|\\:;"'<>,/]{2,}/g,
-      /(.{10,})\1{10,})/g, // Repeated characters
+      /(.{10,})\1{10,}/g, // Repeated characters
     ];
 
     for (const pattern of suspiciousPatterns) {
@@ -93,7 +93,15 @@ export async function moderateContent(
     console.log('[Content Screening] Screening result:', result);
 
     return result;
+  } catch (error) {
+    console.error('[Content Screening] Error screening content:', error);
+    return {
+      isAppropriate: false,
+      confidence: 0,
+      details: 'Content screening failed',
+    };
   }
+}
 
 /**
  * Screens video transcript for educational content

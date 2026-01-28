@@ -77,7 +77,7 @@ async function seed() {
                 image: user.image,
                 password_hash: passwordHash,
                 is_active: true,
-                google_id: \`test_\${user.role}\` // Dummy Google ID for testing
+                google_id: `test_${user.role}`, // Dummy Google ID for testing
       });
       
       if (error) console.error(`Error creating user ${ user.email }: `, error);

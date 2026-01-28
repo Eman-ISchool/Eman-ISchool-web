@@ -140,7 +140,6 @@ export default function ProcessingStatus({
                     style={{ width: `${step.progress}%` }}
                   />
                 </div>
-              </div>
               )}
               {step.error && (
                 <div className="step-error">{step.error}</div>

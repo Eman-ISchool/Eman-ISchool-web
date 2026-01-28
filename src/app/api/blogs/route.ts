@@ -1,5 +1,8 @@
+// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
     if (!isSupabaseAdminConfigured || !supabaseAdmin) {

@@ -66,12 +66,15 @@ async function checkTablesExist() {
 async function provideSQLInstructions() {
     const migrationPath = path.join(__dirname, '../supabase/migrations/add_reels_tables.sql');
     const absolutePath = path.resolve(migrationPath);
+    const dashboardUrl = SUPABASE_URL
+        ? SUPABASE_URL.replace('/rest/v1', '')
+        : '(SUPABASE_URL not configured)';
 
     console.log('📋 MANUAL SETUP REQUIRED\n');
     console.log('The reels tables need to be created in your Supabase database.');
     console.log('Please follow these steps:\n');
     console.log('1. Open your Supabase Dashboard:');
-    console.log(`   ${SUPABASE_URL.replace('/rest/v1', '')}\n`);
+    console.log(`   ${dashboardUrl}\n`);
     console.log('2. Navigate to: SQL Editor (in the left sidebar)\n');
     console.log('3. Click "New Query"\n');
     console.log('4. Copy the contents of this file:');

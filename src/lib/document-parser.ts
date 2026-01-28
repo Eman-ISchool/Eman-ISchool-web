@@ -3,7 +3,6 @@
  * Handles parsing of PDF, DOCX, and TXT documents for content extraction
  */
 
-import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 
 export interface ParsedDocument {
@@ -32,8 +31,10 @@ export interface ParseResult {
 export async function parsePDF(buffer: Buffer): Promise<ParseResult> {
   try {
     console.log('[DocumentParser] Parsing PDF...');
-    
-    const data = await pdf(buffer);
+
+    const pdfParseModule = await import('pdf-parse');
+    const pdfParse = (pdfParseModule as any).default ?? pdfParseModule;
+    const data = await pdfParse(buffer);
     
     if (!data || !data.text) {
       return {

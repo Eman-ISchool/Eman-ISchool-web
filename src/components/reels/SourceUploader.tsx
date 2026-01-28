@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import * as tus from 'tus-js-client';
 import { validateVideoFile, validateDocumentFile, validateFileByType } from '@/lib/file-validation';
-import { SourceContentType } from '@/types/database';
+import type { SourceContentType } from '@/types/database';
 
 interface UploadProgress {
   progress: number;

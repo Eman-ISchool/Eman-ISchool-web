@@ -3,6 +3,8 @@
  * Provides fetch wrapper with error handling for session/lesson operations
  */
 
+import type { NextAuthOptions } from 'next-auth';
+
 export interface Session {
     _id: string;
     title: string;
@@ -58,6 +60,19 @@ export interface SessionApiResponse<T = Session | Session[]> {
     error?: string;
     code?: string;
     requiresGoogleAuth?: boolean;
+}
+
+/**
+ * Server-only session helper.
+ * This uses dynamic imports to avoid pulling server-only code into client bundles.
+ */
+export async function getServerSession(options?: NextAuthOptions) {
+    const [{ getServerSession: nextGetServerSession }, { authOptions }] = await Promise.all([
+        import('next-auth'),
+        import('./auth'),
+    ]);
+
+    return nextGetServerSession(options ?? authOptions);
 }
 
 /**

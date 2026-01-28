@@ -3,9 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 import { validateVideoFile, validateDocumentFile, validateFileByType, checkFileSizeLimit } from '@/lib/file-validation';
 import { computeFileHash } from '@/lib/content-hash';
-import { SourceContentType, SourceStatus } from '@/types/database';
+import type { SourceContentType, SourceStatus } from '@/types/database';
 import { startPipeline } from '@/lib/reel-pipeline';
-import { parseDocument, validatePageCount } from '@/lib/document-parser';
 import { parseDocument, validatePageCount } from '@/lib/document-parser';
 
 const supabase = createClient(
@@ -207,7 +206,7 @@ export async function POST(request: NextRequest) {
     const fileUrl = urlData?.publicUrl || uploadData.path;
 
     // Extract metadata
-    const metadata: {
+    const metadata = {
       originalFilename: file.name,
       mimeType: file.type,
       ...(classId && { classId }),

@@ -27,7 +27,7 @@ import {
     LogOut,
     User,
 } from 'lucide-react';
-import '@/app/admin/admin.css';
+import '@/app/[locale]/admin/admin.css';
 
 interface NavItem {
     icon: ReactNode;
