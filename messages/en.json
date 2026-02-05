@@ -150,25 +150,189 @@
       "refundPolicy": "Refund Policy"
     }
   },
-  "auth": {
-    "login": "Login",
-    "register": "Create Account",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "forgotPassword": "Forgot Password?",
-    "rememberMe": "Remember Me",
-    "noAccount": "Don't have an account?",
-    "haveAccount": "Have an account?",
-    "signUp": "Sign Up Now",
-    "signIn": "Sign In"
-  },
   "dashboard": {
-    "welcome": "Welcome",
-    "myProfile": "My Profile",
-    "myCourses": "My Courses",
-    "myProgress": "My Progress",
-    "settings": "Settings"
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}",
+    "noAccessTitle": "Login Required",
+    "noAccessDesc": "Please sign in to access the dashboard and manage lessons",
+    "googleLogin": "Sign in with Google",
+    "newLesson": "New Lesson",
+    "cancel": "Cancel",
+    "createLesson": "Schedule New Lesson with Google Meet",
+    "form": {
+      "title": "Lesson Title *",
+      "titlePlaceholder": "e.g. Math Review",
+      "description": "Description",
+      "descriptionPlaceholder": "Lesson details...",
+      "startTime": "Start Time *",
+      "endTime": "End Time *",
+      "submit": "Schedule & Create Meet Link",
+      "creating": "Creating..."
+    },
+    "alerts": {
+      "successCreate": "Lesson created successfully with Google Meet link",
+      "successDelete": "Lesson deleted successfully",
+      "errorCreate": "Failed to create lesson",
+      "errorDelete": "Failed to delete lesson",
+      "errorGeneric": "An error occurred. Please try again.",
+      "confirmDelete": "Are you sure you want to delete this lesson?",
+      "connectGoogle": "Connect Google Account for Meet"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "calendar": "Calendar",
+      "list": "All Lessons"
+    },
+    "sections": {
+      "todayLessons": "Today's Lessons",
+      "upcomingLessons": "Upcoming Lessons",
+      "noLessonsToday": "No lessons scheduled for today",
+      "noUpcomingLessons": "No upcoming lessons",
+      "noSchedule": "No lessons scheduled currently",
+      "createFirst": "Create your first lesson"
+    },
+    "lesson": {
+      "join": "Join"
+    }
+  },
+  "teacher": {
+    "nav": {
+      "home": "Home",
+      "calendar": "Calendar",
+      "chat": "Chat",
+      "profile": "Profile"
+    },
+    "home": {
+      "welcome": "Welcome, {name}",
+      "announcements": "Notice: Teacher Ahmed will be absent today",
+      "upcomingLessons": "My Upcoming Lessons",
+      "submissions": "Student Submissions",
+      "mySubjects": "My Subjects"
+    },
+    "video": {
+      "title": "AI Video Generator",
+      "subtitle": "Create educational videos from text",
+      "promptLabel": "Enter text or script",
+      "promptPlaceholder": "Example: A simple explanation of gravity for grade 8 students...",
+      "charCount": "{current} / {max}",
+      "ready": "Ready to generate",
+      "generating": "Generating...",
+      "generateBtn": "Generate Video",
+      "success": "Video generated successfully!",
+      "newVideo": "Create New Video",
+      "failed": "Video generation failed",
+      "tryAgain": "Try Again",
+      "tip": "💡 Tip: Be specific in your description for best results. Videos are automatically published to students.",
+      "waitMessage": "This may take 1-2 minutes. Please don't close the page."
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "calendar": "Calendar",
+      "live": "Live Sessions",
+      "lessons": "Lessons",
+      "quizzes": "Quizzes & Exams",
+      "teachers": "Teachers",
+      "students": "Students",
+      "fees": "Fees",
+      "coupons": "Coupons & Expenses",
+      "content": "Content",
+      "currency": "Currency Compare",
+      "messages": "Messages & Audit",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome, {name} 👋",
+      "quickActions": "Quick Actions",
+      "recentActivity": "Recent Activity",
+      "attendance": "Attendance",
+      "stats": {
+        "students": "Total Students",
+        "teachers": "Teachers",
+        "activeCourses": "Active Courses",
+        "lessonsThisWeek": "Lessons This Week",
+        "growth": "This Month",
+        "published": "Published",
+        "upcoming": "Upcoming"
+      },
+      "widgets": {
+        "todaySessions": "Today's Sessions",
+        "pendingActions": "Pending Actions",
+        "instantChatbot": "AI Assistant"
+      },
+      "highlights": {
+        "title": "Eduverse Platform – A Unique Learning Experience",
+        "liveDesc": "Personal Zoom accounts for each student for effective interaction.",
+        "calendarDesc": "Uploaded to the platform with an automatic copy sent to parents via WhatsApp.",
+        "platformDesc": "Comprehensive tools supporting the student throughout the learning journey.",
+        "recordingsDesc": "Permanent access to all curriculum content recordings.",
+        "bankDesc": "Training according to student level considering individual differences.",
+        "homeworkDesc": "Grading with written and voice comments for pronunciation and reading.",
+        "parentDesc": "Track grades, attendance, absence, and completed tasks.",
+        "groupsTitle": "Group Study Only",
+        "groupsDesc": "15-20 students per class to ensure quality interaction and follow-up."
+      },
+      "links": {
+        "live": "Live Communication",
+        "calendar": "Regular Schedule",
+        "platform": "Integrated Platform",
+        "recordings": "Lesson Recordings",
+        "bank": "Interactive Question Bank",
+        "homework": "Weekly Assignments",
+        "parent": "Parent Dashboard"
+      }
+    },
+    "actions": {
+      "newAppointment": "New Appointment",
+      "newLesson": "New Lesson",
+      "newLive": "New Live Session",
+      "newTeacher": "New Teacher",
+      "newCoupon": "New Coupon"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome to Eman-Academy",
+      "subtitle": "Select account type to login",
+      "noAccount": "Don't have an account?",
+      "register": "Register Now",
+      "roles": {
+        "admin": {
+          "title": "Admin",
+          "desc": "Access for system administrators and supervisors"
+        },
+        "teacher": {
+          "title": "Teacher",
+          "desc": "Access for teachers and class management"
+        },
+        "student": {
+          "title": "Student",
+          "desc": "Access for students and parents"
+        }
+      }
+    },
+    "register": {
+      "title": "Create New Account",
+      "subtitle": "Join Eman-Academy Platform",
+      "googleBtn": "Sign up with Google",
+      "googleLoading": "Creating account...",
+      "or": "OR",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "placeholder": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "name@example.com"
+      },
+      "emailUnavailable": "Email registration is currently unavailable. Please use Google.",
+      "hasAccount": "Already have an account?",
+      "login": "Login",
+      "error": "An error occurred while creating the account"
+    }
   },
   "cart": {
     "title": "Shopping Cart",
@@ -190,5 +354,18 @@
     "students": "Students",
     "lessons": "Lessons",
     "level": "Level"
+  },
+  "userPortal": {
+    "title": "User Portal",
+    "subtitle": "Use the following credentials to experience the system with different roles",
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Teacher",
+      "student": "Student"
+    },
+    "credentials": {
+      "username": "Username",
+      "password": "Password"
+    }
   }
 }

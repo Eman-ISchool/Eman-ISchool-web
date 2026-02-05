@@ -40,7 +40,9 @@ export default function PendingActionsWidget({
     actions,
     className = '',
 }: PendingActionsWidgetProps) {
-    const totalPending = actions.reduce((sum, a) => sum + a.count, 0);
+    // Ensure actions is always an array
+    const safeActions = Array.isArray(actions) ? actions : [];
+    const totalPending = safeActions.reduce((sum, a) => sum + a.count, 0);
 
     return (
         <div className={`admin-card ${className}`}>
@@ -54,7 +56,7 @@ export default function PendingActionsWidget({
                 )}
             </div>
             <div className="admin-card-body p-0">
-                {actions.length === 0 || totalPending === 0 ? (
+                {safeActions.length === 0 || totalPending === 0 ? (
                     <div className="p-8 text-center">
                         <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
                             <span className="text-2xl">✓</span>
@@ -63,7 +65,7 @@ export default function PendingActionsWidget({
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100">
-                        {actions
+                        {safeActions
                             .filter((a) => a.count > 0)
                             .map((action) => (
                                 <Link

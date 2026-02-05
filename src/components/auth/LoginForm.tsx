@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import Link from 'next/link';
 import { Mail, Lock, Loader2, Chrome } from 'lucide-react'; // Assuming lucide-react is installed
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface LoginFormProps {
     role: 'admin' | 'teacher' | 'student';
@@ -16,24 +17,11 @@ interface LoginFormProps {
     description: string;
 }
 
-// Helper function to get role-based redirect URL
-function getRoleBasedRedirect(userRole: string | undefined): string {
-    switch (userRole) {
-        case 'admin':
-            return '/admin';
-        case 'teacher':
-            return '/teacher/dashboard';
-        case 'student':
-            return '/student/dashboard';
-        case 'parent':
-            return '/parent/dashboard';
-        default:
-            return '/dashboard';
-    }
-}
-
 export default function LoginForm({ role, title, description }: LoginFormProps) {
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
+    const toLocale = (href: string) => withLocalePrefix(href, locale);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [email, setEmail] = useState('');
@@ -57,8 +45,22 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                 // Get the updated session to check the user's role
                 const session = await getSession();
                 const userRole = (session?.user as any)?.role;
-                const redirectUrl = getRoleBasedRedirect(userRole);
-                router.push(redirectUrl);
+                const redirectUrl = (() => {
+                    switch (userRole) {
+                        case 'admin':
+                            return '/admin';
+                        case 'teacher':
+                            return '/teacher/home';
+                        case 'student':
+                            return '/student/home';
+                        case 'parent':
+                            return '/parent-dashboard';
+                        default:
+                            return '/dashboard';
+                    }
+                })();
+                const localizedRedirect = toLocale(redirectUrl);
+                router.push(localizedRedirect);
                 router.refresh();
             }
         } catch (err) {
@@ -176,7 +178,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pb-8">
                 <div className="text-center text-sm">
-                    <Link href="/login" className="text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-brand-primary transition-colors flex items-center justify-center gap-1">
+                    <Link href={toLocale('/login')} className="text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-brand-primary transition-colors flex items-center justify-center gap-1">
                         <span>←</span>
                         <span>العودة لاختيار نوع الحساب</span>
                     </Link>

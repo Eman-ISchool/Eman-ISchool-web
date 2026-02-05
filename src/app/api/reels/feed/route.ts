@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getServerSession } from '@/lib/session-api';
+import { getServerSession } from 'next-auth';
+import { authOptions, getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +17,14 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     // Get user session
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUser = await getCurrentUser(session);
+    if (!currentUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     // Parse query parameters
@@ -40,7 +46,8 @@ export async function GET(request: NextRequest) {
           group_id
         )
       `)
-      .eq('status', 'published');
+      .eq('status', 'published')
+      .not('generation_request_id', 'is', null);
 
     // Apply visibility filter
     if (filter !== 'all') {
@@ -51,9 +58,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get user's class and grade level from session
-    const userClassId = session.user?.class_id;
-    const userGradeLevel = session.user?.grade_level;
+    // Get user's class and grade level
+    // We need to fetch this from DB as it's not in the session
+    const { data: userDetails } = await supabase
+      .from('users')
+      .select('class_id, grade_level')
+      .eq('id', currentUser.id)
+      .single();
+
+    const userClassId = userDetails?.class_id;
+    const userGradeLevel = userDetails?.grade_level;
 
     // Apply visibility filter for student's class
     if (userClassId) {

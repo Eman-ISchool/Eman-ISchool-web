@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Menu, LogOut, User, LayoutDashboard } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useCartStore } from '@/lib/store';
 import { ShoppingCart } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { useLanguage } from '@/context/LanguageContext';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export function Header() {
     const { data: session, status } = useSession();
@@ -17,35 +18,39 @@ export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const { t, language, toggleLanguage } = useLanguage();
+
+    const toLocale = (href: string) => withLocalePrefix(href, locale);
 
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const q = formData.get('q');
         if (q) {
-            router.push(`/search?q=${encodeURIComponent(q.toString())}`);
+            router.push(toLocale(`/search?q=${encodeURIComponent(q.toString())}`));
             setIsMenuOpen(false);
         }
     };
 
     const handleLogout = async () => {
-        await signOut({ callbackUrl: '/' });
+        await signOut({ callbackUrl: toLocale('/') });
     };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white text-gray-900 shadow-sm transition-all duration-300">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <Link href={toLocale('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <Logo />
                 </Link>
 
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-                    <Link href="/" className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.home')}</Link>
-                    <Link href="/about-us" className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.about')}</Link>
-                    <Link href="/egypt-curriculum" className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.curriculum')}</Link>
+                    <Link href={toLocale('/')} className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.home')}</Link>
+                    <Link href={toLocale('/about-us')} className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.about')}</Link>
+                    <Link href={toLocale('/egypt-curriculum')} className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.curriculum')}</Link>
                     <div className="group relative">
                         <button className="flex items-center gap-1 hover:text-[var(--color-primary)] transition-colors py-2 focus:outline-none">
                             {t('nav.studyWithUs')}
@@ -53,16 +58,16 @@ export function Header() {
                         {/* Simple Dropdown using group-hover */}
                         <div className="absolute top-full right-0 mt-0 w-52 bg-white border border-gray-100 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
                             <div className="flex flex-col py-2">
-                                <Link href="/national-school" className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.national')}</Link>
-                                <Link href="/al-azhar-school" className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.azhar')}</Link>
-                                <Link href="/vr-eduverse" className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.vr')}</Link>
+                                <Link href={toLocale('/national-school')} className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.national')}</Link>
+                                <Link href={toLocale('/al-azhar-school')} className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.azhar')}</Link>
+                                <Link href={toLocale('/vr-eduverse')} className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.vr')}</Link>
                                 <div className="border-t border-gray-100 my-1"></div>
-                                <Link href="/exam-simulation" className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.exams')}</Link>
-                                <Link href="/parent-dashboard" className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.parent')}</Link>
+                                <Link href={toLocale('/exam-simulation')} className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.exams')}</Link>
+                                <Link href={toLocale('/parent-dashboard')} className="px-4 py-2 hover:bg-gray-50 hover:text-[var(--color-primary)] text-start">{t('nav.parent')}</Link>
                             </div>
                         </div>
                     </div>
-                    <Link href="/blogs" className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.blog')}</Link>
+                    <Link href={toLocale('/blogs')} className="hover:text-[var(--color-primary)] transition-colors hover:translate-y-[-1px] transform duration-200">{t('nav.blog')}</Link>
                 </nav>
 
                 {/* Actions */}
@@ -80,7 +85,7 @@ export function Header() {
 
                     {/* Search Bar Removed per user request */}
 
-                    <Link href="/cart" className="relative p-2 hover:bg-gray-100 rounded-full transition-colors group">
+                    <Link href={toLocale('/cart')} className="relative p-2 hover:bg-gray-100 rounded-full transition-colors group">
                         <ShoppingCart className="w-5 h-5 group-hover:text-[var(--color-primary)] transition-colors" />
                         {cartItems.length > 0 && (
                             <span className="absolute -top-1 -right-1 bg-[var(--color-primary)] text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-bounce text-white">
@@ -114,7 +119,7 @@ export function Header() {
                             {isUserMenuOpen && (
                                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 fade-in duration-200 z-50">
                                     <Link
-                                        href="/dashboard"
+                                        href={toLocale('/dashboard')}
                                         className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-start"
                                         onClick={() => setIsUserMenuOpen(false)}
                                     >
@@ -133,7 +138,7 @@ export function Header() {
                             )}
                         </div>
                     ) : (
-                        <Link href="/login" className="hidden md:inline-flex px-4 py-2 rounded-md bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-hover)] hover:scale-105 transition-all shadow-sm">
+                        <Link href={toLocale('/login')} className="hidden md:inline-flex px-4 py-2 rounded-md bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-hover)] hover:scale-105 transition-all shadow-sm">
                             {t('nav.login')}
                         </Link>
                     )}
@@ -160,22 +165,22 @@ export function Header() {
                                 className="w-full px-4 py-2 rounded-md border border-gray-200 focus:border-[var(--color-primary)] focus:outline-none"
                             />
                         </form>
-                        <Link href="/" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.home')}</Link>
-                        <Link href="/about-us" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.about')}</Link>
-                        <Link href="/egypt-curriculum" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.curriculum')}</Link>
-                        <Link href="/national-school" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.national')}</Link>
-                        <Link href="/al-azhar-school" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.azhar')}</Link>
-                        <Link href="/vr-eduverse" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.vr')}</Link>
+                        <Link href={toLocale('/')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.home')}</Link>
+                        <Link href={toLocale('/about-us')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.about')}</Link>
+                        <Link href={toLocale('/egypt-curriculum')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.curriculum')}</Link>
+                        <Link href={toLocale('/national-school')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.national')}</Link>
+                        <Link href={toLocale('/al-azhar-school')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.azhar')}</Link>
+                        <Link href={toLocale('/vr-eduverse')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.vr')}</Link>
                         <div className="border-t border-gray-100 my-2"></div>
-                        <Link href="/exam-simulation" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.exams')}</Link>
-                        <Link href="/parent-dashboard" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.parent')}</Link>
-                        <Link href="/blogs" className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.blog')}</Link>
+                        <Link href={toLocale('/exam-simulation')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.exams')}</Link>
+                        <Link href={toLocale('/parent-dashboard')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.parent')}</Link>
+                        <Link href={toLocale('/blogs')} className="px-2 py-1 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>{t('nav.blog')}</Link>
 
                         {/* Mobile Auth Section */}
                         <div className="pt-2 border-t border-gray-100">
                             {session ? (
                                 <div className="space-y-2">
-                                    <Link href="/dashboard" className="flex items-center gap-2 px-2 py-2 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>
+                                    <Link href={toLocale('/dashboard')} className="flex items-center gap-2 px-2 py-2 hover:text-[var(--color-primary)] font-medium" onClick={() => setIsMenuOpen(false)}>
                                         <LayoutDashboard className="w-4 h-4" />
                                         {t('nav.dashboard')}
                                     </Link>
@@ -188,7 +193,7 @@ export function Header() {
                                     </button>
                                 </div>
                             ) : (
-                                <Link href="/login" className="block w-full text-center px-4 py-2 rounded-md bg-[var(--color-primary)] text-white font-bold" onClick={() => setIsMenuOpen(false)}>
+                                <Link href={toLocale('/login')} className="block w-full text-center px-4 py-2 rounded-md bg-[var(--color-primary)] text-white font-bold" onClick={() => setIsMenuOpen(false)}>
                                     {t('nav.login')}
                                 </Link>
                             )}

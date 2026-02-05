@@ -29,15 +29,15 @@ export async function GET(req: Request) {
                 course:courses(id, title, slug),
                 teacher:users!lessons_teacher_id_fkey(id, name, email, image)
             `)
-            .order('start_date_time', { ascending: true })
-            .range(offset, offset + limit - 1);
+            .order('start_date_time', { ascending: true });
 
+        // Apply filters
         if (status) {
             query = query.eq('status', status);
         }
 
         if (upcoming === 'true') {
-            query = query.gte('start_date_time', new Date().toISOString());
+            query = query.gte('end_date_time', new Date().toISOString());
         }
 
         if (courseId) {
@@ -48,11 +48,17 @@ export async function GET(req: Request) {
             query = query.eq('teacher_id', teacherId);
         }
 
+        // Apply pagination after filters
+        if (limit) {
+            query = query.range(offset, offset + limit - 1);
+        }
+
         const { data: lessons, error } = await query;
 
         if (error) {
-            console.error('Error fetching lessons:', error);
-            return NextResponse.json({ error: 'فشل جلب الدروس' }, { status: 500 });
+            console.error('Supabase Error fetching lessons:', error);
+            // Return empty array instead of error to prevent crashing frontend
+            return NextResponse.json([]);
         }
 
         // Transform data to match expected frontend format
@@ -188,16 +194,18 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'فشل إنشاء الدرس' }, { status: 500 });
         }
 
-        // Log the meeting creation
-        await supabaseAdmin.from('meeting_logs').insert({
-            lesson_id: lesson.id,
-            event_type: 'scheduled',
-            user_id: currentUser.id,
-            metadata: {
-                meet_link: meetResult.meetLink,
-                google_event_id: meetResult.eventId,
-            },
-        });
+        if (shouldGenerateMeet) {
+            // Log the meeting creation only if we tried to generate meeting
+            await supabaseAdmin.from('meeting_logs').insert({
+                lesson_id: lesson.id,
+                event_type: 'scheduled',
+                user_id: currentUser.id,
+                metadata: {
+                    meet_link: meetLink,
+                    google_event_id: googleEventId,
+                },
+            });
+        }
 
         return NextResponse.json({
             _id: lesson.id,

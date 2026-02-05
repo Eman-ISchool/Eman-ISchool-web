@@ -7,18 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 export default function RegisterPage() {
+    const pathname = usePathname();
+    const t = useTranslations('auth.register');
+    const locale = useLocale();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isArabic = locale === 'ar';
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            await signIn('google', { callbackUrl: '/dashboard' });
+            await signIn('google', { callbackUrl: withLocalePrefix('/dashboard', locale) });
         } catch (err) {
-            setError('حدث خطأ أثناء إنشاء الحساب');
+            setError(t('error'));
             setIsLoading(false);
         }
     };
@@ -26,9 +35,11 @@ export default function RegisterPage() {
     return (
         <Card className="border-gray-200 shadow-xl">
             <CardHeader className="space-y-1 text-center">
-                <CardTitle className="text-2xl font-bold text-brand-dark">إنشاء حساب جديد</CardTitle>
+                <CardTitle className="text-2xl font-bold text-brand-dark">
+                    {t('title')}
+                </CardTitle>
                 <CardDescription>
-                    انضم إلى منصة Eman-Academy التعليمية
+                    {t('subtitle')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
@@ -50,7 +61,7 @@ export default function RegisterPage() {
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب باستخدام Google'}
+                    {isLoading ? t('googleLoading') : t('googleBtn')}
                 </Button>
 
                 <div className="relative">
@@ -58,37 +69,58 @@ export default function RegisterPage() {
                         <span className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white px-2 text-gray-500">أو</span>
+                        <span className="bg-white px-2 text-gray-500">
+                            {t('or')}
+                        </span>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="first-name">الاسم الأول</Label>
-                        <Input id="first-name" placeholder="محمد" disabled className="bg-gray-50" />
+                        <Label htmlFor="first-name">{t('firstName')}</Label>
+                        <Input
+                            id="first-name"
+                            placeholder={t('placeholder.firstName')}
+                            disabled
+                            className="bg-gray-50"
+                            dir={isArabic ? 'rtl' : 'ltr'}
+                        />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="last-name">الاسم الأخير</Label>
-                        <Input id="last-name" placeholder="أحمد" disabled className="bg-gray-50" />
+                        <Label htmlFor="last-name">{t('lastName')}</Label>
+                        <Input
+                            id="last-name"
+                            placeholder={t('placeholder.lastName')}
+                            disabled
+                            className="bg-gray-50"
+                            dir={isArabic ? 'rtl' : 'ltr'}
+                        />
                     </div>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input id="email" type="email" placeholder="name@example.com" disabled className="bg-gray-50" />
+                    <Label htmlFor="email">{t('email')}</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        placeholder={t('placeholder.email')}
+                        disabled
+                        className="bg-gray-50"
+                        dir="ltr"
+                    />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="password">كلمة المرور</Label>
+                    <Label htmlFor="password">{t('password')}</Label>
                     <Input id="password" type="password" disabled className="bg-gray-50" />
                 </div>
                 <p className="text-xs text-gray-400 text-center">
-                    التسجيل بالبريد الإلكتروني غير متاح حالياً. يرجى استخدام Google.
+                    {t('emailUnavailable')}
                 </p>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
                 <div className="text-center text-sm text-gray-500">
-                    لديك حساب بالفعل؟{" "}
-                    <Link href="/login" className="text-brand-primary underline underline-offset-4 hover:text-yellow-600">
-                        تسجيل الدخول
+                    {t('hasAccount')}{" "}
+                    <Link href={withLocalePrefix('/login', locale)} className="text-brand-primary underline underline-offset-4 hover:text-yellow-600">
+                        {t('login')}
                     </Link>
                 </div>
             </CardFooter>

@@ -2,17 +2,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video, Mic, VideoOff, MicOff, AlertTriangle, CheckCircle, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
 import { validateMeetLinkForJoining } from '@/lib/meet-utils';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function ClassroomPage() {
     const { data: session } = useSession();
     const params = useParams();
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const lessonId = params.lessonId as string;
 
     const [lesson, setLesson] = useState<any>(null);
@@ -304,7 +307,7 @@ export default function ClassroomPage() {
                                 onClick={() => {
                                     if (confirm('هل تريد بالتأكيد مغادرة الدرس؟')) {
                                         recordAttendance('leave');
-                                        router.push('/dashboard');
+                                        router.push(withLocalePrefix('/dashboard', locale));
                                     }
                                 }}
                             >

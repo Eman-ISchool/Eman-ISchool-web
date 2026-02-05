@@ -150,25 +150,189 @@
       "refundPolicy": "سياسة الاسترجاع"
     }
   },
-  "auth": {
-    "login": "تسجيل الدخول",
-    "register": "إنشاء حساب",
-    "email": "البريد الإلكتروني",
-    "password": "كلمة المرور",
-    "confirmPassword": "تأكيد كلمة المرور",
-    "forgotPassword": "نسيت كلمة المرور؟",
-    "rememberMe": "تذكرني",
-    "noAccount": "ليس لديك حساب؟",
-    "haveAccount": "لديك حساب؟",
-    "signUp": "سجل الآن",
-    "signIn": "دخول"
-  },
   "dashboard": {
-    "welcome": "مرحباً",
-    "myProfile": "ملفي الشخصي",
-    "myCourses": "كورساتي",
-    "myProgress": "تقدمي",
-    "settings": "الإعدادات"
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً، {name}",
+    "noAccessTitle": "يجب تسجيل الدخول لعرض هذه الصفحة",
+    "noAccessDesc": "سجل دخولك للوصول إلى لوحة التحكم وإدارة الدروس",
+    "googleLogin": "تسجيل الدخول باستخدام Google",
+    "newLesson": "درس جديد",
+    "cancel": "إلغاء",
+    "createLesson": "جدولة درس جديد مع Google Meet",
+    "form": {
+      "title": "عنوان الدرس *",
+      "titlePlaceholder": "مثال: مراجعة الرياضيات",
+      "description": "الوصف",
+      "descriptionPlaceholder": "تفاصيل الدرس...",
+      "startTime": "وقت البدء *",
+      "endTime": "وقت الانتهاء *",
+      "submit": "جدولة وإنشاء رابط Meet",
+      "creating": "جاري الإنشاء..."
+    },
+    "alerts": {
+      "successCreate": "تم إنشاء الدرس بنجاح مع رابط Google Meet",
+      "successDelete": "تم حذف الدرس بنجاح",
+      "errorCreate": "فشل إنشاء الدرس",
+      "errorDelete": "فشل حذف الدرس",
+      "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "confirmDelete": "هل أنت متأكد من حذف هذا الدرس؟",
+      "connectGoogle": "ربط حساب Google للحصول على Meet"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "calendar": "التقويم",
+      "list": "كل الدروس"
+    },
+    "sections": {
+      "todayLessons": "دروس اليوم",
+      "upcomingLessons": "الدروس القادمة",
+      "noLessonsToday": "لا توجد دروس مجدولة لليوم",
+      "noUpcomingLessons": "لا توجد دروس قادمة",
+      "noSchedule": "لا توجد دروس مجدولة حالياً",
+      "createFirst": "أنشئ درسك الأول"
+    },
+    "lesson": {
+      "join": "انضم"
+    }
+  },
+  "teacher": {
+    "nav": {
+      "home": "الرئيسية",
+      "calendar": "الجدول",
+      "chat": "المحادثات",
+      "profile": "الملف الشخصي"
+    },
+    "home": {
+      "welcome": "أهلاً بك، {name}",
+      "announcements": "تنبيه: المعلم أحمد سيكون غائباً اليوم",
+      "upcomingLessons": "دروسي القادمة",
+      "submissions": "متابعة واجبات الطلاب",
+      "mySubjects": "موادي الدراسية"
+    },
+    "video": {
+      "title": "إنشاء فيديو بالذكاء الاصطناعي",
+      "subtitle": "أنشئ مقاطع فيديو تعليمية من النص",
+      "promptLabel": "اكتب النص أو السيناريو",
+      "promptPlaceholder": "مثال: شرح مبسط لمفهوم الجاذبية للصف الثامن...",
+      "charCount": "{current} / {max}",
+      "ready": "جاهز للإنشاء",
+      "generating": "جاري الإنشاء...",
+      "generateBtn": "إنشاء الفيديو",
+      "success": "تم إنشاء الفيديو بنجاح!",
+      "newVideo": "إنشاء فيديو جديد",
+      "failed": "فشل إنشاء الفيديو",
+      "tryAgain": "حاول مرة أخرى",
+      "tip": "💡 نصيحة: كن محددًا في وصفك للحصول على أفضل النتائج. سيتم نشر الفيديو تلقائيًا للطلاب.",
+      "waitMessage": "قد يستغرق هذا 1-2 دقيقة. يرجى عدم إغلاق الصفحة."
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "calendar": "التقويم والمواعيد",
+      "live": "الجلسات المباشرة",
+      "lessons": "الدروس",
+      "quizzes": "الاختبارات",
+      "teachers": "المعلمون",
+      "students": "الطلاب",
+      "fees": "الرسوم",
+      "coupons": "الكوبونات والمصروفات",
+      "content": "المحتوى",
+      "currency": "مقارنة العملات",
+      "messages": "الرسائل والسجلات",
+      "settings": "الإعدادات"
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "welcome": "مرحباً، {name} 👋",
+      "quickActions": "إجراءات سريعة",
+      "recentActivity": "النشاط الأخير",
+      "attendance": "الحضور والغياب",
+      "stats": {
+        "students": "إجمالي الطلاب",
+        "teachers": "المعلمون",
+        "activeCourses": "الدورات النشطة",
+        "lessonsThisWeek": "دروس هذا الأسبوع",
+        "growth": "هذا الشهر",
+        "published": "منشورة",
+        "upcoming": "قادمة"
+      },
+      "widgets": {
+        "todaySessions": "جلسات اليوم",
+        "pendingActions": "إجراءات معلقة",
+        "instantChatbot": "المساعد الذكي"
+      },
+      "highlights": {
+        "title": "منصة Eduverse التعليمية – تجربة مختلفة ومتكاملة للتعلم",
+        "liveDesc": "حسابات زووم شخصية لكل طالب لتفاعل فعّال مع المعلم.",
+        "calendarDesc": "يُرفع على المنصة مع نسخة تلقائية لولي الأمر عبر واتساب.",
+        "platformDesc": "أدوات شاملة تدعم الطالب طوال رحلة التعلم.",
+        "recordingsDesc": "وصول دائم لكل تسجيلات محتوى المنهج.",
+        "bankDesc": "تدريب حسب مستوى الطالب مع مراعاة الفروق الفردية.",
+        "homeworkDesc": "تصحيح مع تعليقات مكتوبة وصوتية للنطق والقراءة.",
+        "parentDesc": "متابعة الدرجات والحضور والغياب والمهام المنجزة.",
+        "groupsTitle": "الدراسة في مجموعات فقط",
+        "groupsDesc": "عدد الطلبة بالفصل الواحد من 15 وحتى 20 طالب لضمان جودة التفاعل والمتابعة."
+      },
+      "links": {
+        "live": "التواصل والشرح المباشر",
+        "calendar": "جدول دراسي منتظم",
+        "platform": "منصة متميزة ومتكاملة",
+        "recordings": "تسجيلات الدروس",
+        "bank": "بنك أسئلة تفاعلي",
+        "homework": "واجبات أسبوعية",
+        "parent": "حساب خاص لولي الأمر"
+      }
+    },
+    "actions": {
+      "newAppointment": "موعد جديد",
+      "newLesson": "درس جديد",
+      "newLive": "جلسة مباشرة",
+      "newTeacher": "معلم جديد",
+      "newCoupon": "كوبون جديد"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "مرحباً بك في منصة Eman-Academy",
+      "subtitle": "اختر نوع الحساب لتسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "register": "سجل الآن",
+      "roles": {
+        "admin": {
+          "title": "الإدارة",
+          "desc": "الدخول الخاص بمسؤولي النظام والمشرفين"
+        },
+        "teacher": {
+          "title": "المعلم",
+          "desc": "الدخول الخاص بالمعلمين وإدارة الفصول"
+        },
+        "student": {
+          "title": "الطالب",
+          "desc": "الدخول الخاص بالطلاب وأولياء الأمور"
+        }
+      }
+    },
+    "register": {
+      "title": "إنشاء حساب جديد",
+      "subtitle": "انضم إلى منصة Eman-Academy التعليمية",
+      "googleBtn": "إنشاء حساب باستخدام Google",
+      "googleLoading": "جاري إنشاء الحساب...",
+      "or": "أو",
+      "firstName": "الاسم الأول",
+      "lastName": "الاسم الأخير",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "placeholder": {
+        "firstName": "محمد",
+        "lastName": "أحمد",
+        "email": "name@example.com"
+      },
+      "emailUnavailable": "التسجيل بالبريد الإلكتروني غير متاح حالياً. يرجى استخدام Google.",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "login": "تسجيل الدخول",
+      "error": "حدث خطأ أثناء إنشاء الحساب"
+    }
   },
   "cart": {
     "title": "سلة التسوق",
@@ -190,5 +354,35 @@
     "students": "الطلاب",
     "lessons": "الدروس",
     "level": "المستوى"
+  },
+  "userPortal": {
+    "title": "بوابة المستخدمين",
+    "subtitle": "استخدم بيانات الدخول التالية لتجربة النظام بأدوار مختلفة",
+    "roles": {
+      "admin": "مشرف",
+      "teacher": "معلم",
+      "student": "طالب"
+    },
+    "credentials": {
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور"
+    }
+  },
+  "calendar": {
+    "title": "جدول الحصص",
+    "loading": "جاري تحميل الجلسات...",
+    "error": "حدث خطأ",
+    "retry": "إعادة المحاولة",
+    "today": "اليوم",
+    "month": "شهر",
+    "week": "أسبوع",
+    "upcoming": "الجلسات القادمة",
+    "noLessons": "لا توجد جلسات قادمة",
+    "fetchError": "فشل جلب الدروس"
+  },
+  "home": {
+    "join": "انضم الآن",
+    "startsIn": "يبدأ بعد",
+    "viewAll": "عرض الكل"
   }
 }

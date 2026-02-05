@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import ReelEditor, { type ReelData } from '@/components/reels/ReelEditor';
 import VisibilitySelector, { type VisibilityEntry } from '@/components/reels/VisibilitySelector';
 import { getServerSession } from '@/lib/session-api';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function ReelManagementPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const reelId = params.reelId as string;
 
   const [reel, setReel] = useState<ReelData | null>(null);
@@ -182,7 +185,7 @@ export default function ReelManagementPage() {
         throw new Error('Failed to delete reel');
       }
 
-      router.push('/teacher/reels');
+      router.push(withLocalePrefix('/teacher/reels', locale));
     } catch (err) {
       console.error('[ReelManagement] Error deleting reel:', err);
       setActionError(err instanceof Error ? err.message : 'Failed to delete reel');

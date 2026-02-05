@@ -6,6 +6,7 @@
 'use client';
 
 import { Component, ReactNode, ErrorInfo } from 'react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface ReelErrorBoundaryProps {
     children: ReactNode;
@@ -49,6 +50,12 @@ export default class ReelErrorBoundary extends Component<
                 return this.props.fallback;
             }
 
+            const handleBackToReels = () => {
+                if (typeof window === 'undefined') return;
+                const locale = getLocaleFromPathname(window.location.pathname);
+                window.location.href = withLocalePrefix('/teacher/reels', locale);
+            };
+
             return (
                 <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
                     <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
@@ -85,7 +92,7 @@ export default class ReelErrorBoundary extends Component<
                             </button>
                             
                             <button
-                                onClick={() => window.location.href = '/teacher/reels'}
+                                onClick={handleBackToReels}
                                 className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
                             >
                                 Back to Reels

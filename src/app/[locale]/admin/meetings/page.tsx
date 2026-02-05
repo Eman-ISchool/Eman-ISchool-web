@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
     ExternalLink,
     Filter,
 } from 'lucide-react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface MeetingLog {
     id: string;
@@ -46,6 +47,8 @@ interface MeetingLog {
 export default function AdminMeetingsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [logs, setLogs] = useState<MeetingLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -58,12 +61,12 @@ export default function AdminMeetingsPage() {
 
         // @ts-ignore
         if (!session?.user?.role || session.user.role !== 'admin') {
-            router.push('/dashboard');
+            router.push(withLocalePrefix('/dashboard', locale));
             return;
         }
 
         fetchLogs();
-    }, [session, status, router, page, eventFilter]);
+    }, [session, status, router, page, eventFilter, locale]);
 
     const fetchLogs = async () => {
         setLoading(true);
@@ -128,7 +131,7 @@ export default function AdminMeetingsPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin">
+                    <Link href={withLocalePrefix('/admin', locale)}>
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>

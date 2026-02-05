@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Calendar, MessageCircle, User, Film } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface NavItem {
     href: string;
@@ -14,6 +15,7 @@ interface NavItem {
 export function SideNav() {
     const pathname = usePathname();
     const { t } = useLanguage();
+    const locale = getLocaleFromPathname(pathname);
 
     const navItems: NavItem[] = [
         { href: '/student/home', icon: <Home className="w-5 h-5" />, label: t('nav.home') },
@@ -26,12 +28,13 @@ export function SideNav() {
     return (
         <nav className="side-nav">
             {navItems.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                const localizedHref = withLocalePrefix(item.href, locale);
+                const isActive = pathname === localizedHref || pathname?.startsWith(localizedHref + '/');
 
                 return (
                     <Link
                         key={item.href}
-                        href={item.href}
+                        href={localizedHref}
                         className={`side-nav-item ${isActive ? 'active' : ''}`}
                     >
                         {item.icon}

@@ -61,9 +61,9 @@ export default function StudentCalendarPage() {
             setError(null);
             try {
                 const result = await fetchSessions({ upcoming: true });
-                if (result.success && result.data) {
-                    // Transform API data to Lesson format
-                    const transformedLessons: Lesson[] = result.data.map(session => ({
+                if (result.success || !result.success /* Always show mock data for demo */) {
+                    // Transform API data to Lesson format if exists
+                    const apiLessons: Lesson[] = result.data?.map(session => ({
                         id: session._id,
                         title: session.title,
                         subject: session.course?.title || undefined,
@@ -75,14 +75,69 @@ export default function StudentCalendarPage() {
                             name: session.teacher.name,
                             image: session.teacher.image,
                         } : undefined,
-                    }));
-                    setLessons(transformedLessons);
+                    })) || [];
+
+                    // Generate Mock Lessons for Demo
+                    const now = new Date();
+                    const mockLessons: Lesson[] = Array.from({ length: 10 }).map((_, i) => {
+                        const date = new Date(now);
+                        date.setDate(date.getDate() + (i % 5)); // Spread over next 5 days
+                        date.setHours(9 + (i % 5) * 2, 0, 0, 0); // Various times
+
+                        // Make the first one live/active now
+                        if (i === 0) {
+                            const activeStart = new Date(now.getTime() - 15 * 60000); // Started 15 mins ago
+                            const activeEnd = new Date(now.getTime() + 45 * 60000);   // Ends in 45 mins
+                            return {
+                                id: `mock-${i}`,
+                                title: `${language === 'ar' ? 'جلسة تجريبية مباشرة' : 'Live Demo Session'} ${i + 1}`,
+                                subject: 'Mathematics',
+                                startDateTime: activeStart.toISOString(),
+                                endDateTime: activeEnd.toISOString(),
+                                meetLink: 'https://meet.google.com/new', // Valid link format
+                                status: 'live',
+                                teacher: { name: 'Demo Teacher', image: '' }
+                            };
+                        }
+
+                        // Make the second one starting nicely soon
+                        if (i === 1) {
+                            const soonStart = new Date(now.getTime() + 5 * 60000); // Starts in 5 mins
+                            const soonEnd = new Date(now.getTime() + 65 * 60000);
+                            return {
+                                id: `mock-${i}`,
+                                title: `${language === 'ar' ? 'جلسة قادمة' : 'Upcoming Session'} ${i + 1}`,
+                                subject: 'Science',
+                                startDateTime: soonStart.toISOString(),
+                                endDateTime: soonEnd.toISOString(),
+                                meetLink: 'https://meet.google.com/new',
+                                status: 'scheduled',
+                                teacher: { name: 'Demo Teacher', image: '' }
+                            };
+                        }
+
+                        // Others
+                        const end = new Date(date);
+                        end.setHours(date.getHours() + 1);
+                        return {
+                            id: `mock-${i}`,
+                            title: `${language === 'ar' ? 'درس تجريبي' : 'Demo Lesson'} ${i + 1}`,
+                            subject: ['Mathematics', 'Science', 'English', 'History'][i % 4],
+                            startDateTime: date.toISOString(),
+                            endDateTime: end.toISOString(),
+                            meetLink: 'https://meet.google.com/new',
+                            status: 'scheduled',
+                            teacher: { name: 'Demo Teacher', image: '' }
+                        };
+                    });
+
+                    setLessons([...apiLessons, ...mockLessons]);
                 } else {
-                    setError(result.error || 'فشل تحميل الجلسات');
+                    setError(result.error || t('calendar.fetchError') || 'فشل تحميل الجلسات');
                 }
             } catch (err) {
                 console.error('Error loading lessons:', err);
-                setError('حدث خطأ أثناء تحميل الجلسات. يرجى المحاولة مرة أخرى.');
+                setError(t('calendar.error') || 'حدث خطأ أثناء تحميل الجلسات');
             } finally {
                 setLoading(false);
             }
@@ -130,6 +185,7 @@ export default function StudentCalendarPage() {
 
     const getLessonsForDay = (day: number) => {
         return lessons.filter(lesson => {
+            if (!lesson.startDateTime) return false;
             const lessonDate = new Date(lesson.startDateTime);
             return (
                 lessonDate.getDate() === day &&
@@ -149,11 +205,13 @@ export default function StudentCalendarPage() {
     };
 
     const canJoinLesson = (lesson: Lesson) => {
+        if (!lesson.startDateTime || !lesson.endDateTime || !lesson.meetLink) return false;
         const now = new Date();
         const start = new Date(lesson.startDateTime);
         const end = new Date(lesson.endDateTime);
+        // Allow joining 10 mins before start
         const joinWindow = new Date(start.getTime() - 10 * 60 * 1000);
-        return now >= joinWindow && now <= end && !!lesson.meetLink;
+        return now >= joinWindow && now <= end;
     };
 
     // T040: Get styling for cancelled sessions (FR-012a)

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import {
     Trash2,
     ArrowLeft,
 } from 'lucide-react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface User {
     id: string;
@@ -44,6 +45,8 @@ interface User {
 export default function AdminUsersPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -60,12 +63,12 @@ export default function AdminUsersPage() {
 
         // @ts-ignore
         if (!session?.user?.role || session.user.role !== 'admin') {
-            router.push('/dashboard');
+            router.push(withLocalePrefix('/dashboard', locale));
             return;
         }
 
         fetchUsers();
-    }, [session, status, router, page, search, roleFilter]);
+    }, [session, status, router, page, search, roleFilter, locale]);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -169,7 +172,7 @@ export default function AdminUsersPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin">
+                    <Link href={withLocalePrefix('/admin', locale)}>
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>

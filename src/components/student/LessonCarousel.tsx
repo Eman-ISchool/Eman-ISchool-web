@@ -4,6 +4,8 @@ import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { LessonSlide, type Lesson } from './LessonSlide';
 import { useLanguage } from '@/context/LanguageContext';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface LessonCarouselProps {
     lessons: Lesson[];
@@ -14,6 +16,8 @@ interface LessonCarouselProps {
 export function LessonCarousel({ lessons, title, onSeeAll }: LessonCarouselProps) {
     const carouselRef = useRef<HTMLDivElement>(null);
     const { t } = useLanguage();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
 
     // Default title handling if not provided
     const displayTitle = title || t('home.upcomingLessons');
@@ -31,7 +35,7 @@ export function LessonCarousel({ lessons, title, onSeeAll }: LessonCarouselProps
         return (
             <div className="card-soft p-8 text-center">
                 <p className="text-[var(--color-text-secondary)]">{t('home.noLessons')}</p>
-                <a href="/student/calendar" className="text-[var(--color-primary)] text-sm font-medium mt-2 inline-block hover:underline">
+                <a href={withLocalePrefix('/student/calendar', locale)} className="text-[var(--color-primary)] text-sm font-medium mt-2 inline-block hover:underline">
                     {t('home.viewCalendar')}
                 </a>
             </div>

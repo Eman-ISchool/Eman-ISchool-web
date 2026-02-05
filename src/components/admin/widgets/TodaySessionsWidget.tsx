@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Video, Play, Clock, CheckCircle } from 'lucide-react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface Session {
     id: string;
@@ -21,9 +23,13 @@ export default function TodaySessionsWidget({
     sessions,
     className = '',
 }: TodaySessionsWidgetProps) {
-    const liveSessions = sessions.filter((s) => s.status === 'live');
-    const upcomingSessions = sessions.filter((s) => s.status === 'upcoming');
-    const completedSessions = sessions.filter((s) => s.status === 'completed');
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
+    // Ensure sessions is always an array
+    const safeSessions = Array.isArray(sessions) ? sessions : [];
+    const liveSessions = safeSessions.filter((s) => s.status === 'live');
+    const upcomingSessions = safeSessions.filter((s) => s.status === 'upcoming');
+    const completedSessions = safeSessions.filter((s) => s.status === 'completed');
 
     const getStatusBadge = (status: Session['status']) => {
         switch (status) {
@@ -52,10 +58,12 @@ export default function TodaySessionsWidget({
         }
     };
 
-    const getSessionHref = (session: Session) =>
-        session.status === 'live'
+    const getSessionHref = (session: Session) => {
+        const basePath = session.status === 'live'
             ? `/admin/live?session=${session.id}`
             : `/admin/lessons?lesson=${session.id}`;
+        return withLocalePrefix(basePath, locale);
+    };
 
     return (
         <div className={`admin-card ${className}`}>
@@ -65,20 +73,20 @@ export default function TodaySessionsWidget({
                     جلسات اليوم
                 </h3>
                 <Link
-                    href="/admin/live"
+                    href={withLocalePrefix('/admin/live', locale)}
                     className="text-sm text-teal-600 hover:underline"
                 >
                     عرض الكل
                 </Link>
             </div>
             <div className="admin-card-body p-0">
-                {sessions.length === 0 ? (
+                {safeSessions.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
                         لا توجد جلسات اليوم
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100">
-                        {sessions.slice(0, 5).map((session) => (
+                        {safeSessions.slice(0, 5).map((session) => (
                             <div
                                 key={session.id}
                                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"

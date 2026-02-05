@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Bell, Settings } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
@@ -10,7 +10,9 @@ import { LessonCarousel } from '@/components/student/LessonCarousel';
 import { AssignmentList } from '@/components/student/AssignmentList';
 import { TeacherCardList } from '@/components/student/TeacherCardList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
+import { PaymentList } from '@/components/student/PaymentList';
 import { useLanguage } from '@/context/LanguageContext';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface ApiAnnouncement {
     id: string;
@@ -32,6 +34,8 @@ function Skeleton({ className }: { className?: string }) {
 
 export default function StudentHomePage() {
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const { data: session } = useSession();
     const { t, language } = useLanguage();
     const [loading, setLoading] = useState(true);
@@ -276,10 +280,13 @@ export default function StudentHomePage() {
                 <TeacherCardList
                     teachers={mockTeachers}
                     title={t('home.teachers')}
-                    onSeeAll={() => router.push('/student/chat')}
-                    onMessage={(id) => router.push(`/student/chat?teacher=${id}`)}
+                    onSeeAll={() => router.push(withLocalePrefix('/student/chat', locale))}
+                    onMessage={(id) => router.push(withLocalePrefix(`/student/chat?teacher=${id}`, locale))}
                 />
             )}
+
+            {/* Payments List */}
+            <PaymentList />
 
             {/* Subjects */}
             {loading ? (

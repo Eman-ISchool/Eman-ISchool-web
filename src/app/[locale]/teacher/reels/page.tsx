@@ -7,8 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import ReelStatusBadge from '@/components/teacher/ReelStatusBadge';
 import ReelPreviewModal from '@/components/teacher/ReelPreviewModal';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface Reel {
     id: string;
@@ -50,6 +52,8 @@ interface SourceContent {
 type ViewMode = 'reels' | 'source-content';
 
 export default function TeacherReelsPage() {
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [viewMode, setViewMode] = useState<ViewMode>('reels');
     const [reels, setReels] = useState<Reel[]>([]);
     const [sourceContent, setSourceContent] = useState<SourceContent[]>([]);
@@ -270,7 +274,7 @@ export default function TeacherReelsPage() {
                         My Reels
                     </h1>
                     <Link
-                        href="/teacher/reels/upload"
+                        href={withLocalePrefix('/teacher/reels/upload', locale)}
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Upload Content
@@ -375,7 +379,7 @@ export default function TeacherReelsPage() {
                                         No reels found. Generate your first AI reel from lesson materials.
                                     </p>
                                     <Link
-                                        href="/teacher/reels/upload"
+                                        href={withLocalePrefix('/teacher/reels/upload', locale)}
                                         className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
                                     >
                                         Upload Content
@@ -467,7 +471,7 @@ export default function TeacherReelsPage() {
                                             {reel.lesson_id && (
                                                 <div className="mt-2">
                                                     <a
-                                                        href={`/teacher/lessons/${reel.lesson_id}`}
+                                                        href={withLocalePrefix(`/dashboard/classroom/${reel.lesson_id}`, locale)}
                                                         className="text-sm text-blue-600 hover:text-blue-800"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
@@ -545,7 +549,7 @@ export default function TeacherReelsPage() {
                                         No source content found. Upload your first file to generate reels.
                                     </p>
                                     <Link
-                                        href="/teacher/reels/upload"
+                                        href={withLocalePrefix('/teacher/reels/upload', locale)}
                                         className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                     >
                                         Upload Content
@@ -611,7 +615,7 @@ export default function TeacherReelsPage() {
                                                         Generated {source.generated_reels.length} reel{source.generated_reels.length !== 1 ? 's' : ''}
                                                     </span>
                                                     <Link
-                                                        href={`/teacher/reels/upload?sourceId=${source.id}`}
+                                                        href={withLocalePrefix(`/teacher/reels/upload?sourceId=${source.id}`, locale)}
                                                         className="text-sm text-blue-600 hover:text-blue-800"
                                                     >
                                                         View Details

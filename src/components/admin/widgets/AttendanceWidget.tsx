@@ -17,7 +17,14 @@ interface AttendanceWidgetProps {
 }
 
 export default function AttendanceWidget({ data, className = '', href }: AttendanceWidgetProps) {
-    const total = data.present + data.absent + data.late;
+    // Ensure data has default values if undefined
+    const safeData = {
+        present: data?.present ?? 0,
+        absent: data?.absent ?? 0,
+        late: data?.late ?? 0,
+        rate: data?.rate ?? 0,
+    };
+    const total = safeData.present + safeData.absent + safeData.late;
     const cardClasses = `admin-card ${className} ${href ? 'transition-transform hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''}`;
 
     const content = (
@@ -46,7 +53,7 @@ export default function AttendanceWidget({ data, className = '', href }: Attenda
                                 stroke="#0D9488"
                                 strokeWidth="8"
                                 strokeLinecap="round"
-                                strokeDasharray={`${(data.rate / 100) * 251.2} 251.2`}
+                                strokeDasharray={`${(safeData.rate / 100) * 251.2} 251.2`}
                             />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">

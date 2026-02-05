@@ -6,6 +6,8 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface ReelPreviewModalProps {
     reel: any;
@@ -20,6 +22,8 @@ export default function ReelPreviewModal({
     onClose,
     onUpdate,
 }: ReelPreviewModalProps) {
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -485,7 +489,7 @@ export default function ReelPreviewModal({
                                     <div>
                                         <span className="text-gray-600">Lesson:</span>
                                         <a
-                                            href={`/teacher/lessons/${reel.lesson_id}`}
+                                            href={withLocalePrefix(`/dashboard/classroom/${reel.lesson_id}`, locale)}
                                             className="font-medium text-blue-600 hover:underline"
                                         >
                                             View Lesson

@@ -1,14 +1,18 @@
 "use client";
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useCartStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function CartPage() {
     const { items, removeFromCart } = useCartStore();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [mounted, setMounted] = useState(false);
 
     // Hydration fix for Persist middleware
@@ -43,7 +47,7 @@ export default function CartPage() {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">سلتك فارغة</h2>
                     <p className="text-gray-500 mb-8 text-lg max-w-md text-center">يبدو أنك لم تضف أي مواد دراسية بعد. تصفح مكتبتنا الواسعة وابدأ رحلتك التعليمية الآن.</p>
-                    <Link href="/product/by-subject">
+                    <Link href={withLocalePrefix('/product/by-subject', locale)}>
                         <Button size="lg" className="bg-brand-primary text-black font-bold hover:bg-brand-primary-hover hover:scale-105 transition-all shadow-lg shadow-brand-primary/20">
                             تصفح المواد الدراسية
                         </Button>
@@ -88,7 +92,7 @@ export default function CartPage() {
                                     <span className="text-brand-primary">{totalPrice} ج.م</span>
                                 </div>
                             </div>
-                            <Link href="/checkout" className="w-full block">
+                            <Link href={withLocalePrefix('/checkout', locale)} className="w-full block">
                                 <Button className="w-full bg-brand-dark text-white font-bold hover:bg-black py-6 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                                     إتمام الشراء
                                 </Button>

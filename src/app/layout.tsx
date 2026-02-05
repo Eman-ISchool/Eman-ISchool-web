@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import AuthProvider from "@/components/AuthProvider";
-import LanguageProviderWrapper from "@/components/LanguageProviderWrapper";
-import NetworkMonitor from "@/components/NetworkMonitor";
+import { Cairo } from 'next/font/google';
+import { defaultLocale } from '@/i18n/config';
 
 const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  variable: "--font-cairo",
-  display: "swap",
+  subsets: ['arabic', 'latin'],
+  variable: '--font-cairo',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -39,19 +35,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = defaultLocale;
+  const direction = locale === 'ar' ? 'rtl' : 'ltr';
+
   return (
-    <html lang="ar" dir="rtl">
-      <body className={`${cairo.variable} font-sans antialiased min-h-screen flex flex-col bg-gray-50`}>
-        <AuthProvider>
-          <LanguageProviderWrapper>
-            <NetworkMonitor />
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </LanguageProviderWrapper>
-        </AuthProvider>
+    <html lang={locale} dir={direction} className={cairo.variable}>
+      <body className="font-sans antialiased min-h-screen flex flex-col bg-gray-50">
+        {children}
       </body>
     </html>
   );

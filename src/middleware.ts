@@ -1,5 +1,5 @@
 import createMiddleware from 'next-intl/middleware';
-import { locales, defaultLocale } from './i18n';
+import { locales, defaultLocale } from './i18n/config';
 
 export default createMiddleware({
   // A list of all locales that are supported
@@ -11,8 +11,9 @@ export default createMiddleware({
   // Strategy for locale detection
   localeDetection: true,
 
-  // Prefix default locale in URL (e.g., /ar/about instead of /about)
-  localePrefix: 'as-needed',
+  // Always use a prefix to ensure consistent routing
+  // This is important for static export compatibility
+  localePrefix: 'always',
 });
 
 export const config = {

@@ -12,11 +12,12 @@ interface Teacher {
 
 interface TeacherCardListProps {
     teachers: Teacher[];
+    title?: string;
     onSeeAll?: () => void;
     onMessage?: (teacherId: string) => void;
 }
 
-export function TeacherCardList({ teachers, onSeeAll, onMessage }: TeacherCardListProps) {
+export function TeacherCardList({ teachers, title, onSeeAll, onMessage }: TeacherCardListProps) {
     if (teachers.length === 0) {
         return null;
     }
@@ -24,7 +25,7 @@ export function TeacherCardList({ teachers, onSeeAll, onMessage }: TeacherCardLi
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Teachers</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{title || 'Teachers'}</h2>
                 {onSeeAll && (
                     <button
                         onClick={onSeeAll}

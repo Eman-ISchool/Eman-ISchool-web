@@ -67,12 +67,18 @@ export function CalendarView({ lessons, onLessonClick }: CalendarViewProps) {
         today.getFullYear() === currentDate.getFullYear();
 
     // Check if lesson is currently live (within -10 to +60 mins of start)
+    // Modified to allow joining anytime for testing purposes as requested
     const isLive = (lesson: Lesson) => {
+        // Return true if meetLink exists to enable the button always
+        return !!lesson.meetLink;
+
+        /* Original Logic:
         const now = new Date();
         const start = new Date(lesson.startDateTime);
         const end = new Date(lesson.endDateTime);
         // Allow joining 10 mins early
         return now >= new Date(start.getTime() - 10 * 60000) && now <= end;
+        */
     };
 
     return (
@@ -125,8 +131,8 @@ export function CalendarView({ lessons, onLessonClick }: CalendarViewProps) {
                             <div
                                 key={day}
                                 className={`h-32 p-2 rounded-xl border-2 flex flex-col transition-all duration-200 group relative ${isDayToday
-                                        ? 'border-brand-primary bg-yellow-50/30 shadow-sm'
-                                        : 'border-transparent bg-gray-50 hover:border-gray-200 hover:shadow-md hover:bg-white'
+                                    ? 'border-brand-primary bg-yellow-50/30 shadow-sm'
+                                    : 'border-transparent bg-gray-50 hover:border-gray-200 hover:shadow-md hover:bg-white'
                                     }`}
                             >
                                 <div className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${isDayToday ? 'bg-brand-primary text-black' : 'text-gray-400 group-hover:text-gray-900 group-hover:bg-gray-100'
@@ -141,8 +147,8 @@ export function CalendarView({ lessons, onLessonClick }: CalendarViewProps) {
                                             <div
                                                 key={lesson._id}
                                                 className={`text-xs p-1.5 rounded-lg border flex flex-col gap-1 transition-colors ${live
-                                                        ? 'bg-green-50 border-green-200 shadow-sm'
-                                                        : 'bg-white border-gray-100 hover:border-brand-primary/50'
+                                                    ? 'bg-green-50 border-green-200 shadow-sm'
+                                                    : 'bg-white border-gray-100 hover:border-brand-primary/50'
                                                     }`}
                                             >
                                                 <div className="font-semibold truncate text-gray-800" title={lesson.title}>
@@ -156,9 +162,9 @@ export function CalendarView({ lessons, onLessonClick }: CalendarViewProps) {
                                                         <a
                                                             href={`/dashboard/classroom/${lesson._id}`}
                                                             onClick={(e) => e.stopPropagation()}
-                                                            className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full transition-colors ${live ? 'bg-green-500 text-white animate-pulse' : 'bg-gray-100 text-gray-400 hover:bg-brand-primary hover:text-black'
+                                                            className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full transition-colors ${live ? 'bg-green-500 text-white animate-pulse' : 'bg-brand-primary text-black hover:bg-yellow-400 font-bold'
                                                                 }`}
-                                                            title={live ? "انضم الآن" : "رابط الدرس"}
+                                                            title={live ? "انضم الآن" : "رابط الدرس متاح"}
                                                         >
                                                             <Video className="h-3 w-3" />
                                                         </a>

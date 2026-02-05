@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import { Bot, Send, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface ChatMessage {
     id: string;
@@ -86,6 +88,8 @@ const getTimeLabel = () =>
     new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
 export default function InstantChatbotWidget() {
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: 'welcome',
@@ -155,7 +159,7 @@ export default function InstantChatbotWidget() {
                                 <p className="leading-relaxed">{message.content}</p>
                                 {message.link && (
                                     <Link
-                                        href={message.link.href}
+                                        href={withLocalePrefix(message.link.href, locale)}
                                         className="mt-2 inline-flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-colors"
                                     >
                                         → {message.link.label}

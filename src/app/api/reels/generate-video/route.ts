@@ -6,9 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { simulateTextToVideo } from '@/lib/runway-api';
+import { simulateTextToVideo, generateTextToVideo } from '@/lib/runway-api';
 
-const USE_SIMULATION = true; // Set to false to use real RunwayML API
+const USE_SIMULATION = process.env.NEXT_PUBLIC_USE_APP_SIMULATION === 'true';
 
 // Helper function to validate UUID format
 function isValidUUID(uuid: string | undefined | null): boolean {
@@ -56,14 +56,26 @@ export async function POST(request: NextRequest) {
         const titleEn = prompt.substring(0, 50) + (prompt.length > 50 ? '...' : '');
         const titleAr = `فيديو تعليمي: ${titleEn}`;
 
-        // Initiate video generation (using simulation for now)
+        // Initiate video generation
         let runwayTask;
         try {
-            runwayTask = await simulateTextToVideo({
-                prompt_text: prompt,
-                duration: 5,
-                ratio: '9:16',
-            });
+            if (USE_SIMULATION) {
+                console.log('Using simulation for video generation');
+                runwayTask = await simulateTextToVideo({
+                    prompt_text: prompt,
+                    duration: 5,
+                    ratio: '9:16',
+                });
+            } else {
+                console.log('Using real RunwayML API for video generation');
+                // Use default model and settings for now
+                runwayTask = await generateTextToVideo({
+                    prompt_text: prompt,
+                    duration: 5,
+                    ratio: '9:16',
+                    model: 'gen3a_turbo',
+                });
+            }
         } catch (error: any) {
             console.error('RunwayML API error:', error);
             return NextResponse.json(

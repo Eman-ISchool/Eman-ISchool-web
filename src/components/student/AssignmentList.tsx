@@ -15,11 +15,12 @@ interface Assignment {
 
 interface AssignmentListProps {
     assignments: Assignment[];
+    title?: string;
     onSeeAll?: () => void;
     onUpload?: (assignmentId: string, file: File) => Promise<void>;
 }
 
-export function AssignmentList({ assignments, onSeeAll, onUpload }: AssignmentListProps) {
+export function AssignmentList({ assignments, title, onSeeAll, onUpload }: AssignmentListProps) {
     const [uploadingId, setUploadingId] = useState<string | null>(null);
     const [uploadModal, setUploadModal] = useState<Assignment | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,7 +87,7 @@ export function AssignmentList({ assignments, onSeeAll, onUpload }: AssignmentLi
         <>
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Assignments & Quizzes</h2>
+                    <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{title || 'Assignments & Quizzes'}</h2>
                     {onSeeAll && (
                         <button
                             onClick={onSeeAll}

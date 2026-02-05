@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import {
     Users,
     Download,
 } from 'lucide-react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface AttendanceRecord {
     id: string;
@@ -50,6 +51,8 @@ interface AttendanceRecord {
 export default function AdminAttendancePage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -65,12 +68,12 @@ export default function AdminAttendancePage() {
 
         // @ts-ignore
         if (!session?.user?.role || session.user.role !== 'admin') {
-            router.push('/dashboard');
+            router.push(withLocalePrefix('/dashboard', locale));
             return;
         }
 
         fetchAttendance();
-    }, [session, status, router, page, statusFilter, startDate, endDate]);
+    }, [session, status, router, page, statusFilter, startDate, endDate, locale]);
 
     const fetchAttendance = async () => {
         setLoading(true);
@@ -142,7 +145,7 @@ export default function AdminAttendancePage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin">
+                    <Link href={withLocalePrefix('/admin', locale)}>
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>

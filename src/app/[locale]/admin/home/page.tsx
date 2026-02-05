@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     Users,
     BookOpen,
@@ -25,6 +25,9 @@ import PendingActionsWidget from '@/components/admin/widgets/PendingActionsWidge
 import QuickActionsBar from '@/components/admin/widgets/QuickActionsBar';
 import InstantChatbotWidget from '@/components/admin/widgets/InstantChatbotWidget';
 import { LoadingState, ErrorState, CardSkeleton } from '@/components/admin/StateComponents';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 interface DashboardStats {
     users: {
@@ -60,6 +63,10 @@ interface DashboardStats {
 export default function AdminDashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const pathname = usePathname();
+    const t = useTranslations('admin.dashboard');
+    const tNav = useTranslations('admin.nav');
+    const locale = useLocale();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,12 +76,12 @@ export default function AdminDashboardPage() {
 
         // @ts-ignore
         if (!session?.user?.role || session.user.role !== 'admin') {
-            router.push('/dashboard');
+            router.push(withLocalePrefix('/login/admin', locale));
             return;
         }
 
         fetchStats();
-    }, [session, status, router]);
+    }, [session, status, router, locale]);
 
     const fetchStats = async () => {
         try {
@@ -94,8 +101,8 @@ export default function AdminDashboardPage() {
     const todaySessions = stats?.lessons.today?.map((lesson: any) => ({
         id: lesson.id,
         title: lesson.title,
-        teacherName: lesson.teacher?.name || 'معلم غير محدد',
-        time: new Date(lesson.start_date_time).toLocaleTimeString('ar-EG', {
+        teacherName: lesson.teacher?.name || (locale === 'ar' ? 'معلم غير محدد' : 'Unknown Teacher'),
+        time: new Date(lesson.start_date_time).toLocaleTimeString(locale === 'ar' ? 'ar-EG' : 'en-US', {
             hour: '2-digit',
             minute: '2-digit',
         }),
@@ -110,103 +117,103 @@ export default function AdminDashboardPage() {
         {
             type: 'unpaid_fees' as const,
             count: 12, // TODO: Get from API
-            label: 'رسوم غير مدفوعة',
-            href: '/admin/fees?filter=unpaid',
+            label: tNav('fees'),
+            href: withLocalePrefix('/admin/fees?filter=unpaid', locale),
         },
         {
             type: 'missing_conclusions' as const,
             count: 5,
-            label: 'خلاصات دروس ناقصة',
-            href: '/admin/lessons?filter=no-conclusion',
+            label: tNav('lessons'),
+            href: withLocalePrefix('/admin/lessons?filter=no-conclusion', locale),
         },
         {
             type: 'overdue_grading' as const,
             count: 8,
-            label: 'تصحيح متأخر',
-            href: '/admin/quizzes-exams?filter=ungraded',
+            label: tNav('quizzes'),
+            href: withLocalePrefix('/admin/quizzes-exams?filter=ungraded', locale),
         },
         {
             type: 'unassigned_teachers' as const,
             count: 3,
-            label: 'دروس بدون معلم',
-            href: '/admin/lessons?filter=unassigned',
+            label: tNav('teachers'),
+            href: withLocalePrefix('/admin/lessons?filter=unassigned', locale),
         },
     ];
 
     const managementLinks = [
         {
-            title: 'الطلاب والحضور',
-            description: 'متابعة حضور وغياب كل طالب',
-            href: '/admin/attendance',
+            title: t('stats.students'),
+            description: t('highlights.liveDesc'),
+            href: withLocalePrefix('/admin/attendance', locale),
             icon: <CheckCircle className="w-5 h-5 text-teal-500" />,
         },
         {
-            title: 'قائمة المعلمين',
-            description: 'إدارة المعلمين وتوزيع الجداول',
-            href: '/admin/teachers',
+            title: t('stats.teachers'),
+            description: t('highlights.groupsDesc'),
+            href: withLocalePrefix('/admin/teachers', locale),
             icon: <Users className="w-5 h-5 text-purple-500" />,
         },
         {
-            title: 'الأنشطة والرسائل',
-            description: 'عرض النشاطات والرسائل بالكامل',
-            href: '/admin/messages-audit',
+            title: tNav('messages'),
+            description: t('highlights.platformDesc'),
+            href: withLocalePrefix('/admin/messages-audit', locale),
             icon: <MessageSquare className="w-5 h-5 text-blue-500" />,
         },
         {
-            title: 'الاختبارات والبنك',
-            description: 'إدارة بنك الأسئلة التفاعلي',
-            href: '/admin/quizzes-exams',
+            title: tNav('quizzes'),
+            description: t('highlights.bankDesc'),
+            href: withLocalePrefix('/admin/quizzes-exams', locale),
             icon: <FileQuestion className="w-5 h-5 text-orange-500" />,
         },
     ];
 
     const platformHighlights = [
         {
-            title: 'التواصل والشرح المباشر',
-            description: 'حسابات زووم شخصية لكل طالب لتفاعل فعّال مع المعلم.',
-            href: '/admin/live',
+            title: t('links.live'),
+            description: t('highlights.liveDesc'),
+            href: withLocalePrefix('/admin/live', locale),
             icon: <Video className="w-5 h-5 text-red-500" />,
         },
         {
-            title: 'جدول دراسي منتظم',
-            description: 'يُرفع على المنصة مع نسخة تلقائية لولي الأمر عبر واتساب.',
-            href: '/admin/calendar',
+            title: t('links.calendar'),
+            description: t('highlights.calendarDesc'),
+            href: withLocalePrefix('/admin/calendar', locale),
             icon: <Calendar className="w-5 h-5 text-teal-500" />,
         },
         {
-            title: 'منصة متميزة ومتكاملة',
-            description: 'أدوات شاملة تدعم الطالب طوال رحلة التعلم.',
-            href: '/admin/content',
+            title: t('links.platform'),
+            description: t('highlights.platformDesc'),
+            href: withLocalePrefix('/admin/content', locale),
             icon: <Sparkles className="w-5 h-5 text-amber-500" />,
         },
         {
-            title: 'تسجيلات الدروس',
-            description: 'وصول دائم لكل تسجيلات محتوى المنهج.',
-            href: '/admin/lessons',
+            title: t('links.recordings'),
+            description: t('highlights.recordingsDesc'),
+            href: withLocalePrefix('/admin/lessons', locale),
             icon: <BookOpen className="w-5 h-5 text-indigo-500" />,
         },
         {
-            title: 'بنك أسئلة تفاعلي',
-            description: 'تدريب حسب مستوى الطالب مع مراعاة الفروق الفردية.',
-            href: '/admin/quizzes-exams',
+            title: t('links.bank'),
+            description: t('highlights.bankDesc'),
+            href: withLocalePrefix('/admin/quizzes-exams', locale),
             icon: <FileQuestion className="w-5 h-5 text-orange-500" />,
         },
         {
-            title: 'واجبات أسبوعية',
-            description: 'تصحيح مع تعليقات مكتوبة وصوتية للنطق والقراءة.',
-            href: '/admin/lessons',
+            title: t('links.homework'),
+            description: t('highlights.homeworkDesc'),
+            href: withLocalePrefix('/admin/lessons', locale),
             icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
         },
         {
-            title: 'حساب خاص لولي الأمر',
-            description: 'متابعة الدرجات والحضور والغياب والمهام المنجزة.',
-            href: '/admin/users',
+            title: t('links.parent'),
+            description: t('highlights.parentDesc'),
+            href: withLocalePrefix('/admin/users', locale),
             icon: <Users className="w-5 h-5 text-sky-500" />,
         },
     ];
 
     if (status === 'loading') {
-        return <LoadingState message="جاري تحميل لوحة التحكم..." />;
+        return <LoadingState message={locale === 'ar' ? "جاري تحميل لوحة التحكم..." : "Loading dashboard..."} />;
     }
 
     if (error) {
@@ -218,14 +225,14 @@ export default function AdminDashboardPage() {
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">لوحة التحكم</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">{t('title')}</h1>
                     <p className="text-gray-500">
-                        مرحباً، {session?.user?.name} 👋
+                        {t('welcome', { name: session?.user?.name })}
                     </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Calendar className="w-4 h-4" />
-                    {new Date().toLocaleDateString('ar-EG', {
+                    {new Date().toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
@@ -250,7 +257,7 @@ export default function AdminDashboardPage() {
                         </div>
                         <div>
                             <p className="font-semibold text-gray-800">{link.title}</p>
-                            <p className="text-sm text-gray-500">{link.description}</p>
+                            <p className="text-sm text-gray-500 truncate">{link.description}</p>
                         </div>
                     </Link>
                 ))}
@@ -268,45 +275,45 @@ export default function AdminDashboardPage() {
                 ) : (
                     <>
                         <KPIStatCard
-                            title="إجمالي الطلاب"
+                            title={t('stats.students')}
                             value={stats?.users.students || 0}
                             icon={<GraduationCap className="w-6 h-6 text-white" />}
                             variant="blue"
-                            href="/admin/students"
+                            href={withLocalePrefix('/admin/students', locale)}
                             trend={{
                                 value: stats?.users.growth || 0,
-                                label: 'هذا الشهر',
+                                label: t('stats.growth'),
                                 isPositive: (stats?.users.growth || 0) > 0,
                             }}
                         />
                         <KPIStatCard
-                            title="المعلمون"
+                            title={t('stats.teachers')}
                             value={stats?.users.teachers || 0}
                             icon={<Users className="w-6 h-6 text-white" />}
                             variant="teal"
-                            href="/admin/teachers"
+                            href={withLocalePrefix('/admin/teachers', locale)}
                         />
                         <KPIStatCard
-                            title="الدورات النشطة"
+                            title={t('stats.activeCourses')}
                             value={stats?.courses.published || 0}
                             icon={<BookOpen className="w-6 h-6 text-white" />}
                             variant="purple"
-                            href="/admin/lessons"
+                            href={withLocalePrefix('/admin/lessons', locale)}
                             trend={{
                                 value: stats?.courses.total ? Math.round((stats.courses.published / stats.courses.total) * 100) : 0,
-                                label: 'منشورة',
+                                label: t('stats.published'),
                                 isPositive: true,
                             }}
                         />
                         <KPIStatCard
-                            title="دروس هذا الأسبوع"
+                            title={t('stats.lessonsThisWeek')}
                             value={stats?.lessons.thisWeek || 0}
                             icon={<Calendar className="w-6 h-6 text-white" />}
                             variant="orange"
-                            href="/admin/calendar"
+                            href={withLocalePrefix('/admin/calendar', locale)}
                             trend={{
                                 value: stats?.lessons.upcoming || 0,
-                                label: 'قادمة',
+                                label: t('stats.upcoming'),
                                 isPositive: true,
                             }}
                         />
@@ -331,7 +338,7 @@ export default function AdminDashboardPage() {
                             late: stats?.attendance.late || 0,
                             rate: stats?.attendance.rate || 0,
                         }}
-                        href="/admin/attendance"
+                        href={withLocalePrefix('/admin/attendance', locale)}
                     />
 
                     {/* Recent Activity Card */}
@@ -339,15 +346,15 @@ export default function AdminDashboardPage() {
                         <div className="admin-card-header">
                             <h3 className="admin-card-title">
                                 <TrendingUp className="w-5 h-5 text-teal-500" />
-                                النشاط الأخير
+                                {t('recentActivity')}
                             </h3>
                         </div>
                         <div className="admin-card-body">
                             <div className="space-y-4">
                                 {[
-                                    { action: 'تسجيل طالب جديد', time: 'منذ 5 دقائق', type: 'success', href: '/admin/students' },
-                                    { action: 'إضافة درس', time: 'منذ 15 دقيقة', type: 'info', href: '/admin/lessons' },
-                                    { action: 'تحديث رسوم', time: 'منذ ساعة', type: 'warning', href: '/admin/fees' },
+                                    { action: t('widgets.todaySessions'), time: '5m', type: 'success', href: withLocalePrefix('/admin/students', locale) },
+                                    { action: t('widgets.pendingActions'), time: '15m', type: 'info', href: withLocalePrefix('/admin/lessons', locale) },
+                                    { action: tNav('fees'), time: '1h', type: 'warning', href: withLocalePrefix('/admin/fees', locale) },
                                 ].map((activity, index) => (
                                     <Link
                                         key={index}
@@ -376,7 +383,7 @@ export default function AdminDashboardPage() {
                 <div className="admin-card-header">
                     <h3 className="admin-card-title">
                         <Sparkles className="w-5 h-5 text-amber-500" />
-                        منصة Eduverse التعليمية – تجربة مختلفة ومتكاملة للتعلم
+                        {t('highlights.title')}
                     </h3>
                 </div>
                 <div className="admin-card-body space-y-4">
@@ -404,9 +411,9 @@ export default function AdminDashboardPage() {
                             <GraduationCap className="w-5 h-5 text-teal-600" />
                         </div>
                         <div>
-                            <p className="font-semibold text-teal-700">الدراسة في مجموعات فقط</p>
+                            <p className="font-semibold text-teal-700">{t('highlights.groupsTitle')}</p>
                             <p className="text-sm text-teal-600">
-                                عدد الطلبة بالفصل الواحد من 15 وحتى 20 طالب لضمان جودة التفاعل والمتابعة.
+                                {t('highlights.groupsDesc')}
                             </p>
                         </div>
                     </div>

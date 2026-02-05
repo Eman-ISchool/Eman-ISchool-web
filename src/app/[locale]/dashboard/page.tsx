@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 import { LessonCard } from '@/components/LessonCard';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { CalendarView } from '@/components/dashboard/CalendarView';
@@ -9,10 +10,11 @@ import { NextLessonCard } from '@/components/dashboard/NextLessonCard';
 import { JoinMeetButton } from '@/components/JoinMeetButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LayoutGrid, Calendar, List, Plus, X, Video, AlertCircle } from 'lucide-react';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
+import { useTranslations } from 'next-intl';
 
 type TabType = 'overview' | 'calendar' | 'list';
 
@@ -37,7 +39,10 @@ interface Stats {
 }
 
 export default function DashboardPage() {
+    const t = useTranslations('dashboard');
     const { data: session, status } = useSession();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -55,12 +60,23 @@ export default function DashboardPage() {
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
 
+    const router = useRouter();
+
     useEffect(() => {
         if (session) {
+            const user = session.user as any;
+            if (user?.role === 'student') {
+                router.replace(withLocalePrefix('/student/home', locale));
+                return;
+            }
+            if (user?.role === 'admin') {
+                router.replace(withLocalePrefix('/admin', locale));
+                return;
+            }
             fetchLessons();
             fetchStats();
         }
-    }, [session]);
+    }, [session, locale, router]);
 
     const fetchLessons = async () => {
         try {
@@ -110,7 +126,7 @@ export default function DashboardPage() {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccess(data.message || 'تم إنشاء الدرس بنجاح مع رابط Google Meet');
+                setSuccess(data.message || t('alerts.successCreate'));
                 await fetchLessons();
                 await fetchStats();
                 // Reset form
@@ -124,11 +140,11 @@ export default function DashboardPage() {
                 if (data.requiresGoogleAuth || data.code === 'GOOGLE_AUTH_REQUIRED' || data.code === 'GOOGLE_REAUTH_REQUIRED') {
                     setRequiresGoogleAuth(true);
                 }
-                setError(data.error || 'فشل إنشاء الدرس');
+                setError(data.error || t('alerts.errorCreate'));
             }
         } catch (error) {
             console.error(error);
-            setError('حدث خطأ ما. يرجى المحاولة مرة أخرى.');
+            setError(t('alerts.errorGeneric'));
         } finally {
             setIsCreating(false);
         }
@@ -136,23 +152,23 @@ export default function DashboardPage() {
 
     const handleConnectGoogle = () => {
         // Sign in with Google to get calendar access
-        signIn('google', { callbackUrl: '/dashboard' });
+        signIn('google', { callbackUrl: withLocalePrefix('/dashboard', locale) });
     };
 
     const handleDeleteLesson = async (lessonId: string) => {
-        if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
+        if (!confirm(t('alerts.confirmDelete'))) return;
 
         try {
             const res = await fetch(`/api/lessons?id=${lessonId}`, { method: 'DELETE' });
             if (res.ok) {
-                setSuccess('تم حذف الدرس بنجاح');
+                setSuccess(t('alerts.successDelete'));
                 await fetchLessons();
                 await fetchStats();
             } else {
-                setError('فشل حذف الدرس');
+                setError(t('alerts.errorDelete'));
             }
         } catch (error) {
-            setError('حدث خطأ أثناء حذف الدرس');
+            setError(t('alerts.errorGeneric'));
         }
     };
 
@@ -171,10 +187,10 @@ export default function DashboardPage() {
         return (
             <div className="container mx-auto p-10 text-center">
                 <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
-                    <h1 className="text-2xl font-bold mb-4">يجب تسجيل الدخول لعرض هذه الصفحة</h1>
-                    <p className="text-gray-500 mb-6">سجل دخولك للوصول إلى لوحة التحكم وإدارة الدروس</p>
+                    <h1 className="text-2xl font-bold mb-4">{t('noAccessTitle')}</h1>
+                    <p className="text-gray-500 mb-6">{t('noAccessDesc')}</p>
                     <Button onClick={() => signIn('google')} className="bg-brand-primary text-black hover:bg-yellow-400 font-bold">
-                        تسجيل الدخول باستخدام Google
+                        {t('googleLogin')}
                     </Button>
                 </div>
             </div>
@@ -186,15 +202,15 @@ export default function DashboardPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">لوحة التحكم</h1>
-                    <p className="text-gray-500">أهلاً بك، {session.user?.name}</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{t('title')}</h1>
+                    <p className="text-gray-500">{t('welcome', { name: session.user?.name })}</p>
                 </div>
                 <Button
                     onClick={() => setShowForm(!showForm)}
                     className="bg-brand-primary text-black hover:bg-yellow-400 font-bold gap-2"
                 >
                     {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    {showForm ? 'إلغاء' : 'درس جديد'}
+                    {showForm ? t('cancel') : t('newLesson')}
                 </Button>
             </header>
 
@@ -219,7 +235,7 @@ export default function DashboardPage() {
                                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                             </svg>
-                            ربط حساب Google للحصول على Meet
+                            {t('alerts.connectGoogle')}
                         </Button>
                     )}
                 </div>
@@ -240,34 +256,34 @@ export default function DashboardPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Video className="h-5 w-5 text-brand-primary" />
-                            جدولة درس جديد مع Google Meet
+                            {t('createLesson')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleCreateLesson} className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="title">عنوان الدرس *</Label>
+                                <Label htmlFor="title">{t('form.title')}</Label>
                                 <Input
                                     id="title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     required
-                                    placeholder="مثال: مراجعة الرياضيات"
+                                    placeholder={t('form.titlePlaceholder')}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description">الوصف</Label>
+                                <Label htmlFor="description">{t('form.description')}</Label>
                                 <Input
                                     id="description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="تفاصيل الدرس..."
+                                    placeholder={t('form.descriptionPlaceholder')}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="start">وقت البدء *</Label>
+                                <Label htmlFor="start">{t('form.startTime')}</Label>
                                 <Input
                                     id="start"
                                     type="datetime-local"
@@ -277,7 +293,7 @@ export default function DashboardPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end">وقت الانتهاء *</Label>
+                                <Label htmlFor="end">{t('form.endTime')}</Label>
                                 <Input
                                     id="end"
                                     type="datetime-local"
@@ -294,7 +310,7 @@ export default function DashboardPage() {
                                     disabled={isCreating}
                                 >
                                     <Video className="h-4 w-4" />
-                                    {isCreating ? 'جاري الإنشاء...' : 'جدولة وإنشاء رابط Meet'}
+                                    {isCreating ? t('form.creating') : t('form.submit')}
                                 </Button>
                             </div>
                         </form>
@@ -320,7 +336,7 @@ export default function DashboardPage() {
                         }`}
                 >
                     <LayoutGrid className="h-4 w-4" />
-                    نظرة عامة
+                    {t('tabs.overview')}
                 </button>
                 <button
                     onClick={() => setActiveTab('calendar')}
@@ -330,7 +346,7 @@ export default function DashboardPage() {
                         }`}
                 >
                     <Calendar className="h-4 w-4" />
-                    التقويم
+                    {t('tabs.calendar')}
                 </button>
                 <button
                     onClick={() => setActiveTab('list')}
@@ -340,7 +356,7 @@ export default function DashboardPage() {
                         }`}
                 >
                     <List className="h-4 w-4" />
-                    كل الدروس
+                    {t('tabs.list')}
                 </button>
             </div>
 
@@ -350,7 +366,7 @@ export default function DashboardPage() {
                     {/* Today's Lessons */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>دروس اليوم</CardTitle>
+                            <CardTitle>{t('sections.todayLessons')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {stats?.todayLessons && stats.todayLessons.length > 0 ? (
@@ -360,7 +376,7 @@ export default function DashboardPage() {
                                             <div>
                                                 <p className="font-medium">{lesson.title}</p>
                                                 <p className="text-sm text-gray-500">
-                                                    {new Date(lesson.startDateTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(lesson.startDateTime).toLocaleTimeString(locale === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                             {lesson.meetLink && (
@@ -371,14 +387,14 @@ export default function DashboardPage() {
                                                     size="sm"
                                                     className="rounded-full"
                                                 >
-                                                    انضم
+                                                    {t('lesson.join')}
                                                 </JoinMeetButton>
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-center text-gray-500 py-8">لا توجد دروس مجدولة لليوم</p>
+                                <p className="text-center text-gray-500 py-8">{t('sections.noLessonsToday')}</p>
                             )}
                         </CardContent>
                     </Card>
@@ -386,7 +402,7 @@ export default function DashboardPage() {
                     {/* Upcoming Lessons */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>الدروس القادمة</CardTitle>
+                            <CardTitle>{t('sections.upcomingLessons')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {loading ? (
@@ -402,9 +418,9 @@ export default function DashboardPage() {
                                             <div>
                                                 <p className="font-medium">{lesson.title}</p>
                                                 <p className="text-sm text-gray-500">
-                                                    {new Date(lesson.startDateTime).toLocaleDateString('ar-EG', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                    {new Date(lesson.startDateTime).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                                     {' - '}
-                                                    {new Date(lesson.startDateTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(lesson.startDateTime).toLocaleTimeString(locale === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                             {lesson.meetLink && <Video className="h-4 w-4 text-green-500" />}
@@ -412,7 +428,7 @@ export default function DashboardPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-center text-gray-500 py-8">لا توجد دروس قادمة</p>
+                                <p className="text-center text-gray-500 py-8">{t('sections.noUpcomingLessons')}</p>
                             )}
                         </CardContent>
                     </Card>
@@ -445,12 +461,12 @@ export default function DashboardPage() {
                         </div>
                     ) : (
                         <div className="text-center p-10 bg-gray-50 rounded-lg">
-                            <p className="text-gray-500">لا توجد دروس مجدولة حالياً</p>
+                            <p className="text-gray-500">{t('sections.noSchedule')}</p>
                             <Button
                                 onClick={() => setShowForm(true)}
                                 className="mt-4 bg-brand-primary text-black hover:bg-yellow-400"
                             >
-                                أنشئ درسك الأول
+                                {t('sections.createFirst')}
                             </Button>
                         </div>
                     )}

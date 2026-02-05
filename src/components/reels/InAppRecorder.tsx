@@ -89,10 +89,25 @@ export default function InAppRecorder({
       return;
     }
 
+    const getSupportedMimeType = () => {
+      const types = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4'
+      ];
+      for (const type of types) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          return type;
+        }
+      }
+      return '';
+    };
+
     try {
-      const mediaRecorder = new MediaRecorder(streamRef.current, {
-        mimeType: 'video/webm;codecs=vp9',
-      });
+      const mimeType = getSupportedMimeType();
+      const options = mimeType ? { mimeType } : undefined;
+      const mediaRecorder = new MediaRecorder(streamRef.current, options);
 
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -104,7 +119,7 @@ export default function InAppRecorder({
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const blob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType || 'video/webm' });
         setRecordedBlob(blob);
         if (previewUrl) {
           URL.revokeObjectURL(previewUrl);
@@ -401,7 +416,7 @@ export default function InAppRecorder({
             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Visibility Settings (Optional)
             </h4>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label htmlFor="classId" className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -417,7 +432,7 @@ export default function InAppRecorder({
                   disabled={isLoading}
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="gradeLevel" className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Grade Level
@@ -432,7 +447,7 @@ export default function InAppRecorder({
                   disabled={isLoading}
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="groupId" className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Group

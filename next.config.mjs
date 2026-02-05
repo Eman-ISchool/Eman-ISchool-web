@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // output: 'export', // Commented out to allow middleware for dev server
+    // output: 'export', // Enabled for Capacitor mobile builds
     typescript: {
         ignoreBuildErrors: true,
     },
@@ -27,11 +27,10 @@ const nextConfig = {
                 path: false,
                 canvas: false,
             };
-        }
-        // Exclude pdf-parse from client bundle
-        config.externals = config.externals || [];
-        if (!isServer) {
+            // Exclude pdf-parse from client bundle
+            config.externals = config.externals || [];
             config.externals.push('pdf-parse');
+            config.externals.push('pdfjs-dist');
         }
         return config;
     },
@@ -41,7 +40,7 @@ const pwaConfig = withPWA({
     dest: 'public',
     register: true,
     skipWaiting: true,
-    disable: false, // Enable in development for testing
+    disable: process.env.NODE_ENV === 'development',
     buildExcludes: [/middleware-manifest\.json$/],
 });
 

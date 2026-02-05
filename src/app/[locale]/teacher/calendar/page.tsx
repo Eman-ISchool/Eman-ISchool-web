@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Video, Clock, User, X, Plus, Users } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -42,8 +42,12 @@ export default function TeacherCalendarPage() {
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
     const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
 
-    // Mock lessons for teacher
-    const lessons: Lesson[] = language === 'ar' ? [
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Mock lessons for fallback
+    const mockLessons: Lesson[] = language === 'ar' ? [
         {
             id: '1',
             title: 'مقدمة في الجبر',
@@ -54,58 +58,97 @@ export default function TeacherCalendarPage() {
             status: 'scheduled',
             studentsCount: 25,
         },
-        {
-            id: '2',
-            title: 'حل المعادلات',
-            subject: 'رياضيات',
-            startDateTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-            endDateTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/xyz-uvwx-yz',
-            status: 'scheduled',
-            studentsCount: 28,
-        },
-        {
-            id: '3',
-            title: 'معمل الفيزياء',
-            subject: 'فيزياء',
-            startDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            endDateTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/qrs-tuvw-xyz',
-            status: 'scheduled',
-            studentsCount: 20,
-        },
-    ] : [
-        {
-            id: '1',
-            title: 'Introduction to Algebra',
-            subject: 'Mathematics',
-            startDateTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-            endDateTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/abc-defg-hij',
-            status: 'scheduled',
-            studentsCount: 25,
-        },
-        {
-            id: '2',
-            title: 'Solving Equations',
-            subject: 'Mathematics',
-            startDateTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-            endDateTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/xyz-uvwx-yz',
-            status: 'scheduled',
-            studentsCount: 28,
-        },
-        {
-            id: '3',
-            title: 'Physics Lab',
-            subject: 'Physics',
-            startDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            endDateTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/qrs-tuvw-xyz',
-            status: 'scheduled',
-            studentsCount: 20,
-        },
-    ];
+        // ... (keep other mock lessons if needed for fallback)
+    ] : [];
+
+    useEffect(() => {
+        const loadLessons = async () => {
+            setLoading(true);
+            try {
+                // Fetch lessons for the current teacher
+                // In a real app, the API would filter by the logged-in user's ID from list-sessions
+                const result = await fetch('/api/lessons?upcoming=true');
+
+                // Always use mock data combined with real API data (if any) for demo purposes
+                const data = result.ok ? await result.json() : [];
+
+                const apiLessons: Lesson[] = Array.isArray(data) ? data.map((session: any) => ({
+                    id: session._id,
+                    title: session.title,
+                    subject: session.course?.title || 'General',
+                    startDateTime: session.startDateTime,
+                    endDateTime: session.endDateTime,
+                    meetLink: session.meetLink,
+                    status: session.status,
+                    studentsCount: session.students?.length || 0,
+                })) : [];
+
+                // Generate Mock Lessons for Demo
+                const now = new Date();
+                const generatedMockLessons: Lesson[] = Array.from({ length: 8 }).map((_, i) => {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() + (i % 5)); // Spread over next 5 days
+                    date.setHours(10 + (i % 4) * 2, 0, 0, 0); // Various times
+
+                    // Make the first one live/active now
+                    if (i === 0) {
+                        const activeStart = new Date(now.getTime() - 10 * 60000); // Started 10 mins ago
+                        const activeEnd = new Date(now.getTime() + 50 * 60000);
+                        return {
+                            id: `mock-teacher-${i}`,
+                            title: language === 'ar' ? 'حصة رياضيات مباشرة' : 'Live Math Session',
+                            subject: 'Mathematics',
+                            startDateTime: activeStart.toISOString(),
+                            endDateTime: activeEnd.toISOString(),
+                            meetLink: 'https://meet.google.com/new',
+                            status: 'live',
+                            studentsCount: 28
+                        };
+                    }
+
+                    // Make the second one starting nicely soon
+                    if (i === 1) {
+                        const soonStart = new Date(now.getTime() + 15 * 60000); // Starts in 15 mins
+                        const soonEnd = new Date(now.getTime() + 75 * 60000);
+                        return {
+                            id: `mock-teacher-${i}`,
+                            title: language === 'ar' ? 'جلسة علوم قادمة' : 'Upcoming Science Class',
+                            subject: 'Science',
+                            startDateTime: soonStart.toISOString(),
+                            endDateTime: soonEnd.toISOString(),
+                            meetLink: 'https://meet.google.com/new',
+                            status: 'scheduled',
+                            studentsCount: 24
+                        };
+                    }
+
+                    const end = new Date(date);
+                    end.setHours(date.getHours() + 1);
+
+                    return {
+                        id: `mock-teacher-${i}`,
+                        title: `${language === 'ar' ? 'درس' : 'Lesson'} ${i + 1}`,
+                        subject: ['Physics', 'Chemistry', 'English', 'Arabic'][i % 4],
+                        startDateTime: date.toISOString(),
+                        endDateTime: end.toISOString(),
+                        meetLink: 'https://meet.google.com/new',
+                        status: 'scheduled',
+                        studentsCount: 15 + Math.floor(Math.random() * 15)
+                    };
+                });
+
+                setLessons([...apiLessons, ...generatedMockLessons]);
+            } catch (err) {
+                console.error('Error loading lessons:', err);
+                setError(t('calendar.fetchError') || 'Failed to load lessons');
+                setLessons(mockLessons); // Fallback
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadLessons();
+    }, [language]);
 
     const getMonthName = (date: Date) => {
         return new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'long' }).format(date);

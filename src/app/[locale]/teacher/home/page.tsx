@@ -8,7 +8,8 @@ import { LessonCarousel } from '@/components/student/LessonCarousel';
 import { StudentQuizList } from '@/components/teacher/StudentQuizList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
 import { AIVideoGenerator } from '@/components/teacher/AIVideoGenerator';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 // Skeleton loader component
 function Skeleton({ className }: { className?: string }) {
@@ -17,8 +18,11 @@ function Skeleton({ className }: { className?: string }) {
 
 export default function TeacherHomePage() {
     const { data: session } = useSession();
-    const { t, language } = useLanguage();
+    const t = useTranslations('teacher.home');
+    const locale = useLocale();
     const [loading, setLoading] = useState(true);
+
+    const isArabic = locale === 'ar';
 
     useEffect(() => {
         // Simulate API loading
@@ -28,7 +32,7 @@ export default function TeacherHomePage() {
 
     const greeting = () => {
         const hour = new Date().getHours();
-        if (language === 'ar') {
+        if (isArabic) {
             if (hour < 12) return 'صباح الخير';
             if (hour < 17) return 'طاب يومك';
             return 'مساء الخير';
@@ -41,14 +45,12 @@ export default function TeacherHomePage() {
     // Mock Data - Teacher Announcement (Yellow Bar)
     const mockAnnouncement = {
         id: '1',
-        text: language === 'ar'
-            ? 'تنبيه: المعلم أحمد سيكون غائباً اليوم'
-            : 'Notice: Teacher Ahmed will be absent today',
+        text: t('announcements'),
         createdAt: new Date().toISOString(),
     };
 
     // Mock Lessons - Teacher's scheduled lessons
-    const mockLessons = language === 'ar' ? [
+    const mockLessons = isArabic ? [
         {
             id: '1',
             title: 'مقدمة في الجبر',
@@ -113,7 +115,7 @@ export default function TeacherHomePage() {
     ];
 
     // Mock Student Submissions for tracking
-    const mockSubmissions = language === 'ar' ? [
+    const mockSubmissions = isArabic ? [
         { studentId: 's1', studentName: 'علي محمد', assignmentId: 'a1', assignmentTitle: 'واجب الجبر - الفصل 5', status: 'submitted' as const, submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
         { studentId: 's2', studentName: 'سارة أحمد', assignmentId: 'a1', assignmentTitle: 'واجب الجبر - الفصل 5', status: 'pending' as const },
         { studentId: 's3', studentName: 'محمد خالد', assignmentId: 'a1', assignmentTitle: 'واجب الجبر - الفصل 5', status: 'late' as const, submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
@@ -128,7 +130,7 @@ export default function TeacherHomePage() {
     ];
 
     // Mock Subjects the teacher teaches
-    const mockSubjects = language === 'ar' ? [
+    const mockSubjects = isArabic ? [
         { id: '1', name: 'رياضيات' },
         { id: '2', name: 'فيزياء' },
         { id: '3', name: 'كيمياء' },
@@ -145,7 +147,7 @@ export default function TeacherHomePage() {
                 <div>
                     <p className="text-sm text-[var(--color-text-secondary)]">{greeting()}</p>
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-                        {session?.user?.name || (language === 'ar' ? 'المعلم' : 'Teacher')}
+                        {t('welcome', { name: session?.user?.name || (isArabic ? 'المعلم' : 'Teacher') })}
                     </h1>
                 </div>
                 <div className="flex items-center gap-2">
@@ -181,7 +183,7 @@ export default function TeacherHomePage() {
             ) : (
                 <LessonCarousel
                     lessons={mockLessons}
-                    title={language === 'ar' ? 'دروسي القادمة' : 'My Upcoming Lessons'}
+                    title={t('upcomingLessons')}
                     onSeeAll={() => console.log('See all lessons')}
                 />
             )}
@@ -200,13 +202,15 @@ export default function TeacherHomePage() {
             {loading ? (
                 <div className="space-y-3">
                     <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
+                    <div className="flex gap-4 overflow-hidden">
+                        <Skeleton className="flex-shrink-0 w-44 h-40" />
+                        <Skeleton className="flex-shrink-0 w-44 h-40" />
+                    </div>
                 </div>
             ) : (
                 <StudentQuizList
                     submissions={mockSubmissions}
-                    title={language === 'ar' ? 'متابعة واجبات الطلاب' : 'Student Submissions'}
+                    title={t('submissions')}
                     onSeeAll={() => console.log('See all submissions')}
                     onDownload={(studentId, assignmentId) => console.log('Download:', studentId, assignmentId)}
                 />
@@ -225,7 +229,7 @@ export default function TeacherHomePage() {
             ) : (
                 <SubjectGrid
                     subjects={mockSubjects}
-                    title={language === 'ar' ? 'موادي الدراسية' : 'My Subjects'}
+                    title={t('mySubjects')}
                     onSeeAll={() => console.log('See all subjects')}
                     onSubjectClick={(id) => console.log('Subject clicked:', id)}
                 />

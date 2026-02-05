@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
     Video,
     Play,
@@ -12,6 +13,7 @@ import {
     RefreshCw,
 } from 'lucide-react';
 import { LoadingState, EmptyState } from '@/components/admin/StateComponents';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface LiveSession {
     id: string;
@@ -148,6 +150,8 @@ function SessionCard({ session, onJoin }: { session: LiveSession; onJoin: () => 
 }
 
 export default function LiveSessionsPage() {
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
     const [activeTab, setActiveTab] = useState<'today' | 'week'>('today');
     const [loading, setLoading] = useState(true);
     const [sessions, setSessions] = useState<LiveSession[]>([]);
@@ -222,7 +226,7 @@ export default function LiveSessionsPage() {
                         <RefreshCw className="w-4 h-4" />
                         تحديث
                     </button>
-                    <Link href="/admin/calendar" className="admin-btn admin-btn-secondary">
+                    <Link href={withLocalePrefix('/admin/calendar', locale)} className="admin-btn admin-btn-secondary">
                         <Calendar className="w-4 h-4" />
                         عرض التقويم
                     </Link>

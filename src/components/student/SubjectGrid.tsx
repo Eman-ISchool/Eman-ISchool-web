@@ -12,6 +12,7 @@ interface Subject {
 
 interface SubjectGridProps {
     subjects: Subject[];
+    title?: string;
     onSeeAll?: () => void;
     onSubjectClick?: (subjectId: string) => void;
 }
@@ -35,7 +36,7 @@ function getSubjectIcon(name: string) {
     return subjectIcons[key] || subjectIcons.default;
 }
 
-export function SubjectGrid({ subjects, onSeeAll, onSubjectClick }: SubjectGridProps) {
+export function SubjectGrid({ subjects, title, onSeeAll, onSubjectClick }: SubjectGridProps) {
     if (subjects.length === 0) {
         return null;
     }
@@ -46,7 +47,7 @@ export function SubjectGrid({ subjects, onSeeAll, onSubjectClick }: SubjectGridP
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Subjects</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{title || 'Subjects'}</h2>
                 {onSeeAll && subjects.length > 8 && (
                     <button
                         onClick={onSeeAll}

@@ -4,11 +4,14 @@ import { useState } from "react";
 import { Shield, GraduationCap, Users, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 const UserPortalSection = () => {
+    const t = useTranslations('userPortal');
+    
     const users = [
         {
-            role: 'Admin',
+            role: t('roles.admin'),
             username: 'admin@eduverse.com',
             password: 'password123',
             icon: Shield,
@@ -17,7 +20,7 @@ const UserPortalSection = () => {
             borderColor: 'border-red-500/20'
         },
         {
-            role: 'Teacher',
+            role: t('roles.teacher'),
             username: 'teacher@eduverse.com',
             password: 'password123',
             icon: GraduationCap,
@@ -26,7 +29,7 @@ const UserPortalSection = () => {
             borderColor: 'border-blue-500/20'
         },
         {
-            role: 'Student',
+            role: t('roles.student'),
             username: 'student@eduverse.com',
             password: 'password123',
             icon: Users,
@@ -49,10 +52,12 @@ const UserPortalSection = () => {
             <div className="container mx-auto px-4 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold mb-4 text-brand-dark">
-                        بوابة <span className="text-brand-primary">المستخدمين</span>
+                        {t.rich('title', {
+                            span: (chunks) => <span className="text-brand-primary">{chunks}</span>
+                        })}
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto">
-                        استخدم بيانات الدخول التالية لتجربة النظام بأدوار مختلفة
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -72,7 +77,7 @@ const UserPortalSection = () => {
                             </CardHeader>
                             <CardContent className="pt-6 space-y-4">
                                 <div className="space-y-2">
-                                    <p className="text-sm text-gray-500 font-medium">اسم المستخدم</p>
+                                    <p className="text-sm text-gray-500 font-medium">{t('credentials.username')}</p>
                                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group-hover:border-gray-200 transition-colors">
                                         <code className="text-sm font-mono text-gray-800">{user.username}</code>
                                         <Button
@@ -87,7 +92,7 @@ const UserPortalSection = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <p className="text-sm text-gray-500 font-medium">كلمة المرور</p>
+                                    <p className="text-sm text-gray-500 font-medium">{t('credentials.password')}</p>
                                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group-hover:border-gray-200 transition-colors">
                                         <code className="text-sm font-mono text-gray-800">{user.password}</code>
                                         <Button

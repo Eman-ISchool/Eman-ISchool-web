@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Sparkles, Loader2, CheckCircle, XCircle, Video } from 'lucide-react';
 import { useVideoGeneration } from '@/hooks/useVideoGeneration';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 interface AIVideoGeneratorProps {
     classId?: string;
@@ -14,11 +15,12 @@ interface AIVideoGeneratorProps {
 
 export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGeneratorProps) {
     const { data: session } = useSession();
-    const { language } = useLanguage();
+    const t = useTranslations('teacher.video');
+    const locale = useLocale();
     const [prompt, setPrompt] = useState('');
     const { isGenerating, progress, videoUrl, error, status, generateVideo, reset } = useVideoGeneration();
 
-    const isArabic = language === 'ar';
+    const isArabic = locale === 'ar';
     const maxChars = 500;
 
     const handleGenerate = async () => {
@@ -47,10 +49,10 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                 </div>
                 <div>
                     <h3 className="text-lg font-bold text-gray-900">
-                        {isArabic ? 'إنشاء فيديو بالذكاء الاصطناعي' : 'AI Video Generator'}
+                        {t('title')}
                     </h3>
                     <p className="text-sm text-gray-600">
-                        {isArabic ? 'أنشئ مقاطع فيديو تعليمية من النص' : 'Create educational videos from text'}
+                        {t('subtitle')}
                     </p>
                 </div>
             </div>
@@ -61,7 +63,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                     <div className="flex items-center gap-2 mb-3">
                         <CheckCircle className="w-5 h-5 text-green-600" />
                         <p className="text-green-800 font-medium">
-                            {isArabic ? 'تم إنشاء الفيديو بنجاح!' : 'Video generated successfully!'}
+                            {t('success')}
                         </p>
                     </div>
                     <video
@@ -74,7 +76,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                         onClick={handleReset}
                         className="mt-3 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
-                        {isArabic ? 'إنشاء فيديو جديد' : 'Create New Video'}
+                        {t('newVideo')}
                     </button>
                 </div>
             )}
@@ -84,7 +86,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                     <div className="flex items-center gap-2 mb-2">
                         <XCircle className="w-5 h-5 text-red-600" />
                         <p className="text-red-800 font-medium">
-                            {isArabic ? 'فشل إنشاء الفيديو' : 'Video generation failed'}
+                            {t('failed')}
                         </p>
                     </div>
                     <p className="text-sm text-red-700 mb-3">{error}</p>
@@ -92,7 +94,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                         onClick={handleReset}
                         className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
-                        {isArabic ? 'حاول مرة أخرى' : 'Try Again'}
+                        {t('tryAgain')}
                     </button>
                 </div>
             )}
@@ -102,29 +104,25 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                 <>
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                            {isArabic ? 'اكتب النص أو السيناريو' : 'Enter text or script'}
+                            {t('promptLabel')}
                         </label>
                         <textarea
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value.slice(0, maxChars))}
                             disabled={isGenerating}
-                            placeholder={
-                                isArabic
-                                    ? 'مثال: شرح مبسط لمفهوم الجاذبية للصف الثامن...'
-                                    : 'Example: A simple explanation of gravity for grade 8 students...'
-                            }
+                            placeholder={t('promptPlaceholder')}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                             rows={4}
                             dir={isArabic ? 'rtl' : 'ltr'}
                         />
                         <div className="flex justify-between items-center text-sm">
                             <span className={`${prompt.length > maxChars * 0.9 ? 'text-orange-600' : 'text-gray-500'}`}>
-                                {prompt.length} / {maxChars}
+                                {t('charCount', { current: prompt.length, max: maxChars })}
                             </span>
                             {prompt.length >= 10 && (
                                 <span className="text-green-600 flex items-center gap-1">
                                     <CheckCircle className="w-4 h-4" />
-                                    {isArabic ? 'جاهز للإنشاء' : 'Ready to generate'}
+                                    {t('ready')}
                                 </span>
                             )}
                         </div>
@@ -136,7 +134,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-700 flex items-center gap-2">
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    {isArabic ? 'جاري الإنشاء...' : 'Generating...'}
+                                    {t('generating')}
                                 </span>
                                 <span className="text-purple-600 font-medium">{progress}%</span>
                             </div>
@@ -147,9 +145,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                                 />
                             </div>
                             <p className="text-xs text-gray-600 text-center">
-                                {isArabic
-                                    ? 'قد يستغرق هذا 1-2 دقيقة. يرجى عدم إغلاق الصفحة.'
-                                    : 'This may take 1-2 minutes. Please don\'t close the page.'}
+                                {t('waitMessage')}
                             </p>
                         </div>
                     )}
@@ -163,12 +159,12 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
                         {isGenerating ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                {isArabic ? 'جاري الإنشاء...' : 'Generating...'}
+                                {t('generating')}
                             </>
                         ) : (
                             <>
                                 <Video className="w-5 h-5" />
-                                {isArabic ? 'إنشاء الفيديو' : 'Generate Video'}
+                                {t('generateBtn')}
                             </>
                         )}
                     </button>
@@ -179,9 +175,7 @@ export function AIVideoGenerator({ classId, subject, gradeLevel }: AIVideoGenera
             {status === 'idle' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-xs text-blue-800">
-                        {isArabic
-                            ? '💡 نصيحة: كن محددًا في وصفك للحصول على أفضل النتائج. سيتم نشر الفيديو تلقائيًا للطلاب.'
-                            : '💡 Tip: Be specific in your description for best results. Videos are automatically published to students.'}
+                        {t('tip')}
                     </p>
                 </div>
             )}

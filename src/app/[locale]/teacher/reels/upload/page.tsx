@@ -6,11 +6,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SourceUploader from '@/components/reels/SourceUploader';
 import ProcessingStatus from '@/components/reels/ProcessingStatus';
 import TranscriptViewer from '@/components/reels/TranscriptViewer';
 import { useSourceUpload } from '@/hooks/useSourceUpload';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 interface ProcessingStep {
   name: string;
@@ -49,6 +50,8 @@ interface SourceContent {
 
 export default function TeacherReelUploadPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const { uploadFile, cancelUpload, retryUpload, resetUpload, state: uploadState } = useSourceUpload();
   
   const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -171,7 +174,7 @@ export default function TeacherReelUploadPage() {
     console.log('[UploadPage] Processing complete');
     // Navigate to reels library after a short delay
     setTimeout(() => {
-      router.push('/teacher/reels');
+      router.push(withLocalePrefix('/teacher/reels', locale));
     }, 2000);
   };
 
@@ -351,7 +354,7 @@ export default function TeacherReelUploadPage() {
             </p>
             <div className="flex gap-4">
               <button
-                onClick={() => router.push('/teacher/reels')}
+                onClick={() => router.push(withLocalePrefix('/teacher/reels', locale))}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 View Generated Reels
