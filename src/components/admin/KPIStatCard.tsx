@@ -38,21 +38,21 @@ export default function KPIStatCard({
     const [isHovered, setIsHovered] = useState(false);
     const isGradient = variant !== 'default';
     const cardClasses = `kpi-card ${variantClasses[variant]} ${className} ${href
-            ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer group'
-            : ''
+        ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer group'
+        : ''
         }`;
 
     const cardContent = (
         <>
-            <div className="flex items-start justify-between">
-                <div>
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
                     <p
                         className={`text-sm ${isGradient ? 'opacity-80' : 'text-gray-500'
-                            }`}
+                            } truncate`}
                     >
                         {title}
                     </p>
-                    <p className="kpi-card-value mt-1">{value}</p>
+                    <p className="kpi-card-value mt-1 truncate">{value}</p>
                     {trend && (
                         <div
                             className={`kpi-card-trend ${trend.isPositive ? 'positive' : 'negative'

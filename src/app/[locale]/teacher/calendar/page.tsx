@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Video, Clock, User, X, Plus, Users } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { withLocalePrefix } from '@/lib/locale-path';
 
 interface Lesson {
     id: string;
@@ -37,7 +39,9 @@ function getSubjectColor(name?: string): string {
 }
 
 export default function TeacherCalendarPage() {
+    const router = useRouter();
     const { t, language } = useLanguage();
+    const locale = language;
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
     const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
@@ -54,7 +58,7 @@ export default function TeacherCalendarPage() {
             subject: 'رياضيات',
             startDateTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
             endDateTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/abc-defg-hij',
+            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
             status: 'scheduled',
             studentsCount: 25,
         },
@@ -100,7 +104,7 @@ export default function TeacherCalendarPage() {
                             subject: 'Mathematics',
                             startDateTime: activeStart.toISOString(),
                             endDateTime: activeEnd.toISOString(),
-                            meetLink: 'https://meet.google.com/new',
+                            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
                             status: 'live',
                             studentsCount: 28
                         };
@@ -116,7 +120,7 @@ export default function TeacherCalendarPage() {
                             subject: 'Science',
                             startDateTime: soonStart.toISOString(),
                             endDateTime: soonEnd.toISOString(),
-                            meetLink: 'https://meet.google.com/new',
+                            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
                             status: 'scheduled',
                             studentsCount: 24
                         };
@@ -131,7 +135,7 @@ export default function TeacherCalendarPage() {
                         subject: ['Physics', 'Chemistry', 'English', 'Arabic'][i % 4],
                         startDateTime: date.toISOString(),
                         endDateTime: end.toISOString(),
-                        meetLink: 'https://meet.google.com/new',
+                        meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
                         status: 'scheduled',
                         studentsCount: 15 + Math.floor(Math.random() * 15)
                     };
@@ -273,6 +277,7 @@ export default function TeacherCalendarPage() {
                     </button>
                     <button
                         className="px-3 py-1.5 text-sm font-medium text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center gap-1"
+                        onClick={() => router.push(withLocalePrefix('/teacher/lessons/new', locale))}
                     >
                         <Plus className="w-4 h-4" />
                         {language === 'ar' ? 'إضافة درس' : 'Add Lesson'}

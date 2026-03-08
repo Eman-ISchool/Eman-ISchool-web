@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Cairo } from 'next/font/google';
 import { defaultLocale } from '@/i18n/config';
+import { cookies } from 'next/headers';
+import '@/lib/init'; // Initialize application configuration
+import { initializeApp } from '@/lib/init';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
   variable: '--font-cairo',
   display: 'swap',
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -35,12 +39,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = defaultLocale;
+  // Initialize application configuration on first render
+  if (typeof window !== 'undefined') {
+    try {
+      initializeApp();
+    } catch (error) {
+      console.error('Failed to initialize application:', error);
+      // Don't block rendering, but log the error for debugging
+    }
+  }
+
+  const cookieStore = cookies();
+  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? defaultLocale;
   const direction = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={direction} className={cairo.variable}>
-      <body className="font-sans antialiased min-h-screen flex flex-col bg-gray-50">
+    <html lang={locale} dir={direction} className={`${cairo.variable} ${cairo.className} font-sans`}>
+      <body className={`antialiased min-h-screen flex flex-col bg-gray-50`}>
         {children}
       </body>
     </html>

@@ -195,9 +195,59 @@
       "join": "انضم"
     }
   },
+  "parent": {
+    "nav": {
+      "home": "الرئيسية",
+      "students": "الأبناء",
+      "enrollments": "التسجيلات",
+      "browse": "تصفح الدورات",
+      "payments": "المدفوعات",
+      "settings": "الإعدادات"
+    },
+    "home": {
+      "welcome": "مرحباً، {name}",
+      "myChildren": "أبنائي",
+      "addChild": "إضافة طالب",
+      "activeEnrollments": "دورات نشطة",
+      "pendingPayments": "دفعات معلقة"
+    }
+  },
+  "student": {
+    "nav": {
+      "home": "الرئيسية",
+      "myCourses": "دوراتي",
+      "calendar": "التقويم",
+      "attendance": "الحضور",
+      "support": "الدعم"
+    },
+    "courses": {
+      "title": "دوراتي",
+      "errorLoading": "فشل تحميل الدورات",
+      "noCourses": "لا توجد دورات بعد",
+      "noCoursesDescription": "لم تسجل في أي دورات بعد. تصفح الدورات المتاحة للبدء.",
+      "browseCourses": "تصفح الدورات",
+      "nextLesson": "الدرس القادم",
+      "noUpcomingLessons": "لا توجد دروس قادمة"
+    },
+    "courseDetail": {
+      "backToCourses": "العودة للدورات",
+      "gradeLevel": "المرحلة الدراسية",
+      "price": "السعر",
+      "upcomingLessons": "الدروس القادمة",
+      "noUpcomingLessons": "لا توجد دروس قادمة مجدولة",
+      "materials": "المواد التعليمية",
+      "noMaterials": "لا توجد مواد تعليمية متاحة",
+      "download": "تحميل",
+      "assignments": "الواجبات",
+      "noAssignments": "لا توجد واجبات متاحة",
+      "open": "مفتوح",
+      "closed": "مغلق"
+    }
+  },
   "teacher": {
     "nav": {
       "home": "الرئيسية",
+      "courses": "دوراتي",
       "calendar": "الجدول",
       "chat": "المحادثات",
       "profile": "الملف الشخصي"
@@ -208,6 +258,89 @@
       "upcomingLessons": "دروسي القادمة",
       "submissions": "متابعة واجبات الطلاب",
       "mySubjects": "موادي الدراسية"
+    },
+    "subjects": {
+      "title": "موادي الدراسية",
+      "createNew": "إنشاء مادة جديدة",
+      "noSubjects": "لم يتم العثور على أي مواد. أنشئ مادتك الأولى للبدء.",
+      "createTitle": "إنشاء مادة جديدة",
+      "name": "اسم المادة",
+      "description": "الوصف",
+      "image": "صورة المادة (رابط)",
+      "imageUrlPlaceholder": "https://example.com/image.jpg",
+      "submit": "إنشاء المادة",
+      "cancel": "إلغاء",
+      "success": "تم إنشاء المادة بنجاح"
+    },
+    "courses": {
+      "title": "دوراتي",
+      "createNew": "إنشاء دورة جديدة",
+      "noCourses": "لم تقم بإنشاء أي دورات بعد.",
+      "students": "الطلاب",
+      "subjects": "المواد",
+      "price": "السعر",
+      "published": "منشور",
+      "draft": "مسودة",
+      "edit": "تعديل",
+      "view": "عرض",
+      "create": {
+        "title": "إنشاء دورة جديدة",
+        "name": "اسم الدورة",
+        "description": "الوصف",
+        "price": "السعر",
+        "currency": "جنيه مصري",
+        "grade": "المرحلة الدراسية",
+        "image": "صورة الدورة (رابط)",
+        "imageUrlPlaceholder": "https://example.com/image.jpg",
+        "selectGrade": "اختر المرحلة الدراسية",
+        "selectSubject": "اختر المادة",
+        "noGrades": "لا توجد مستويات دراسية متاحة. تواصل مع المسؤول لإعداد المستويات الدراسية.",
+        "noSubjects": "لا توجد مواد دراسية. أنشئ مادة أولاً.",
+        "submit": "إنشاء",
+        "cancel": "إلغاء",
+        "success": "تم إنشاء الدورة بنجاح"
+      }
+    },
+    "courseDetails": {
+      "addSubject": "إضافة مادة",
+      "noSubjects": "لا توجد مواد دراسية في هذه الدورة.",
+      "publish": "نشر الدورة",
+      "unpublish": "إلغاء النشر",
+      "lessons": "الدروس",
+      "addLesson": "إضافة درس",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "subjectTitle": "عنوان المادة",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "backToCourses": "عودة للدورات"
+    },
+    "lessons": {
+      "title": "الدروس",
+      "create": "إنشاء درس جديد",
+      "edit": "تعديل الدرس",
+      "details": "تفاصيل الدرس",
+      "lessonTitle": "عنوان الدرس",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "duration": "المدة (دقيقة)",
+      "minutes": "دقيقة",
+      "generateMeet": "إنشاء رابط Google Meet تلقائياً",
+      "meetLink": "رابط Google Meet (لصق الرابط)",
+      "meetLinkPlaceholder": "https://meet.google.com/...",
+      "startClass": "بدء الحصة",
+      "endClass": "إنهاء الحصة",
+      "description": "وصف الدرس/ملاحظات",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "success": "تم حفظ الدرس بنجاح"
+    },
+    "metrics": {
+      "title": "مقاييس الدورة",
+      "enrolledStudents": "الطلاب المسجلين",
+      "upcomingLessons": "الدروس القادمة",
+      "materials": "المواد التعليمية",
+      "assignments": "الواجبات"
     },
     "video": {
       "title": "إنشاء فيديو بالذكاء الاصطناعي",
@@ -224,6 +357,52 @@
       "tryAgain": "حاول مرة أخرى",
       "tip": "💡 نصيحة: كن محددًا في وصفك للحصول على أفضل النتائج. سيتم نشر الفيديو تلقائيًا للطلاب.",
       "waitMessage": "قد يستغرق هذا 1-2 دقيقة. يرجى عدم إغلاق الصفحة."
+    },
+    "courseHub": {
+      "overview": "نظرة عامة",
+      "curriculum": "المنهج",
+      "students": "الطلاب",
+      "gradebook": "دفتر الدرجات",
+      "settings": "الإعدادات"
+    },
+    "publishChecklist": {
+      "title": "قائمة نشر الدورة",
+      "hasTitle": "للدورة عنوان",
+      "hasGrade": "تم اختيار المرحلة الدراسية",
+      "hasLesson": "يوجد درس واحد على الأقل",
+      "cannotPublish": "لا يمكن نشر الدورة",
+      "readyToPublish": "جاهز للنشر",
+      "publish": "نشر",
+      "unpublish": "إلغاء النشر"
+    },
+    "modules": {
+      "title": "الوحدات",
+      "addModule": "إضافة وحدة",
+      "editModule": "تعديل الوحدة",
+      "deleteModule": "حذف الوحدة",
+      "moduleName": "اسم الوحدة",
+      "moduleDescription": "وصف الوحدة",
+      "noModules": "لا توجد وحدات بعد. أضف وحدتك الأولى لتنظيم دروسك.",
+      "unorganizedLessons": "دروس غير منظمة",
+      "lessonsMoved": "دروس تم نقلها إلى غير معين"
+    },
+    "students": {
+      "title": "الطلاب",
+      "name": "اسم الطالب",
+      "email": "البريد الإلكتروني",
+      "enrolledDate": "تاريخ التسجيل",
+      "status": "الحالة",
+      "noStudents": "لا يوجد طلاب مسجلين بعد.",
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "gradebook": {
+      "title": "دفتر الدرجات",
+      "student": "الطالب",
+      "attendance": "الحضور",
+      "assignments": "الواجبات",
+      "grade": "الدرجة",
+      "noGrades": "لا توجد درجات مسجلة بعد."
     }
   },
   "admin": {
@@ -321,17 +500,22 @@
       "or": "أو",
       "firstName": "الاسم الأول",
       "lastName": "الاسم الأخير",
+      "fullName": "الاسم الكامل",
       "email": "البريد الإلكتروني",
       "password": "كلمة المرور",
+      "phone": "رقم الهاتف (اختياري)",
       "placeholder": {
-        "firstName": "محمد",
-        "lastName": "أحمد",
-        "email": "name@example.com"
+        "fullName": "محمد أحمد",
+        "email": "name@example.com",
+        "phone": "+20 1xxxxxxxxx"
       },
+      "submit": "إنشاء حساب",
       "emailUnavailable": "التسجيل بالبريد الإلكتروني غير متاح حالياً. يرجى استخدام Google.",
       "hasAccount": "لديك حساب بالفعل؟",
       "login": "تسجيل الدخول",
-      "error": "حدث خطأ أثناء إنشاء الحساب"
+      "error": "حدث خطأ أثناء إنشاء الحساب",
+      "consentLabel": "أوافق على شروط الخدمة وسياسة الخصوصية",
+      "consentRequired": "يجب الموافقة على شروط الخدمة وسياسة الخصوصية للتسجيل"
     }
   },
   "cart": {

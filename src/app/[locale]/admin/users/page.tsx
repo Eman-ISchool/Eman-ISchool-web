@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b">
                                     <tr>
-                                        <th className="p-4 text-right">
+                                        <th className="p-4 text-end">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedUsers.length === users.length}
@@ -276,12 +276,12 @@ export default function AdminUsersPage() {
                                                 className="rounded"
                                             />
                                         </th>
-                                        <th className="p-4 text-right font-medium">المستخدم</th>
-                                        <th className="p-4 text-right font-medium">الدور</th>
-                                        <th className="p-4 text-right font-medium">الحالة</th>
-                                        <th className="p-4 text-right font-medium">الإحصائيات</th>
-                                        <th className="p-4 text-right font-medium">آخر دخول</th>
-                                        <th className="p-4 text-right font-medium">الإجراءات</th>
+                                        <th className="p-4 text-end font-medium">المستخدم</th>
+                                        <th className="p-4 text-end font-medium">الدور</th>
+                                        <th className="p-4 text-end font-medium">الحالة</th>
+                                        <th className="p-4 text-end font-medium">الإحصائيات</th>
+                                        <th className="p-4 text-end font-medium">آخر دخول</th>
+                                        <th className="p-4 text-end font-medium">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>

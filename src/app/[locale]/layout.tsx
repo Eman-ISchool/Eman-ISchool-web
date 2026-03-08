@@ -2,12 +2,11 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ReactNode } from 'react';
+import NextTopLoader from 'nextjs-toploader';
 import { locales } from '@/i18n/config';
 import AuthProvider from '@/components/AuthProvider';
 import LanguageProviderWrapper from '@/components/LanguageProviderWrapper';
-import NetworkMonitor from '@/components/NetworkMonitor';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import ConditionalLayout from '@/components/layout/ConditionalLayout';
 
 interface LocaleLayoutProps {
   children: ReactNode;
@@ -38,15 +37,14 @@ export default async function LocaleLayout({
       <LanguageProviderWrapper>
         <NextIntlClientProvider messages={messages}>
           <div lang={locale} dir={direction} className="min-h-screen flex flex-col">
-            <NetworkMonitor />
-            <Header />
-            <main className="flex-1">
+            <NextTopLoader color="#4A90E2" showSpinner={false} height={3} />
+            <ConditionalLayout>
               {children}
-            </main>
-            <Footer />
+            </ConditionalLayout>
           </div>
         </NextIntlClientProvider>
       </LanguageProviderWrapper>
     </AuthProvider>
   );
 }
+

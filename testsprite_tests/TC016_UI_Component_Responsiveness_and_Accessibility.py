@@ -6,80 +6,54 @@ async def run_test():
     pw = None
     browser = None
     context = None
-    
+
     try:
-        # Start a Playwright session in asynchronous mode
         pw = await async_api.async_playwright().start()
-        
-        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
             args=[
-                "--window-size=1280,720",         # Set the browser window size
-                "--disable-dev-shm-usage",        # Avoid using /dev/shm which can cause issues in containers
-                "--ipc=host",                     # Use host-level IPC for better stability
-                "--single-process"                # Run the browser in a single process mode
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
             ],
         )
-        
-        # Create a new browser context (like an incognito window)
-        context = await browser.new_context()
-        context.set_default_timeout(5000)
-        
-        # Open a new page in the browser context
+        context = await browser.new_context(viewport={'width': 1280, 'height': 720})
+        context.set_default_timeout(10000)
         page = await context.new_page()
-        
-        # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
-        
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
+
+        # Test at desktop viewport (1280x720)
+        await page.goto('http://localhost:3000/ar/login/admin', wait_until="commit", timeout=60000)
         try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except async_api.Error:
             pass
-        
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
-        
-        # Interact with the page elements to simulate user flow
-        # -> Switch to tablet viewport and verify UI components resize and reposition gracefully without layout breakage
+        await asyncio.sleep(2)
+
+        # Assert login form is visible at desktop size
         frame = context.pages[-1]
-        # Click language toggle button to check accessibility of interactive elements
-        elem = frame.locator('xpath=html/body/header/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        await expect(frame.locator('[data-testid="login-email-input"]').first).to_be_visible(timeout=15000)
+        await expect(frame.locator('[data-testid="login-password-input"]').first).to_be_visible(timeout=10000)
+        await expect(frame.locator('[data-testid="login-submit-button"]').first).to_be_visible(timeout=10000)
 
-        await page.mouse.wheel(0, 500)
-        
+        # Switch to mobile viewport (375x667 - iPhone SE)
+        await page.set_viewport_size({'width': 375, 'height': 667})
+        await asyncio.sleep(1)
 
-        # -> Switch viewport to tablet size and verify UI components resize and reposition gracefully without layout breakage
-        await page.goto('http://localhost:3000/', timeout=10000)
-        await asyncio.sleep(3)
-        
-
-        # -> Simulate tablet viewport and verify UI components resize and reposition gracefully without layout breakage
-        await page.goto('http://localhost:3000/', timeout=10000)
-        await asyncio.sleep(3)
-        
-
+        # Assert login form is still visible and accessible at mobile size
         frame = context.pages[-1]
-        # Click language toggle button to verify accessibility on tablet viewport
-        elem = frame.locator('xpath=html/body/main/div/section[10]/div/div[2]/div/div[2]/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        await expect(frame.locator('[data-testid="login-email-input"]').first).to_be_visible(timeout=10000)
+        await expect(frame.locator('[data-testid="login-submit-button"]').first).to_be_visible(timeout=10000)
 
-        # --> Assertions to verify final state
+        # Switch to tablet viewport (768x1024 - iPad)
+        await page.set_viewport_size({'width': 768, 'height': 1024})
+        await asyncio.sleep(1)
+
+        # Assert login form is still visible at tablet size
         frame = context.pages[-1]
-        try:
-            await expect(frame.locator('text=UI Components Rendered Perfectly').first).to_be_visible(timeout=1000)
-        except AssertionError:
-            raise AssertionError('Test plan execution failed: UI components did not render correctly across different device screen sizes and/or failed accessibility compliance checks.')
-        await asyncio.sleep(5)
-    
+        await expect(frame.locator('[data-testid="login-email-input"]').first).to_be_visible(timeout=10000)
+        await asyncio.sleep(2)
+
     finally:
         if context:
             await context.close()
@@ -87,6 +61,5 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
+
 asyncio.run(run_test())
-    

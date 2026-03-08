@@ -3,6 +3,15 @@
     "enabled": true,
     "autoAllowBashIfSandboxed": true
   },
+  "hooks": {
+    "postToolUse": [
+      {
+        "tool": ["Edit", "Write"],
+        "pattern": "specs/**/*.md",
+        "command": "node scripts/validate-spec.js $FILE_PATH"
+      }
+    ]
+  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [

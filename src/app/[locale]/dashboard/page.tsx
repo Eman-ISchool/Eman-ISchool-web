@@ -59,6 +59,7 @@ export default function DashboardPage() {
     const [description, setDescription] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+    const [meetLink, setMeetLink] = useState('');
 
     const router = useRouter();
 
@@ -67,6 +68,10 @@ export default function DashboardPage() {
             const user = session.user as any;
             if (user?.role === 'student') {
                 router.replace(withLocalePrefix('/student/home', locale));
+                return;
+            }
+            if (user?.role === 'parent') {
+                router.replace(withLocalePrefix('/parent/home', locale));
                 return;
             }
             if (user?.role === 'admin') {
@@ -120,6 +125,7 @@ export default function DashboardPage() {
                     description,
                     startDateTime: new Date(startTime).toISOString(),
                     endDateTime: new Date(endTime).toISOString(),
+                    meetLink,
                 }),
             });
 
@@ -134,6 +140,7 @@ export default function DashboardPage() {
                 setDescription('');
                 setStartTime('');
                 setEndTime('');
+                setMeetLink('');
                 setShowForm(false);
             } else {
                 // Check if Google auth is required
@@ -203,7 +210,7 @@ export default function DashboardPage() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{t('title')}</h1>
-                    <p className="text-gray-500">{t('welcome', { name: session.user?.name })}</p>
+                    <p className="text-gray-500">{t('welcome', { name: session.user?.name || '' })}</p>
                 </div>
                 <Button
                     onClick={() => setShowForm(!showForm)}
@@ -300,6 +307,17 @@ export default function DashboardPage() {
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
                                     required
+                                />
+                            </div>
+
+                            <div className="md:col-span-2 space-y-2">
+                                <Label htmlFor="meetLink">{t('form.meetLink') || 'Google Meet URL (Optional)'}</Label>
+                                <Input
+                                    id="meetLink"
+                                    type="url"
+                                    value={meetLink}
+                                    onChange={(e) => setMeetLink(e.target.value)}
+                                    placeholder="https://meet.google.com/..."
                                 />
                             </div>
 

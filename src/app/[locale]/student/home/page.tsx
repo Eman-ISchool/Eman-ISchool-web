@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Settings } from 'lucide-react';
+import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
 import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
@@ -24,13 +24,10 @@ interface ApiAnnouncement {
     isPinned: boolean;
 }
 
-// Skeleton loader component
 function Skeleton({ className }: { className?: string }) {
-    return <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />;
+    return <div className={`animate-pulse bg-teal-100/70 rounded-2xl ${className}`} />;
 }
 
-// Mock data types needed locally if strictly typed, but can infer
-// ...
 
 export default function StudentHomePage() {
     const router = useRouter();
@@ -38,12 +35,11 @@ export default function StudentHomePage() {
     const locale = getLocaleFromPathname(pathname);
     const { data: session } = useSession();
     const { t, language } = useLanguage();
+    const isRTL = language === 'ar';
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
     const [topAnnouncement, setTopAnnouncement] = useState<ApiAnnouncement | null>(null);
 
     useEffect(() => {
-        // Fetch announcements from API
         const fetchAnnouncements = async () => {
             try {
                 const response = await fetch('/api/announcements?role=student');
@@ -61,14 +57,13 @@ export default function StudentHomePage() {
     }, []);
 
     const handleUpload = async (assignmentId: string, file: File) => {
-        // TODO: Implement actual upload
         console.log('Uploading file for assignment:', assignmentId, file.name);
         await new Promise(resolve => setTimeout(resolve, 2000));
     };
 
     const greeting = () => {
         const hour = new Date().getHours();
-        if (language === 'ar') {
+        if (isRTL) {
             if (hour < 12) return 'صباح الخير';
             if (hour < 17) return 'طاب يومك';
             return 'مساء الخير';
@@ -78,18 +73,17 @@ export default function StudentHomePage() {
         return 'Good evening';
     };
 
-    // Mock Data - Bilingual
     const mockAnnouncement = {
         id: '1',
-        title: language === 'ar' ? 'تنبيه: غياب المعلم' : 'Notice: Teacher Absence',
-        body: language === 'ar'
+        title: isRTL ? 'تنبيه: غياب المعلم' : 'Notice: Teacher Absence',
+        body: isRTL
             ? 'سيكون المعلم غائباً اليوم. يرجى مراجعة الجدول الدراسي لأي تغييرات أو دروس بديلة.'
             : 'The teacher will be absent today. Please check your schedule for any changes or make-up classes.',
         priority: 'high' as const,
         createdAt: new Date().toISOString(),
     };
 
-    const mockLessons = language === 'ar' ? [
+    const mockLessons = isRTL ? [
         {
             id: '1',
             title: 'مقدمة في الجبر',
@@ -133,7 +127,7 @@ export default function StudentHomePage() {
         },
     ];
 
-    const mockAssignments = language === 'ar' ? [
+    const mockAssignments = isRTL ? [
         {
             id: '1',
             type: 'assignment' as const,
@@ -171,7 +165,7 @@ export default function StudentHomePage() {
         },
     ];
 
-    const mockTeachers = language === 'ar' ? [
+    const mockTeachers = isRTL ? [
         { id: '1', name: 'د. أحمد حسن', subjects: ['رياضيات', 'فيزياء'] },
         { id: '2', name: 'أ. سارة جونسون', subjects: ['لغة إنجليزية', 'أدب'] },
     ] : [
@@ -179,7 +173,7 @@ export default function StudentHomePage() {
         { id: '2', name: 'Ms. Sarah Johnson', subjects: ['English', 'Literature'] },
     ];
 
-    const mockSubjects = language === 'ar' ? [
+    const mockSubjects = isRTL ? [
         { id: '1', name: 'رياضيات' },
         { id: '2', name: 'علوم' },
         { id: '3', name: 'لغة إنجليزية' },
@@ -191,9 +185,22 @@ export default function StudentHomePage() {
         { id: '4', name: 'Arabic' },
     ];
 
+    const nextLesson = mockLessons[0];
+    const minutesUntilNext = nextLesson
+        ? Math.round((new Date(nextLesson.startDateTime).getTime() - Date.now()) / 60000)
+        : null;
+
+    const formatCountdown = (minutes: number) => {
+        if (minutes <= 0) return isRTL ? 'الآن' : 'Now';
+        if (minutes < 60) return isRTL ? `خلال ${minutes} د` : `In ${minutes}m`;
+        return isRTL
+            ? `خلال ${Math.floor(minutes / 60)} س`
+            : `In ${Math.floor(minutes / 60)}h`;
+    };
+
     return (
-        <div className="space-y-6">
-            {/* Top Announcement Bar from Admin */}
+        <div className={`space-y-5 pb-6 ${isRTL ? 'rtl' : 'ltr'}`}>
+            {/* System-level announcement bar */}
             {topAnnouncement && (
                 <AnnouncementBar
                     announcement={{
@@ -205,28 +212,99 @@ export default function StudentHomePage() {
                 />
             )}
 
-            {/* Header */}
-            <header className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{greeting()}</p>
-                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-                        {session?.user?.name || (language === 'ar' ? 'طالب' : 'Student')}
-                    </h1>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button className="p-2 rounded-full hover:bg-[var(--color-bg-card)] transition-colors relative">
-                        <Bell className="w-6 h-6 text-[var(--color-text-secondary)]" />
-                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                    </button>
-                    <button className="p-2 rounded-full hover:bg-[var(--color-bg-card)] transition-colors">
-                        <Settings className="w-6 h-6 text-[var(--color-text-secondary)]" />
-                    </button>
-                </div>
-            </header>
+            {/* ── Hero Section ─────────────────────────────────────── */}
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-teal-700 via-teal-600 to-emerald-500 p-6 text-white shadow-2xl shadow-teal-200/60">
+                {/* Decorative orbs */}
+                <div className="pointer-events-none absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10" />
+                <div className="pointer-events-none absolute -bottom-8 -left-8 h-28 w-28 rounded-full bg-emerald-400/25" />
+                <div className="pointer-events-none absolute top-1/2 right-1/3 h-12 w-12 rounded-full bg-teal-300/20" />
 
-            {/* Search - Removed per user request */}
+                {/* Greeting row */}
+                <div className="relative flex items-start justify-between mb-5">
+                    <div>
+                        <p className="text-teal-100 text-sm font-medium tracking-wide">{greeting()}</p>
+                        <h1 className="text-2xl font-extrabold mt-0.5 leading-tight">
+                            {session?.user?.name || (isRTL ? 'طالب' : 'Student')}
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="relative rounded-full bg-white/20 p-2 backdrop-blur-sm hover:bg-white/30 transition-colors">
+                            <Bell className="h-5 w-5 text-white" />
+                            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-400 ring-2 ring-teal-600" />
+                        </button>
+                        <button className="rounded-full bg-white/20 p-2 backdrop-blur-sm hover:bg-white/30 transition-colors">
+                            <Settings className="h-5 w-5 text-white" />
+                        </button>
+                    </div>
+                </div>
 
-            {/* Announcement - Only show when loaded and has content */}
+                {/* Next lesson card — embedded in hero */}
+                {nextLesson && minutesUntilNext !== null && minutesUntilNext > 0 && (
+                    <div className="relative rounded-2xl border border-white/20 bg-white/15 backdrop-blur-sm p-4">
+                        <div className="flex items-center gap-1.5 mb-2">
+                            <Clock className="h-3.5 w-3.5 text-teal-100" />
+                            <p className="text-teal-100 text-xs font-semibold uppercase tracking-widest">
+                                {isRTL ? 'الدرس القادم' : 'Next Lesson'}
+                            </p>
+                        </div>
+                        <p className="font-bold text-lg leading-snug mb-2">{nextLesson.title}</p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-sm text-teal-100 truncate">{nextLesson.subject}</span>
+                                <span className="text-teal-300 opacity-60">·</span>
+                                <span className="text-sm text-teal-100 truncate">{nextLesson.teacher?.name}</span>
+                            </div>
+                            <span
+                                className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition-all ${
+                                    minutesUntilNext <= 15
+                                        ? 'bg-red-400/90 text-white animate-pulse'
+                                        : 'bg-white/25 text-white'
+                                }`}
+                            >
+                                {formatCountdown(minutesUntilNext)}
+                            </span>
+                        </div>
+                        {nextLesson.meetLink && (
+                            <a
+                                href={nextLesson.meetLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-teal-700 hover:bg-teal-50 transition-colors active:scale-[0.98]"
+                            >
+                                {isRTL ? 'انضم الآن' : 'Join Now'}
+                                <ChevronRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                            </a>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* ── Quick Stats Strip ─────────────────────────────────── */}
+            <div className="grid grid-cols-3 gap-3">
+                <div className="flex flex-col items-center rounded-2xl bg-teal-50 p-3 text-center shadow-sm">
+                    <Calendar className="h-4 w-4 text-teal-500 mb-1.5" />
+                    <p className="text-xl font-extrabold text-teal-700 leading-none">2</p>
+                    <p className="mt-1 text-[11px] font-semibold text-teal-500 leading-tight">
+                        {isRTL ? 'دروس اليوم' : 'Today'}
+                    </p>
+                </div>
+                <div className="flex flex-col items-center rounded-2xl bg-amber-50 p-3 text-center shadow-sm">
+                    <BookOpen className="h-4 w-4 text-amber-500 mb-1.5" />
+                    <p className="text-xl font-extrabold text-amber-700 leading-none">3</p>
+                    <p className="mt-1 text-[11px] font-semibold text-amber-500 leading-tight">
+                        {isRTL ? 'مهام معلقة' : 'Pending'}
+                    </p>
+                </div>
+                <div className="flex flex-col items-center rounded-2xl bg-emerald-50 p-3 text-center shadow-sm">
+                    <UserCheck className="h-4 w-4 text-emerald-500 mb-1.5" />
+                    <p className="text-xl font-extrabold text-emerald-700 leading-none">92%</p>
+                    <p className="mt-1 text-[11px] font-semibold text-emerald-500 leading-tight">
+                        {isRTL ? 'الحضور' : 'Attendance'}
+                    </p>
+                </div>
+            </div>
+
+            {/* ── Announcement Card ─────────────────────────────────── */}
             {!loading && mockAnnouncement && (
                 <AnnouncementCard
                     announcement={mockAnnouncement}
@@ -234,78 +312,84 @@ export default function StudentHomePage() {
                 />
             )}
 
-            {/* Upcoming Lessons Carousel */}
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-6 w-40" />
-                    <div className="flex gap-4 overflow-hidden">
-                        <Skeleton className="flex-shrink-0 w-72 h-48" />
-                        <Skeleton className="flex-shrink-0 w-72 h-48" />
+            {/* ── Upcoming Lessons ──────────────────────────────────── */}
+            <section>
+                {loading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-5 w-36" />
+                        <div className="flex gap-4 overflow-hidden">
+                            <Skeleton className="h-44 w-64 shrink-0" />
+                            <Skeleton className="h-44 w-64 shrink-0" />
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <LessonCarousel
-                    lessons={mockLessons}
-                    title={t('home.upcomingLessons')}
-                    onSeeAll={() => console.log('See all lessons')}
-                />
-            )}
+                ) : (
+                    <LessonCarousel
+                        lessons={mockLessons}
+                        title={t('home.upcomingLessons')}
+                        onSeeAll={() => console.log('See all lessons')}
+                    />
+                )}
+            </section>
 
-            {/* Assignments & Quizzes */}
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
-                </div>
-            ) : (
-                <AssignmentList
-                    assignments={mockAssignments}
-                    title={t('home.assignments')}
-                    onSeeAll={() => console.log('See all assignments')}
-                    onUpload={handleUpload}
-                />
-            )}
-
-            {/* Teachers */}
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-6 w-32" />
-                    <div className="flex gap-4 overflow-hidden">
-                        <Skeleton className="flex-shrink-0 w-44 h-40" />
-                        <Skeleton className="flex-shrink-0 w-44 h-40" />
+            {/* ── Assignments & Quizzes ─────────────────────────────── */}
+            <section>
+                {loading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-5 w-44" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
                     </div>
-                </div>
-            ) : (
-                <TeacherCardList
-                    teachers={mockTeachers}
-                    title={t('home.teachers')}
-                    onSeeAll={() => router.push(withLocalePrefix('/student/chat', locale))}
-                    onMessage={(id) => router.push(withLocalePrefix(`/student/chat?teacher=${id}`, locale))}
-                />
-            )}
+                ) : (
+                    <AssignmentList
+                        assignments={mockAssignments}
+                        title={t('home.assignments')}
+                        onSeeAll={() => console.log('See all assignments')}
+                        onUpload={handleUpload}
+                    />
+                )}
+            </section>
 
-            {/* Payments List */}
+            {/* ── Teachers ──────────────────────────────────────────── */}
+            <section>
+                {loading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-5 w-28" />
+                        <div className="flex gap-4 overflow-hidden">
+                            <Skeleton className="h-36 w-40 shrink-0" />
+                            <Skeleton className="h-36 w-40 shrink-0" />
+                        </div>
+                    </div>
+                ) : (
+                    <TeacherCardList
+                        teachers={mockTeachers}
+                        title={t('home.teachers')}
+                        onSeeAll={() => router.push(withLocalePrefix('/student/chat', locale))}
+                        onMessage={(id) => router.push(withLocalePrefix(`/student/chat?teacher=${id}`, locale))}
+                    />
+                )}
+            </section>
+
+            {/* ── Payments ──────────────────────────────────────────── */}
             <PaymentList />
 
-            {/* Subjects */}
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-6 w-28" />
-                    <div className="grid grid-cols-4 gap-3">
-                        {[...Array(8)].map((_, i) => (
-                            <Skeleton key={i} className="h-20" />
-                        ))}
+            {/* ── Subjects ──────────────────────────────────────────── */}
+            <section>
+                {loading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-5 w-24" />
+                        <div className="grid grid-cols-4 gap-3">
+                            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16" />)}
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <SubjectGrid
-                    subjects={mockSubjects}
-                    title={t('home.subjects')}
-                    onSeeAll={() => console.log('See all subjects')}
-                    onSubjectClick={(id) => console.log('Subject clicked:', id)}
-                />
-            )}
+                ) : (
+                    <SubjectGrid
+                        subjects={mockSubjects}
+                        title={t('home.subjects')}
+                        onSeeAll={() => console.log('See all subjects')}
+                        onSubjectClick={(id) => console.log('Subject clicked:', id)}
+                    />
+                )}
+            </section>
         </div>
     );
 }

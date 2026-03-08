@@ -525,7 +525,7 @@ export default function StudentsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <button
                     onClick={() => handleFilterClick('all')}
-                    className={`admin-card p-4 hover:shadow-lg transition-all text-right ${activeFilter === 'all' ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                    className={`admin-card p-4 hover:shadow-lg transition-all text-end ${activeFilter === 'all' ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                         }`}
                 >
                     <div className="flex items-center gap-3">
@@ -540,7 +540,7 @@ export default function StudentsPage() {
                 </button>
                 <button
                     onClick={() => handleFilterClick('paid')}
-                    className={`admin-card p-4 hover:shadow-lg transition-all text-right ${activeFilter === 'paid' ? 'ring-2 ring-green-500 ring-offset-2' : ''
+                    className={`admin-card p-4 hover:shadow-lg transition-all text-end ${activeFilter === 'paid' ? 'ring-2 ring-green-500 ring-offset-2' : ''
                         }`}
                 >
                     <div className="flex items-center gap-3">
@@ -555,7 +555,7 @@ export default function StudentsPage() {
                 </button>
                 <button
                     onClick={() => handleFilterClick('partial')}
-                    className={`admin-card p-4 hover:shadow-lg transition-all text-right ${activeFilter === 'partial' ? 'ring-2 ring-yellow-500 ring-offset-2' : ''
+                    className={`admin-card p-4 hover:shadow-lg transition-all text-end ${activeFilter === 'partial' ? 'ring-2 ring-yellow-500 ring-offset-2' : ''
                         }`}
                 >
                     <div className="flex items-center gap-3">
@@ -570,7 +570,7 @@ export default function StudentsPage() {
                 </button>
                 <button
                     onClick={() => handleFilterClick('pending')}
-                    className={`admin-card p-4 hover:shadow-lg transition-all text-right ${activeFilter === 'pending' ? 'ring-2 ring-red-500 ring-offset-2' : ''
+                    className={`admin-card p-4 hover:shadow-lg transition-all text-end ${activeFilter === 'pending' ? 'ring-2 ring-red-500 ring-offset-2' : ''
                         }`}
                 >
                     <div className="flex items-center gap-3">

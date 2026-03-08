@@ -80,8 +80,8 @@ export default function PendingActionsWidget({
                                         >
                                             {iconMap[action.type]}
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-gray-800">{action.label}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-800 truncate">{action.label}</p>
                                             <p className="text-sm text-gray-500">
                                                 {action.count} {action.count === 1 ? 'عنصر' : 'عناصر'}
                                             </p>

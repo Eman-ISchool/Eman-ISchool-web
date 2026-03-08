@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-cairo);
-  --font-mono: monospace;
+  --font-sans: var(--font-cairo), "Helvetica Neue", Arial, Tahoma, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* New Student Portal Design System */
-  --color-primary: #0D9488;
-  --color-primary-hover: #0F766E;
-  --color-primary-light: #CCFBF1;
-  --color-secondary: #14B8A6;
+  /* Instructor Portal Design System */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-light: #DBEAFE;
+  --color-secondary: #3B82F6;
 
   /* Soft backgrounds */
-  --color-bg-soft: #F0FDF9;
+  --color-bg-soft: #FFFFFF;
   --color-bg-card: #FFFFFF;
-  --color-bg-muted: #F5F5F5;
+  --color-bg-muted: #F8FAFC;
 
   /* Text colors */
   --color-text-primary: #111827;
@@ -40,21 +40,16 @@
 }
 
 :root {
-  --background: #F0FDF9;
+  --background: #FFFFFF;
   --foreground: #111827;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Card Utilities */

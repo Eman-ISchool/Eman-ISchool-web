@@ -94,7 +94,7 @@ export default function StudentCalendarPage() {
                                 subject: 'Mathematics',
                                 startDateTime: activeStart.toISOString(),
                                 endDateTime: activeEnd.toISOString(),
-                                meetLink: 'https://meet.google.com/new', // Valid link format
+                                meetLink: 'https://meet.google.com/abc-defg-hij', // Valid link format
                                 status: 'live',
                                 teacher: { name: 'Demo Teacher', image: '' }
                             };
@@ -110,7 +110,7 @@ export default function StudentCalendarPage() {
                                 subject: 'Science',
                                 startDateTime: soonStart.toISOString(),
                                 endDateTime: soonEnd.toISOString(),
-                                meetLink: 'https://meet.google.com/new',
+                                meetLink: 'https://meet.google.com/abc-defg-hij',
                                 status: 'scheduled',
                                 teacher: { name: 'Demo Teacher', image: '' }
                             };
@@ -125,7 +125,7 @@ export default function StudentCalendarPage() {
                             subject: ['Mathematics', 'Science', 'English', 'History'][i % 4],
                             startDateTime: date.toISOString(),
                             endDateTime: end.toISOString(),
-                            meetLink: 'https://meet.google.com/new',
+                            meetLink: 'https://meet.google.com/abc-defg-hij',
                             status: 'scheduled',
                             teacher: { name: 'Demo Teacher', image: '' }
                         };

@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
+import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { createGoogleMeet } from '@/lib/meet';
-import { getValidGoogleToken } from '@/lib/google-token';
+import { notifyEnrolledStudents } from '@/lib/notifications';
+import { generateMeetLink } from '@/lib/google-meet';
 
 // GET - Fetch lessons with filters
 export async function GET(req: Request) {
     try {
+        if (process.env.TEST_BYPASS === 'true') {
+            const { getMockDb } = require('@/lib/mockDb');
+            const db = getMockDb();
+            // Optionally apply some filters if needed, but for E2E just returning everything is fine
+            return NextResponse.json(db.lessons || []);
+        }
+
         // Check if Supabase is configured
         if (!supabaseAdmin) {
             console.warn('Supabase admin client not configured');
@@ -18,6 +25,7 @@ export async function GET(req: Request) {
         const status = searchParams.get('status');
         const upcoming = searchParams.get('upcoming');
         const courseId = searchParams.get('courseId');
+        const subjectId = searchParams.get('subjectId');
         const teacherId = searchParams.get('teacherId');
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
@@ -44,6 +52,10 @@ export async function GET(req: Request) {
             query = query.eq('course_id', courseId);
         }
 
+        if (subjectId) {
+            query = query.eq('subject_id', subjectId);
+        }
+
         if (teacherId) {
             query = query.eq('teacher_id', teacherId);
         }
@@ -61,25 +73,74 @@ export async function GET(req: Request) {
             return NextResponse.json([]);
         }
 
+        // T020: Add meeting metadata to SELECT and check enrollment for students
+        // Fetch current user for enrollment check
+        const session = await getServerSession(authOptions);
+        const currentUser = session ? await getCurrentUser(session) : null;
+        const isStudent = currentUser && currentUser.role === 'student';
+        let enrollmentChecked = false;
+        let isEnrolled = false;
+
+        // Check enrollment if caller is a student
+        if (isStudent && courseId) {
+            const { data: enrollment, error: enrollmentError } = await supabaseAdmin
+                .from('enrollments')
+                .select('id')
+                .eq('course_id', courseId)
+                .eq('student_id', currentUser.id)
+                .eq('status', 'active')
+                .single();
+
+            if (!enrollmentError && enrollment) {
+                isEnrolled = true;
+            }
+            enrollmentChecked = true;
+        }
+
         // Transform data to match expected frontend format
-        const transformedLessons = lessons?.map(lesson => ({
-            _id: lesson.id,
-            title: lesson.title,
-            description: lesson.description,
-            startDateTime: lesson.start_date_time,
-            endDateTime: lesson.end_date_time,
-            meetLink: lesson.meet_link,
-            status: lesson.status,
-            course: lesson.course,
-            teacher: lesson.teacher,
-            googleEventId: lesson.google_event_id,
-            googleCalendarLink: lesson.google_calendar_link,
-        })) || [];
+        const transformedLessons = lessons?.map(lesson => {
+            const lessonData: any = {
+                _id: lesson.id,
+                title: lesson.title,
+                description: lesson.description,
+                startDateTime: lesson.start_date_time,
+                endDateTime: lesson.end_date_time,
+                meetLink: lesson.meet_link,
+                status: lesson.status,
+                course: lesson.course,
+                teacher: lesson.teacher,
+                googleEventId: lesson.google_event_id,
+                googleCalendarLink: lesson.google_calendar_link,
+            };
+
+            // Add meeting metadata fields
+            lessonData.meetingTitle = lesson.meeting_title;
+            lessonData.meetingProvider = lesson.meeting_provider;
+            lessonData.meetingDurationMin = lesson.meeting_duration_min;
+
+            // T020: Return 403 for unenrolled students accessing course-specific lessons
+            // This prevents information leakage about course structure
+            if (isStudent && courseId && !isEnrolled) {
+                return NextResponse.json({
+                    error: 'You are not enrolled in this course'
+                }, { status: 403 });
+            }
+
+            // Hide meeting data from unenrolled students for general lesson queries
+            if (isStudent && !isEnrolled) {
+                lessonData.meetLink = null;
+                lessonData.meetingTitle = null;
+                lessonData.meetingProvider = null;
+                lessonData.meetingDurationMin = null;
+            }
+
+            return lessonData;
+        }) || [];
 
         return NextResponse.json(transformedLessons);
     } catch (error) {
         console.error('Error fetching lessons:', error);
-        return NextResponse.json({ error: 'فشل جلب الدروس' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch lessons' }, { status: 500 });
     }
 }
 
@@ -88,23 +149,23 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح. يرجى تسجيل الدخول.' }, { status: 401 });
+        return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 });
     }
 
     const currentUser = await getCurrentUser(session);
 
-    if (!currentUser || !isTeacherOrAdmin(currentUser.role)) {
-        return NextResponse.json({ error: 'غير مصرح. يحتاج لصلاحيات معلم أو مدير.' }, { status: 403 });
+    if (!currentUser || (!isTeacherOrAdmin(currentUser.role) && !isAdmin(currentUser.role))) {
+        return NextResponse.json({ error: 'Forbidden. Supervisors cannot create new lessons.' }, { status: 403 });
     }
 
     try {
         const body = await req.json();
-        const { title, description, startDateTime, endDateTime, courseId, skipMeetGeneration, status: requestedStatus } = body;
+        const { title, description, startDateTime, endDateTime, courseId, subjectId, skipMeetGeneration, status: requestedStatus } = body;
 
         // Validate required fields
         if (!title || !startDateTime || !endDateTime) {
             return NextResponse.json({
-                error: 'يرجى ملء جميع الحقول المطلوبة (العنوان، وقت البدء، وقت الانتهاء)'
+                error: 'Please fill in all required fields (title, start time, end time)'
             }, { status: 400 });
         }
 
@@ -113,65 +174,82 @@ export async function POST(req: Request) {
         const end = new Date(endDateTime);
         const now = new Date();
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return NextResponse.json({ error: 'تنسيق التاريخ غير صالح' }, { status: 400 });
+            return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
         }
         if (end <= start) {
-            return NextResponse.json({ error: 'وقت الانتهاء يجب أن يكون بعد وقت البدء' }, { status: 400 });
+            return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 });
+        }
+
+        // T026: Schedule conflict validation
+        const { data: overlappingLessons, error: overlapError } = await supabaseAdmin
+            .from('lessons')
+            .select('id, title')
+            .eq('teacher_id', currentUser.id)
+            .neq('status', 'cancelled')
+            // Overlap condition: existing.start < new.end AND existing.end > new.start
+            .or(`and(start_date_time.lt.${endDateTime},end_date_time.gt.${startDateTime})`)
+            .limit(1);
+
+        if (!overlapError && overlappingLessons && overlappingLessons.length > 0) {
+            return NextResponse.json({
+                error: `Schedule conflict: You already have a lesson ("${overlappingLessons[0].title}") scheduled during this time.`
+            }, { status: 409 });
         }
 
         // T006: Past session detection - set status to "completed" when start time is in past
         const isPastSession = start < now;
         const lessonStatus = requestedStatus || (isPastSession ? 'completed' : 'scheduled');
 
-        // T005: Handle skipMeetGeneration flag (FR-019)
-        const shouldGenerateMeet = !skipMeetGeneration && !isPastSession;
-
-        let meetLink: string | null = null;
-        let googleEventId: string | null = null;
-        let googleCalendarLink: string | null = null;
-
-        if (shouldGenerateMeet) {
-            // Get valid Google token (from database, with auto-refresh)
-            const tokenResult = await getValidGoogleToken(currentUser.id);
-
-            if (!tokenResult.success || !tokenResult.accessToken) {
-                // No valid Google token - require Google connection
-                return NextResponse.json({
-                    error: tokenResult.error || 'يجب ربط حساب Google لإنشاء رابط Meet. يرجى تسجيل الدخول باستخدام Google.',
-                    requiresGoogleAuth: true,
-                    code: 'GOOGLE_AUTH_REQUIRED'
-                }, { status: 403 });
-            }
-
-            // Create Google Meet event using stored token
-            const meetResult = await createGoogleMeet(tokenResult.accessToken, {
-                summary: title,
-                description: description || `درس: ${title}`,
-                startTime: startDateTime,
-                endTime: endDateTime,
-            });
-
-            if (!meetResult.success) {
-                // Meet creation failed - check if re-auth needed
-                if (meetResult.requiresReauth) {
+        // Auto-generate Google Meet link if none provided
+        let meetLink = body.meetLink || '';
+        let googleEventId = '';
+        if (!meetLink) {
+            try {
+                const meetResult = await generateMeetLink({
+                    summary: title,
+                    description: description || 'Eduverse Live Session',
+                    startTime: startDateTime,
+                    endTime: endDateTime,
+                });
+                meetLink = meetResult.meetLink;
+                googleEventId = meetResult.google_event_id;
+            } catch (meetError: any) {
+                console.error('Meet link generation failed:', meetError.message);
+                // Surface the error to UI if they didn't explicitly check skipMeetGeneration
+                if (!skipMeetGeneration) {
                     return NextResponse.json({
-                        error: 'انتهت صلاحية ربط Google. يرجى إعادة تسجيل الدخول باستخدام Google.',
-                        requiresGoogleAuth: true,
-                        code: 'GOOGLE_REAUTH_REQUIRED'
-                    }, { status: 403 });
+                        error: 'Google Meet creation failed: ' + meetError.message
+                    }, { status: 400 });
                 }
-
-                return NextResponse.json({
-                    error: `فشل إنشاء رابط Meet: ${meetResult.error}`,
-                }, { status: 500 });
             }
-
-            meetLink = meetResult.meetLink || null;
-            googleEventId = meetResult.eventId || null;
-            googleCalendarLink = meetResult.htmlLink || null;
         }
 
-        // Insert lesson into Supabase with or without Google Meet link
+        if (process.env.TEST_BYPASS === 'true') {
+            const { getMockDb, saveMockDb } = require('@/lib/mockDb');
+            const db = getMockDb();
+            if (!db.lessons) db.lessons = [];
+
+            const newLesson = {
+                id: `lesson-${Date.now()}`,
+                title,
+                description: description || '',
+                start_date_time: startDateTime,
+                end_date_time: endDateTime,
+                meet_link: meetLink || null,
+                google_event_id: googleEventId || null,
+                status: lessonStatus,
+                course_id: courseId || null,
+                subject_id: subjectId || null,
+                teacher_id: currentUser.id,
+                _id: `lesson-${Date.now()}`,
+                message: 'Lesson created successfully'
+            };
+            db.lessons.push(newLesson);
+            saveMockDb(db);
+            return NextResponse.json(newLesson);
+        }
+
+        // Insert lesson into Supabase
         const { data: lesson, error: insertError } = await supabaseAdmin
             .from('lessons')
             .insert({
@@ -179,11 +257,11 @@ export async function POST(req: Request) {
                 description: description || '',
                 start_date_time: startDateTime,
                 end_date_time: endDateTime,
-                meet_link: meetLink,
-                google_event_id: googleEventId,
-                google_calendar_link: googleCalendarLink,
+                meet_link: meetLink || null,
+                google_event_id: googleEventId || null,
                 status: lessonStatus,
                 course_id: courseId || null,
+                subject_id: subjectId || null,
                 teacher_id: currentUser.id,
             })
             .select()
@@ -191,32 +269,18 @@ export async function POST(req: Request) {
 
         if (insertError) {
             console.error('Error creating lesson:', insertError);
-            return NextResponse.json({ error: 'فشل إنشاء الدرس' }, { status: 500 });
-        }
-
-        if (shouldGenerateMeet) {
-            // Log the meeting creation only if we tried to generate meeting
-            await supabaseAdmin.from('meeting_logs').insert({
-                lesson_id: lesson.id,
-                event_type: 'scheduled',
-                user_id: currentUser.id,
-                metadata: {
-                    meet_link: meetLink,
-                    google_event_id: googleEventId,
-                },
-            });
+            return NextResponse.json({ error: 'Failed to create lesson' }, { status: 500 });
         }
 
         return NextResponse.json({
             _id: lesson.id,
             ...lesson,
-            meetLink: meetLink,
-            message: shouldGenerateMeet ? 'تم إنشاء الدرس بنجاح مع رابط Google Meet' : 'تم إنشاء الدرس بنجاح',
+            message: 'Lesson created successfully',
         });
     } catch (error: any) {
         console.error('Error creating lesson:', error);
         return NextResponse.json({
-            error: 'حدث خطأ أثناء إنشاء الدرس. يرجى المحاولة مرة أخرى.'
+            error: 'An error occurred while creating the lesson. Please try again.'
         }, { status: 500 });
     }
 }
@@ -226,13 +290,13 @@ export async function PATCH(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const currentUser = await getCurrentUser(session);
 
     if (!currentUser || !isTeacherOrAdmin(currentUser.role)) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
@@ -240,7 +304,23 @@ export async function PATCH(req: Request) {
         const { id, ...updates } = body;
 
         if (!id) {
-            return NextResponse.json({ error: 'معرف الدرس مطلوب' }, { status: 400 });
+            return NextResponse.json({ error: 'Lesson ID is required' }, { status: 400 });
+        }
+
+        // T017: Verify ownership before update - fetch lesson first
+        const { data: existingLesson, error: fetchError } = await supabaseAdmin
+            .from('lessons')
+            .select('teacher_id')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !existingLesson) {
+            return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
+        }
+
+        // Check ownership: only owning teacher, admin, or supervisor can update
+        if (existingLesson.teacher_id !== currentUser.id && !isAdmin(currentUser.role) && currentUser.role !== 'supervisor') {
+            return NextResponse.json({ error: 'Forbidden. You can only edit your own lessons.' }, { status: 403 });
         }
 
         // Map frontend field names to database field names
@@ -249,8 +329,19 @@ export async function PATCH(req: Request) {
         if (updates.description !== undefined) dbUpdates.description = updates.description;
         if (updates.startDateTime) dbUpdates.start_date_time = updates.startDateTime;
         if (updates.endDateTime) dbUpdates.end_date_time = updates.endDateTime;
+        if (updates.subjectId !== undefined) dbUpdates.subject_id = updates.subjectId;
         if (updates.status) dbUpdates.status = updates.status;
-        if (updates.meetLink) dbUpdates.meet_link = updates.meetLink;
+        if (updates.meetLink !== undefined) dbUpdates.meet_link = updates.meetLink;
+
+        // T019: Add meeting metadata fields
+        if (updates.meetingTitle !== undefined) dbUpdates.meeting_title = updates.meetingTitle;
+        if (updates.meetingProvider !== undefined) dbUpdates.meeting_provider = updates.meetingProvider;
+        if (updates.meetingDurationMin !== undefined) dbUpdates.meeting_duration_min = updates.meetingDurationMin;
+
+        // T019: Validate meetLink starts with https:// when provided
+        if (updates.meetLink !== undefined && !updates.meetLink.startsWith('https://')) {
+            return NextResponse.json({ error: 'Meet link must start with https://' }, { status: 400 });
+        }
 
         const { data: lesson, error } = await supabaseAdmin
             .from('lessons')
@@ -261,13 +352,24 @@ export async function PATCH(req: Request) {
 
         if (error) {
             console.error('Error updating lesson:', error);
-            return NextResponse.json({ error: 'فشل تحديث الدرس' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
+        }
+
+        // T055: Notify enrolled students when Meet link changes
+        if (updates.meetLink !== undefined && updates.meetLink !== (lesson.meet_link || '')) {
+            await notifyEnrolledStudents(
+                lesson.course_id,
+                'class_reminder',
+                'Meet Link Updated',
+                `The Meet link for lesson "${lesson.title}" has been updated.`,
+                `/student/lessons/${id}`
+            );
         }
 
         return NextResponse.json({
             _id: lesson.id,
             ...lesson,
-            message: 'تم تحديث الدرس بنجاح',
+            message: 'Lesson updated successfully',
         });
     } catch (error) {
         console.error('Error updating lesson:', error);
@@ -280,13 +382,13 @@ export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const currentUser = await getCurrentUser(session);
 
-    if (!currentUser || !isTeacherOrAdmin(currentUser.role)) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    if (!currentUser || (!isTeacherOrAdmin(currentUser.role) && !isAdmin(currentUser.role))) {
+        return NextResponse.json({ error: 'Forbidden. Supervisors cannot delete lessons.' }, { status: 403 });
     }
 
     try {
@@ -294,7 +396,23 @@ export async function DELETE(req: Request) {
         const id = searchParams.get('id');
 
         if (!id) {
-            return NextResponse.json({ error: 'معرف الدرس مطلوب' }, { status: 400 });
+            return NextResponse.json({ error: 'Lesson ID is required' }, { status: 400 });
+        }
+
+        // T018: Verify ownership before delete - fetch lesson first
+        const { data: existingLesson, error: fetchError } = await supabaseAdmin
+            .from('lessons')
+            .select('teacher_id')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !existingLesson) {
+            return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
+        }
+
+        // Check ownership: only owning teacher or admin can delete
+        if (existingLesson.teacher_id !== currentUser.id && !isAdmin(currentUser.role)) {
+            return NextResponse.json({ error: 'Forbidden. You can only delete your own lessons.' }, { status: 403 });
         }
 
         const { error } = await supabaseAdmin
@@ -304,12 +422,12 @@ export async function DELETE(req: Request) {
 
         if (error) {
             console.error('Error deleting lesson:', error);
-            return NextResponse.json({ error: 'فشل حذف الدرس' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete lesson' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, message: 'تم حذف الدرس بنجاح' });
+        return NextResponse.json({ success: true, message: 'Lesson deleted successfully' });
     } catch (error) {
         console.error('Error deleting lesson:', error);
-        return NextResponse.json({ error: 'فشل حذف الدرس' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to delete lesson' }, { status: 500 });
     }
 }

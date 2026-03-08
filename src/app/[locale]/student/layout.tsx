@@ -1,4 +1,4 @@
-import { SideNav } from '@/components/student/SideNav';
+import { StudentSideNav } from '@/components/student/StudentSideNav';
 
 export default function StudentLayout({
     children,
@@ -12,7 +12,7 @@ export default function StudentLayout({
                     {children}
                 </div>
             </main>
-            <SideNav />
+            <StudentSideNav />
         </div>
     );
 }

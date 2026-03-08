@@ -24,7 +24,7 @@ export const supabase: SupabaseClient<any> = (() => {
     }
 
     if (!_supabase) {
-        _supabase = createClient<any>(clientUrl, clientKey, {
+        _supabase = createClient<Database>(clientUrl, clientKey, {
             auth: {
                 persistSession: true,
                 autoRefreshToken: true,
@@ -45,7 +45,7 @@ export const supabaseAdmin: SupabaseClient<any> = (() => {
     }
 
     if (!_supabaseAdmin) {
-        _supabaseAdmin = createClient<any>(adminUrl, adminKey, {
+        _supabaseAdmin = createClient<Database>(adminUrl, adminKey, {
             auth: {
                 persistSession: false,
                 autoRefreshToken: false,
@@ -75,6 +75,11 @@ export type Reel = Database['public']['Tables']['reels']['Row'];
 export type ReelProgress = Database['public']['Tables']['reel_progress']['Row'];
 export type GenerationLog = Database['public']['Tables']['generation_logs']['Row'];
 
+export type Assessment = Database['public']['Tables']['assessments']['Row'];
+export type AssessmentQuestion = Database['public']['Tables']['assessment_questions']['Row'];
+export type AssessmentSubmission = Database['public']['Tables']['assessment_submissions']['Row'];
+export type AssessmentAnswer = Database['public']['Tables']['assessment_answers']['Row'];
+
 // Type for inserts
 export type UserInsert = Database['public']['Tables']['users']['Insert'];
 export type CourseInsert = Database['public']['Tables']['courses']['Insert'];
@@ -87,6 +92,11 @@ export type ReelInsert = Database['public']['Tables']['reels']['Insert'];
 export type ReelProgressInsert = Database['public']['Tables']['reel_progress']['Insert'];
 export type GenerationLogInsert = Database['public']['Tables']['generation_logs']['Insert'];
 
+export type AssessmentInsert = Database['public']['Tables']['assessments']['Insert'];
+export type AssessmentQuestionInsert = Database['public']['Tables']['assessment_questions']['Insert'];
+export type AssessmentSubmissionInsert = Database['public']['Tables']['assessment_submissions']['Insert'];
+export type AssessmentAnswerInsert = Database['public']['Tables']['assessment_answers']['Insert'];
+
 // Type for updates
 export type UserUpdate = Database['public']['Tables']['users']['Update'];
 export type CourseUpdate = Database['public']['Tables']['courses']['Update'];
@@ -95,3 +105,24 @@ export type AttendanceUpdate = Database['public']['Tables']['attendance']['Updat
 export type ReelUpdate = Database['public']['Tables']['reels']['Update'];
 export type ReelProgressUpdate = Database['public']['Tables']['reel_progress']['Update'];
 export type GenerationLogUpdate = Database['public']['Tables']['generation_logs']['Update'];
+
+export type AssessmentUpdate = Database['public']['Tables']['assessments']['Update'];
+export type AssessmentQuestionUpdate = Database['public']['Tables']['assessment_questions']['Update'];
+export type AssessmentSubmissionUpdate = Database['public']['Tables']['assessment_submissions']['Update'];
+export type AssessmentAnswerUpdate = Database['public']['Tables']['assessment_answers']['Update'];
+
+// New types for Platform Upgrade
+export type ParentStudent = Database['public']['Tables']['parent_student']['Row'];
+export type Grade = Database['public']['Tables']['grades']['Row'];
+export type Subject = Database['public']['Tables']['subjects']['Row'];
+export type Material = Database['public']['Tables']['materials']['Row'];
+export type Meeting = Database['public']['Tables']['meetings']['Row'];
+export type Invoice = Database['public']['Tables']['invoices']['Row'];
+export type Payment = Database['public']['Tables']['payments']['Row'];
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'];
+export type Order = Database['public']['Tables']['orders']['Row'];
+export type Discount = Database['public']['Tables']['discounts']['Row'];
+export type EnrollmentApplication = Database['public']['Tables']['enrollment_applications']['Row'];
+export type EnrollmentApplicationInsert = Database['public']['Tables']['enrollment_applications']['Insert'];
+export type EnrollmentApplicationUpdate = Database['public']['Tables']['enrollment_applications']['Update'];
+

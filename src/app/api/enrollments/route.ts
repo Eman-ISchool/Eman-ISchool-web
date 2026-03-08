@@ -1,263 +1,251 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions, getCurrentUser } from '@/lib/auth';
+import { authOptions, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createNotification } from '@/lib/notifications';
 
-// GET - Fetch enrollments
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = session.user as any;
 
-    const currentUser = await getCurrentUser(session);
-
-    if (!currentUser) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    // Allow admins or students to view enrollments
+    if (!isAdmin(user.role) && user.role !== 'student') {
+        return NextResponse.json({ error: 'Only admins or students can view enrollments' }, { status: 403 });
     }
 
     try {
         const { searchParams } = new URL(req.url);
+        const status = searchParams.get('status') || 'pending';
         const courseId = searchParams.get('courseId');
+        const parentId = searchParams.get('parentId');
         const studentId = searchParams.get('studentId');
-        const status = searchParams.get('status');
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const offset = parseInt(searchParams.get('offset') || '0');
 
+        // Build query
         let query = supabaseAdmin
             .from('enrollments')
             .select(`
                 *,
-                student:users!enrollments_student_id_fkey(id, name, email, image),
-                course:courses(id, title, slug, image_url, teacher_id)
+                students(id, name, email),
+                courses(id, name, grade_level, price),
+                parents(id, name, email)
             `)
+            .eq('status', status)
             .order('enrolled_at', { ascending: false });
 
+        // Apply filters if provided
         if (courseId) {
             query = query.eq('course_id', courseId);
         }
-
-        // Students can only see their own enrollments
-        if (currentUser.role === 'student') {
-            query = query.eq('student_id', currentUser.id);
-        } else if (studentId) {
+        if (parentId) {
+            // Only admins or the parent themselves can view enrollments by parentId
+            if (!isAdmin(user.role) && user.id !== parentId) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+            query = query.eq('parent_id', parentId);
+        }
+        if (studentId) {
+            // If studentId is provided, verify student has permission to view
+            if (user.role === 'student' && user.id !== studentId) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+            }
             query = query.eq('student_id', studentId);
         }
 
-        if (status) {
-            query = query.eq('status', status);
+        // Fetch enrollments with related data
+        const { data: enrollments, error } = await query
+            .range(offset, offset + limit - 1);
+
+        if (error) throw error;
+
+        // Get total count with same filters
+        let countQuery = supabaseAdmin
+            .from('enrollments')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', status);
+
+        if (courseId) {
+            countQuery = countQuery.eq('course_id', courseId);
+        }
+        if (parentId) {
+            countQuery = countQuery.eq('parent_id', parentId);
+        }
+        if (studentId) {
+            countQuery = countQuery.eq('student_id', studentId);
         }
 
-        const { data: enrollments, error } = await query;
+        const { count } = await countQuery;
 
-        if (error) {
-            console.error('Error fetching enrollments:', error);
-            return NextResponse.json({ error: 'فشل جلب التسجيلات' }, { status: 500 });
-        }
-
-        return NextResponse.json({ enrollments });
+        return NextResponse.json({
+            enrollments,
+            total: count || 0,
+            limit,
+            offset
+        });
     } catch (error) {
         console.error('Error fetching enrollments:', error);
-        return NextResponse.json({ error: 'فشل جلب التسجيلات' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-// POST - Enroll in a course
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = session.user as any;
 
-    const currentUser = await getCurrentUser(session);
-
-    if (!currentUser) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    if (user.role !== 'parent') {
+        return NextResponse.json({ error: 'Only parents can enroll students' }, { status: 403 });
     }
 
     try {
         const body = await req.json();
-        const { courseId, studentId } = body;
+        const { studentId, studentEmail, courseId } = body;
 
         if (!courseId) {
-            return NextResponse.json({ error: 'معرف الدورة مطلوب' }, { status: 400 });
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Determine which student to enroll
-        const targetStudentId = currentUser.role === 'admin' && studentId
-            ? studentId
-            : currentUser.id;
+        // Resolve student ID from email if provided
+        let resolvedStudentId = studentId;
+        if (studentEmail && !studentId) {
+            const { data: student } = await supabaseAdmin
+                .from('users')
+                .select('id')
+                .eq('email', studentEmail)
+                .eq('role', 'student')
+                .single();
 
-        // Check if course exists and has capacity
-        const { data: course } = await supabaseAdmin
-            .from('courses')
-            .select(`
-                *,
-                enrollments:enrollments(count)
-            `)
-            .eq('id', courseId)
+            if (!student) {
+                return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+            }
+            resolvedStudentId = student.id;
+        }
+
+        if (!resolvedStudentId) {
+            return NextResponse.json({ error: 'Missing studentId or studentEmail' }, { status: 400 });
+        }
+
+        // Verify parent-student relationship
+        const { data: relationship } = await supabaseAdmin
+            .from('parent_student')
+            .select('id')
+            .eq('parent_id', user.id)
+            .eq('student_id', resolvedStudentId)
             .single();
 
-        if (!course) {
-            return NextResponse.json({ error: 'الدورة غير موجودة' }, { status: 404 });
-        }
-
-        // Check enrollment limit
-        const currentEnrollments = course.enrollments?.[0]?.count || 0;
-        if (currentEnrollments >= course.max_students) {
-            return NextResponse.json({ error: 'الدورة ممتلئة' }, { status: 400 });
+        if (!relationship) {
+            return NextResponse.json({ error: 'Student not linked to this parent' }, { status: 403 });
         }
 
         // Check if already enrolled
-        const { data: existing } = await supabaseAdmin
+        const { data: existingEnrollment } = await supabaseAdmin
             .from('enrollments')
-            .select('id')
+            .select('id, status')
+            .eq('student_id', resolvedStudentId)
             .eq('course_id', courseId)
-            .eq('student_id', targetStudentId)
             .single();
 
-        if (existing) {
-            return NextResponse.json({ error: 'مسجل بالفعل في هذه الدورة' }, { status: 400 });
+        if (existingEnrollment) {
+            return NextResponse.json({
+                error: 'Student already enrolled',
+                enrollmentId: existingEnrollment.id,
+                status: existingEnrollment.status
+            }, { status: 409 });
         }
 
+        // Create pending enrollment
         const { data: enrollment, error } = await supabaseAdmin
             .from('enrollments')
             .insert({
+                student_id: resolvedStudentId,
                 course_id: courseId,
-                student_id: targetStudentId,
-                status: 'active',
+                parent_id: user.id,
+                status: 'pending',
+                enrolled_at: new Date().toISOString()
             })
             .select()
             .single();
 
-        if (error) {
-            console.error('Error creating enrollment:', error);
-            return NextResponse.json({ error: 'فشل التسجيل' }, { status: 500 });
-        }
+        if (error) throw error;
 
-        return NextResponse.json({ enrollment, message: 'تم التسجيل بنجاح' });
+        return NextResponse.json(enrollment);
     } catch (error) {
         console.error('Error creating enrollment:', error);
-        return NextResponse.json({ error: 'فشل التسجيل' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-// PATCH - Update enrollment status
 export async function PATCH(req: Request) {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = session.user as any;
 
-    const currentUser = await getCurrentUser(session);
-
-    if (!currentUser) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    if (!isAdmin(user.role)) {
+        return NextResponse.json({ error: 'Only admins can approve/reject enrollments' }, { status: 403 });
     }
 
     try {
         const body = await req.json();
-        const { id, status, progressPercent } = body;
+        const { enrollmentId, action, reason } = body;
 
-        if (!id) {
-            return NextResponse.json({ error: 'معرف التسجيل مطلوب' }, { status: 400 });
+        if (!enrollmentId || !action || !['approve', 'reject'].includes(action)) {
+            return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
         }
 
-        // Verify ownership or admin/teacher
+        // Get enrollment details
         const { data: enrollment } = await supabaseAdmin
             .from('enrollments')
-            .select('student_id, course:courses(teacher_id)')
-            .eq('id', id)
+            .select('*, students(name), courses(name), parents(name, email)')
+            .eq('id', enrollmentId)
             .single();
 
         if (!enrollment) {
-            return NextResponse.json({ error: 'التسجيل غير موجود' }, { status: 404 });
+            return NextResponse.json({ error: 'Enrollment not found' }, { status: 404 });
         }
 
-        const isOwner = enrollment.student_id === currentUser.id;
-        const isTeacher = enrollment.course?.teacher_id === currentUser.id;
-        const isAdmin = currentUser.role === 'admin';
-
-        if (!isOwner && !isTeacher && !isAdmin) {
-            return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        }
-
-        const updates: any = {};
-        if (status) updates.status = status;
-        if (progressPercent !== undefined) updates.progress_percent = progressPercent;
-        if (status === 'completed') updates.completed_at = new Date().toISOString();
-        updates.last_accessed = new Date().toISOString();
-
-        const { data: updated, error } = await supabaseAdmin
+        // Update enrollment status
+        const newStatus = action === 'approve' ? 'active' : 'rejected';
+        const { error: updateError } = await supabaseAdmin
             .from('enrollments')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
+            .update({
+                status: newStatus,
+                updated_at: new Date().toISOString(),
+                rejection_reason: action === 'reject' ? reason : null
+            })
+            .eq('id', enrollmentId);
 
-        if (error) {
-            console.error('Error updating enrollment:', error);
-            return NextResponse.json({ error: 'فشل تحديث التسجيل' }, { status: 500 });
-        }
+        if (updateError) throw updateError;
 
-        return NextResponse.json({ enrollment: updated, message: 'تم تحديث التسجيل' });
+        // Send notification to parent
+        const notificationTitle = action === 'approve'
+            ? 'Enrollment Approved'
+            : 'Enrollment Rejected';
+        const notificationMessage = action === 'approve'
+            ? `Your child ${enrollment.students?.name}'s enrollment in ${enrollment.courses?.name} has been approved.`
+            : `Your child ${enrollment.students?.name}'s enrollment in ${enrollment.courses?.name} has been rejected. ${reason || ''}`;
+
+        await createNotification(
+            enrollment.parent_id,
+            'enrollment',
+            notificationTitle,
+            notificationMessage,
+            `/enrollments/${enrollmentId}`
+        );
+
+        return NextResponse.json({
+            message: `Enrollment ${newStatus}`,
+            enrollment: { ...enrollment, status: newStatus }
+        });
     } catch (error) {
         console.error('Error updating enrollment:', error);
-        return NextResponse.json({ error: 'فشل تحديث التسجيل' }, { status: 500 });
-    }
-}
-
-// DELETE - Unenroll from a course
-export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    }
-
-    const currentUser = await getCurrentUser(session);
-
-    if (!currentUser) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-    }
-
-    try {
-        const { searchParams } = new URL(req.url);
-        const id = searchParams.get('id');
-
-        if (!id) {
-            return NextResponse.json({ error: 'معرف التسجيل مطلوب' }, { status: 400 });
-        }
-
-        // Verify ownership or admin
-        const { data: enrollment } = await supabaseAdmin
-            .from('enrollments')
-            .select('student_id')
-            .eq('id', id)
-            .single();
-
-        if (!enrollment) {
-            return NextResponse.json({ error: 'التسجيل غير موجود' }, { status: 404 });
-        }
-
-        if (enrollment.student_id !== currentUser.id && currentUser.role !== 'admin') {
-            return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        }
-
-        const { error } = await supabaseAdmin
-            .from('enrollments')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            console.error('Error deleting enrollment:', error);
-            return NextResponse.json({ error: 'فشل إلغاء التسجيل' }, { status: 500 });
-        }
-
-        return NextResponse.json({ success: true, message: 'تم إلغاء التسجيل' });
-    } catch (error) {
-        console.error('Error deleting enrollment:', error);
-        return NextResponse.json({ error: 'فشل إلغاء التسجيل' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

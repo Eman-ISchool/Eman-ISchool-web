@@ -47,6 +47,12 @@ testsprite_tests/test_credentials.json
 *.swp
 *.swo
 
+testsprite_tests/venv/
+/testsprite_tests/venv/
+/testsprite_tests/venv/*
+
+*/venv/*
+
 # Capacitor - Android
 android/.gradle/
 android/app/build/

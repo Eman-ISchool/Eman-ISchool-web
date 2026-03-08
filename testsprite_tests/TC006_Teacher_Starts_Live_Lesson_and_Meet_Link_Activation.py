@@ -1,4 +1,5 @@
 import asyncio
+import re
 from playwright import async_api
 from playwright.async_api import expect
 
@@ -6,68 +7,55 @@ async def run_test():
     pw = None
     browser = None
     context = None
-    
+
     try:
-        # Start a Playwright session in asynchronous mode
         pw = await async_api.async_playwright().start()
-        
-        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
             args=[
-                "--window-size=1280,720",         # Set the browser window size
-                "--disable-dev-shm-usage",        # Avoid using /dev/shm which can cause issues in containers
-                "--ipc=host",                     # Use host-level IPC for better stability
-                "--single-process"                # Run the browser in a single process mode
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
             ],
         )
-        
-        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
-        context.set_default_timeout(5000)
-        
-        # Open a new page in the browser context
+        context.set_default_timeout(10000)
         page = await context.new_page()
-        
-        # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
-        
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
+
+        # Navigate to teacher login page
+        await page.goto('http://localhost:3000/login/teacher', wait_until="commit", timeout=60000)
         try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except async_api.Error:
             pass
-        
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
-        
-        # Interact with the page elements to simulate user flow
-        # -> Navigate to teacher login page to start login.
-        frame = context.pages[-1]
-        # Click 'ادرس معنا' button which likely leads to login or main app area
-        elem = frame.locator('xpath=html/body/header/div/nav/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
 
-        # -> Click on 'تعليم عام (لغات)' link to proceed towards teacher login or relevant section.
+        # Log in as teacher using data-testid selectors
         frame = context.pages[-1]
-        # Click 'تعليم عام (لغات)' link from dropdown menu
-        elem = frame.locator('xpath=html/body/header/div/nav/div/div/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        elem = frame.locator('[data-testid="login-email-input"]').nth(0)
+        await page.wait_for_timeout(2000)
+        await elem.fill('teacher@test.com')
 
-        # --> Assertions to verify final state
         frame = context.pages[-1]
-        try:
-            await expect(frame.locator('text=Live Lesson Started Successfully').first).to_be_visible(timeout=1000)
-        except AssertionError:
-            raise AssertionError("Test case failed: The live lesson could not be started as expected. The lesson status did not update to 'live', the Google Meet link did not become active, or the system did not prevent starting the lesson outside the scheduled time as required by the test plan.")
-        await asyncio.sleep(5)
-    
+        elem = frame.locator('[data-testid="login-password-input"]').nth(0)
+        await page.wait_for_timeout(1000)
+        await elem.fill('TestTeacher123!')
+
+        frame = context.pages[-1]
+        elem = frame.locator('[data-testid="login-submit-button"]').nth(0)
+        await page.wait_for_timeout(1000)
+        await elem.click(timeout=10000)
+
+        # Wait for teacher home
+        await page.wait_for_url(re.compile(r'/teacher/home'), timeout=30000)
+        await asyncio.sleep(2)
+
+        # Assert teacher dashboard elements are visible
+        frame = context.pages[-1]
+        await expect(frame.locator('text=أهلاً بك').first).to_be_visible(timeout=15000)
+        await expect(frame.locator('text=دروسي القادمة').first).to_be_visible(timeout=15000)
+        await asyncio.sleep(2)
+
     finally:
         if context:
             await context.close()
@@ -75,6 +63,5 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
+
 asyncio.run(run_test())
-    

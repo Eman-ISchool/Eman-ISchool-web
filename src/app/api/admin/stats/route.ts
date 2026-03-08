@@ -26,111 +26,54 @@ export async function GET(req: Request) {
         const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
         const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-        // Get user counts by role
-        const { data: userCounts } = await supabaseAdmin
-            .from('users')
-            .select('role')
-            .order('role');
-
-        const studentCount = userCounts?.filter((u: any) => u.role === 'student').length || 0;
-        const teacherCount = userCounts?.filter((u: any) => u.role === 'teacher').length || 0;
-        const adminCount = userCounts?.filter((u: any) => u.role === 'admin').length || 0;
-
-        // Get course stats
-        const { count: totalCourses } = await supabaseAdmin
-            .from('courses')
-            .select('*', { count: 'exact', head: true });
-
-        const { count: publishedCourses } = await supabaseAdmin
-            .from('courses')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_published', true);
-
-        // Get lesson stats
-        const { count: totalLessons } = await supabaseAdmin
-            .from('lessons')
-            .select('*', { count: 'exact', head: true });
-
-        const { count: upcomingLessons } = await supabaseAdmin
-            .from('lessons')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'scheduled')
-            .gte('start_date_time', new Date().toISOString());
-
-        const { count: completedLessons } = await supabaseAdmin
-            .from('lessons')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'completed');
-
-        const { data: todayLessons } = await supabaseAdmin
-            .from('lessons')
-            .select(`
-                *,
-                teacher:users!lessons_teacher_id_fkey(id, name, image),
-                course:courses(id, title)
-            `)
-            .gte('start_date_time', startOfDay)
-            .order('start_date_time', { ascending: true })
-            .limit(10);
-
-        const { count: thisWeekLessons } = await supabaseAdmin
-            .from('lessons')
-            .select('*', { count: 'exact', head: true })
-            .gte('start_date_time', startOfWeek);
-
-        // Get enrollment stats
-        const { count: activeEnrollments } = await supabaseAdmin
-            .from('enrollments')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'active');
-
-        // Get attendance stats
-        const { data: attendanceStats } = await supabaseAdmin
-            .from('attendance')
-            .select('status');
-
-        const presentCount = attendanceStats?.filter((a: any) => a.status === 'present').length || 0;
-        const absentCount = attendanceStats?.filter((a: any) => a.status === 'absent').length || 0;
-        const lateCount = attendanceStats?.filter((a: any) => a.status === 'late').length || 0;
-
-        // Get recent activity
-        const { data: recentAuditLogs } = await supabaseAdmin
-            .from('audit_logs')
-            .select(`
-                *,
-                user:users(id, name, email)
-            `)
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-        // Get teacher performance
-        const { data: teacherPerformance } = await supabaseAdmin
-            .from('users')
-            .select(`
-                id,
-                name,
-                email,
-                image,
-                lessons:lessons(count),
-                courses:courses(count)
-            `)
-            .eq('role', 'teacher')
-            .limit(10);
-
-        // Calculate growth (comparing with last month)
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
 
-        const { count: lastMonthUsers } = await supabaseAdmin
-            .from('users')
-            .select('*', { count: 'exact', head: true })
-            .lt('created_at', startOfMonth)
-            .gte('created_at', lastMonthStart);
+        // 1. Fetch counts concurrently using exact heads instead of downloading all rows
+        const [
+            { count: studentCount },
+            { count: teacherCount },
+            { count: adminCount },
+            { count: totalCourses },
+            { count: publishedCourses },
+            { count: totalLessons },
+            { count: upcomingLessons },
+            { count: completedLessons },
+            { data: todayLessons },
+            { count: thisWeekLessons },
+            { count: activeEnrollments },
+            { count: pendingEnrollments },
+            { count: presentCount },
+            { count: absentCount },
+            { count: lateCount },
+            { data: recentAuditLogs },
+            { data: teacherPerformance },
+            { count: lastMonthUsers },
+            { count: thisMonthUsers }
+        ] = await Promise.all([
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'student'),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'teacher'),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
+            supabaseAdmin.from('courses').select('*', { count: 'exact', head: true }),
+            supabaseAdmin.from('courses').select('*', { count: 'exact', head: true }).eq('is_published', true),
+            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }),
+            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('status', 'scheduled').gte('start_date_time', new Date().toISOString()),
+            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+            supabaseAdmin.from('lessons').select(`*, teacher:users!lessons_teacher_id_fkey(id, name, image), course:courses(id, title)`).gte('start_date_time', startOfDay).order('start_date_time', { ascending: true }).limit(10),
+            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).gte('start_date_time', startOfWeek),
+            supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+            supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+            supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'present'),
+            supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'absent'),
+            supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'late'),
+            supabaseAdmin.from('audit_logs').select(`*, user:users(id, name, email)`).order('created_at', { ascending: false }).limit(10),
+            supabaseAdmin.from('users').select(`id, name, email, image, lessons:lessons(count), courses:courses(count)`).eq('role', 'teacher').limit(10),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).lt('created_at', startOfMonth).gte('created_at', lastMonthStart),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth)
+        ]);
 
-        const { count: thisMonthUsers } = await supabaseAdmin
-            .from('users')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', startOfMonth);
+        const _presentCount = presentCount || 0;
+        const _absentCount = absentCount || 0;
+        const _lateCount = lateCount || 0;
 
         const userGrowth = lastMonthUsers
             ? Math.round(((thisMonthUsers || 0) - lastMonthUsers) / lastMonthUsers * 100)
@@ -138,10 +81,10 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             users: {
-                total: (studentCount + teacherCount + adminCount),
-                students: studentCount,
-                teachers: teacherCount,
-                admins: adminCount,
+                total: ((studentCount || 0) + (teacherCount || 0) + (adminCount || 0)),
+                students: studentCount || 0,
+                teachers: teacherCount || 0,
+                admins: adminCount || 0,
                 growth: userGrowth,
             },
             courses: {
@@ -157,21 +100,25 @@ export async function GET(req: Request) {
             },
             enrollments: {
                 active: activeEnrollments || 0,
+                pending: pendingEnrollments || 0,
             },
             attendance: {
-                total: (presentCount + absentCount + lateCount),
-                present: presentCount,
-                absent: absentCount,
-                late: lateCount,
-                rate: presentCount > 0
-                    ? Math.round(presentCount / (presentCount + absentCount + lateCount) * 100)
+                total: (_presentCount + _absentCount + _lateCount),
+                present: _presentCount,
+                absent: _absentCount,
+                late: _lateCount,
+                rate: _presentCount > 0
+                    ? Math.round(_presentCount / (_presentCount + _absentCount + _lateCount) * 100)
                     : 0,
             },
             recentActivity: recentAuditLogs || [],
             teacherPerformance: teacherPerformance || [],
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching admin stats:', error);
-        return NextResponse.json({ error: 'فشل جلب الإحصائيات' }, { status: 500 });
+        return NextResponse.json(
+            { error: error?.message || 'فشل جلب الإحصائيات' },
+            { status: 500 }
+        );
     }
 }

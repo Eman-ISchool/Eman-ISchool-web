@@ -46,9 +46,9 @@ const actionData: QuickAction[] = [
         color: 'bg-purple-500 hover:bg-purple-600',
     },
     {
-        icon: <Ticket className="w-5 h-5" />,
-        key: 'newCoupon',
-        href: '/admin/coupons-expenses?action=new',
+        icon: <BookOpen className="w-5 h-5" />,
+        key: 'newCourse',
+        href: '/admin/courses/new',
         color: 'bg-orange-500 hover:bg-orange-600',
     },
 ];

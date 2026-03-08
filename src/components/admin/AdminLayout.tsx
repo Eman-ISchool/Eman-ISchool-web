@@ -1,5 +1,7 @@
 'use client';
 
+import { ADMIN_PORTAL_ROLES } from '@/lib/roles';
+
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -26,6 +28,7 @@ import {
     X,
     LogOut,
     User,
+    UserPlus,
 } from 'lucide-react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 import { useTranslations } from 'next-intl';
@@ -43,16 +46,39 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const locale = useLocale();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [pendingEnrollmentsCount, setPendingEnrollmentsCount] = useState(0);
 
     // Filter nav items based on user role
     // @ts-ignore - role is added to session
     const userRole = session?.user?.role;
+
+    // Fetch pending enrollments count on mount
+    useEffect(() => {
+        const fetchPendingCount = async () => {
+            try {
+                const res = await fetch('/api/enrollments?status=pending&limit=1');
+                if (res.ok) {
+                    const data = await res.json();
+                    setPendingEnrollmentsCount(data.total || 0);
+                }
+            } catch (err) {
+                console.error('Failed to fetch pending enrollments count:', err);
+            }
+        };
+        fetchPendingCount();
+    }, []);
 
     const navItems = [
         {
             icon: <LayoutDashboard className="admin-nav-icon" />,
             label: t('dashboard'),
             href: '/admin',
+            badge: pendingEnrollmentsCount > 0 ? pendingEnrollmentsCount : undefined,
+        },
+        {
+            icon: <Video className="admin-nav-icon text-indigo-500" />,
+            label: 'E2E Flow',
+            href: '/e2e-flow',
         },
         {
             icon: <Calendar className="admin-nav-icon" />,
@@ -85,6 +111,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             icon: <GraduationCap className="admin-nav-icon" />,
             label: t('students'),
             href: '/admin/students',
+        },
+        {
+            icon: <UserPlus className="admin-nav-icon" />,
+            label: 'Enrollments', // Ideally from translation, hardcoded for now
+            href: '/admin/enrollment-applications',
+            roles: ['admin', 'manager'],
+            badge: pendingEnrollmentsCount > 0 ? pendingEnrollmentsCount : undefined,
+        },
+        {
+            icon: <FileText className="admin-nav-icon" />,
+            label: 'Enrollment Reports',
+            href: '/admin/enrollment-reports',
+            roles: ['admin', 'manager', 'finance'],
         },
         {
             icon: <DollarSign className="admin-nav-icon" />,
@@ -132,7 +171,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         if (!session) {
             router.push(withLocalePrefix('/login/admin', locale));
-        } else if (role !== 'admin') {
+        } else if (role && !ADMIN_PORTAL_ROLES.includes(role)) {
+            // Only redirect to dashboard if we definitively know they are NOT in an allowed role
             router.push(withLocalePrefix('/dashboard', locale));
         }
     }, [session, status, router, locale]);
@@ -185,7 +225,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </Link>
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="admin-btn admin-btn-ghost admin-btn-icon mr-auto hidden lg:flex"
+                        className="admin-btn admin-btn-ghost admin-btn-icon ms-auto hidden lg:flex"
                     >
                         {collapsed ? (
                             <ChevronLeft className="w-5 h-5 rtl:hidden" />

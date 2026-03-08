@@ -226,7 +226,7 @@ export default function SettingsPage() {
                             <button
                                 key={section.id}
                                 onClick={() => setActiveSection(section.id)}
-                                className={`w-full flex items-center gap-3 p-3 rounded-lg text-right transition-colors ${activeSection === section.id
+                                className={`w-full flex items-center gap-3 p-3 rounded-lg text-end transition-colors ${activeSection === section.id
                                         ? 'bg-teal-50 text-teal-700'
                                         : 'hover:bg-gray-50 text-gray-600'
                                     }`}

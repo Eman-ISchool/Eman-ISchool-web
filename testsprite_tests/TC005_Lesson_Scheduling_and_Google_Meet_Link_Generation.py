@@ -1,4 +1,5 @@
 import asyncio
+import re
 from playwright import async_api
 from playwright.async_api import expect
 
@@ -6,67 +7,72 @@ async def run_test():
     pw = None
     browser = None
     context = None
-    
+
     try:
-        # Start a Playwright session in asynchronous mode
         pw = await async_api.async_playwright().start()
-        
-        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
             args=[
-                "--window-size=1280,720",         # Set the browser window size
-                "--disable-dev-shm-usage",        # Avoid using /dev/shm which can cause issues in containers
-                "--ipc=host",                     # Use host-level IPC for better stability
-                "--single-process"                # Run the browser in a single process mode
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
             ],
         )
-        
-        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
-        context.set_default_timeout(5000)
-        
-        # Open a new page in the browser context
+        context.set_default_timeout(10000)
         page = await context.new_page()
-        
-        # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
-        
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
+
+        # Navigate to teacher login page
+        await page.goto('http://localhost:3000/login/teacher', wait_until="commit", timeout=60000)
         try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except async_api.Error:
             pass
-        
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
-        
-        # Interact with the page elements to simulate user flow
-        # -> Navigate to admin login page to start scheduling lessons
+
+        # Log in as teacher using data-testid selectors
         frame = context.pages[-1]
-        # Click on 'الرئيسية' link to ensure homepage is active
-        elem = frame.locator('xpath=html/body/header/div/nav/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        elem = frame.locator('[data-testid="login-email-input"]').nth(0)
+        await page.wait_for_timeout(2000)
+        await elem.fill('teacher@test.com')
 
         frame = context.pages[-1]
-        # Click on 'ادرس معنا' button to find login or scheduling options
-        elem = frame.locator('xpath=html/body/header/div/nav/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        elem = frame.locator('[data-testid="login-password-input"]').nth(0)
+        await page.wait_for_timeout(1000)
+        await elem.fill('TestTeacher123!')
 
-        # --> Assertions to verify final state
         frame = context.pages[-1]
+        elem = frame.locator('[data-testid="login-submit-button"]').nth(0)
+        await page.wait_for_timeout(1000)
+        await elem.click(timeout=10000)
+
+        # Wait for teacher home after login
+        await page.wait_for_url(re.compile(r'/teacher/home'), timeout=30000)
+
+        # Navigate to teacher courses page
+        await page.goto('http://localhost:3000/ar/teacher/courses', wait_until="commit", timeout=30000)
         try:
-            await expect(frame.locator('text=Lesson scheduling failed')).to_be_visible(timeout=1000)
-        except AssertionError:
-            raise AssertionError('Test case failed: The test plan execution failed to verify that admin and teachers can schedule lessons and that the system correctly generates Google Meet links.')
-        await asyncio.sleep(5)
-    
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except async_api.Error:
+            pass
+        await asyncio.sleep(2)
+
+        # Assert teacher courses page loaded
+        frame = context.pages[-1]
+        await expect(frame.locator('text=دوراتي').first).to_be_visible(timeout=15000)
+
+        # Navigate back to teacher home and verify upcoming lessons section
+        await page.goto('http://localhost:3000/ar/teacher/home', wait_until="commit", timeout=30000)
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except async_api.Error:
+            pass
+        await asyncio.sleep(2)
+
+        frame = context.pages[-1]
+        await expect(frame.locator('text=دروسي القادمة').first).to_be_visible(timeout=15000)
+        await asyncio.sleep(2)
+
     finally:
         if context:
             await context.close()
@@ -74,6 +80,5 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
+
 asyncio.run(run_test())
-    

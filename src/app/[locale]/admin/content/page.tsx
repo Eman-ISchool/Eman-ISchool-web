@@ -5,7 +5,7 @@ import {
     FileText,
     Plus,
     Bell,
-    Image,
+    Image as ImageIcon,
     Layout,
     Calendar,
     Pin,
@@ -333,12 +333,12 @@ export default function ContentPage() {
     const tabs = [
         { id: 'announcements', label: 'الإعلانات', icon: Bell, count: announcements.length },
         { id: 'pages', label: 'الصفحات', icon: Layout, count: pages.length },
-        { id: 'media', label: 'الوسائط', icon: Image, count: media.length },
+        { id: 'media', label: 'الوسائط', icon: ImageIcon, count: media.length },
     ];
 
     const getMediaIcon = (type: MediaItem['type']) => {
         switch (type) {
-            case 'image': return <Image className="w-8 h-8 text-blue-500" />;
+            case 'image': return <ImageIcon className="w-8 h-8 text-blue-500" />;
             case 'video': return <Video className="w-8 h-8 text-purple-500" />;
             case 'document': return <File className="w-8 h-8 text-orange-500" />;
         }
@@ -377,15 +377,15 @@ export default function ContentPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabType)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                                ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/25'
-                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                            ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/25'
+                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
                         {tab.label}
                         <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id
-                                ? 'bg-white/20 text-white'
-                                : 'bg-gray-100 text-gray-500'
+                            ? 'bg-white/20 text-white'
+                            : 'bg-gray-100 text-gray-500'
                             }`}>
                             {tab.count}
                         </span>
@@ -411,7 +411,7 @@ export default function ContentPage() {
                                             {ann.isPinned && <Pin className="w-4 h-4 text-teal-500" />}
                                             <h3 className="font-semibold text-gray-800">{ann.title}</h3>
                                             <span className={`admin-badge text-xs ${ann.priority === 'high' ? 'admin-badge-error' :
-                                                    ann.priority === 'medium' ? 'admin-badge-warning' : 'bg-gray-100 text-gray-600'
+                                                ann.priority === 'medium' ? 'admin-badge-warning' : 'bg-gray-100 text-gray-600'
                                                 }`}>
                                                 {ann.priority === 'high' ? 'عاجل' : ann.priority === 'medium' ? 'متوسط' : 'عادي'}
                                             </span>
@@ -635,7 +635,7 @@ export default function ContentPage() {
                             value={pageForm.slug}
                             onChange={(e) => setPageForm(prev => ({ ...prev, slug: e.target.value }))}
                             placeholder="about-us"
-                            className="dir-ltr text-left"
+                            className="dir-ltr text-start"
                             required
                         />
                     </FormGroup>

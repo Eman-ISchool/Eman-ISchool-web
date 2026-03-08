@@ -1,0 +1,79 @@
+{
+  "grades": [
+    {
+      "id": "grade-1772487070651",
+      "name": "Grade 10 E2E 1772487048410"
+    },
+    {
+      "id": "grade-1772487166681",
+      "name": "Grade 10 E2E 1772487151407"
+    },
+    {
+      "id": "grade-1772487288644",
+      "name": "Grade 10 E2E 1772487272005"
+    }
+  ],
+  "classes": [
+    {
+      "id": "class-1772487072795",
+      "grade_id": "grade-1772487070651",
+      "name": "Class A E2E 1772487048410"
+    },
+    {
+      "id": "class-1772487168754",
+      "grade_id": "grade-1772487166681",
+      "name": "Class A E2E 1772487151407"
+    },
+    {
+      "id": "class-1772487290510",
+      "grade_id": "grade-1772487288644",
+      "name": "Class A E2E 1772487272005"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "subject-1772487074842",
+      "class_id": "class-1772487072795",
+      "teacher_id": "teacher-123",
+      "title": "Math E2E 1772487048410"
+    },
+    {
+      "id": "subject-1772487170828",
+      "class_id": "class-1772487168754",
+      "teacher_id": "teacher-123",
+      "title": "Math E2E 1772487151407"
+    },
+    {
+      "id": "subject-1772487292700",
+      "class_id": "class-1772487290510",
+      "teacher_id": "teacher-123",
+      "title": "Math E2E 1772487272005"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "session-1772487076995",
+      "subject_id": "subject-1772487074842",
+      "teacher_id": "teacher-123",
+      "title": "Live Math Session E2E 1772487048410",
+      "meetLink": "https://meet.google.com/abc-defg-hij",
+      "google_event_id": "mock-event-123"
+    },
+    {
+      "id": "session-1772487172981",
+      "subject_id": "subject-1772487170828",
+      "teacher_id": "teacher-123",
+      "title": "Live Math Session E2E 1772487151407",
+      "meetLink": "https://meet.google.com/abc-defg-hij",
+      "google_event_id": "mock-event-123"
+    },
+    {
+      "id": "session-1772487294802",
+      "subject_id": "subject-1772487292700",
+      "teacher_id": "teacher-123",
+      "title": "Live Math Session E2E 1772487272005",
+      "meetLink": "https://meet.google.com/abc-defg-hij",
+      "google_event_id": "mock-event-123"
+    }
+  ]
+}

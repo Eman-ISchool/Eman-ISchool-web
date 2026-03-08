@@ -6,61 +6,57 @@ async def run_test():
     pw = None
     browser = None
     context = None
-    
+
     try:
-        # Start a Playwright session in asynchronous mode
         pw = await async_api.async_playwright().start()
-        
-        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
             args=[
-                "--window-size=1280,720",         # Set the browser window size
-                "--disable-dev-shm-usage",        # Avoid using /dev/shm which can cause issues in containers
-                "--ipc=host",                     # Use host-level IPC for better stability
-                "--single-process"                # Run the browser in a single process mode
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
             ],
         )
-        
-        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
-        context.set_default_timeout(5000)
-        
-        # Open a new page in the browser context
+        context.set_default_timeout(10000)
         page = await context.new_page()
-        
-        # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
-        
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
+
+        # Test Arabic locale (RTL)
+        await page.goto('http://localhost:3000/ar/login', wait_until="commit", timeout=60000)
         try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except async_api.Error:
             pass
-        
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
-        
-        # Interact with the page elements to simulate user flow
-        # -> Click the language toggle button to switch from Arabic to English
-        frame = context.pages[-1]
-        # Click the language toggle button to switch from Arabic to English
-        elem = frame.locator('xpath=html/body/header/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        await asyncio.sleep(2)
 
-        # --> Assertions to verify final state
+        # Assert Arabic page loads with Eduverse branding
         frame = context.pages[-1]
+        await expect(frame.locator('text=Eduverse').first).to_be_visible(timeout=15000)
+
+        # Verify Arabic locale: the locale layout wrapper div has dir="rtl"
+        # (The root html[lang] is set by a NEXT_LOCALE cookie, but the locale layout div reflects URL locale)
+        ar_dir = await page.locator('div[dir]').first.get_attribute('dir')
+        assert ar_dir == 'rtl', f"Expected dir='rtl' for Arabic locale, got: {ar_dir}"
+
+        # Test English locale (LTR)
+        await page.goto('http://localhost:3000/en/login', wait_until="commit", timeout=60000)
         try:
-            await expect(frame.locator('text=Language Switch Successful').first).to_be_visible(timeout=1000)
-        except AssertionError:
-            raise AssertionError('Test case failed: Language toggle did not switch UI text between Arabic and English correctly, or RTL layout did not adjust as expected.')
-        await asyncio.sleep(5)
-    
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except async_api.Error:
+            pass
+        await asyncio.sleep(2)
+
+        # Assert English page loads with Eduverse branding
+        frame = context.pages[-1]
+        await expect(frame.locator('text=Eduverse').first).to_be_visible(timeout=15000)
+
+        # Verify English locale: the locale layout wrapper div has dir="ltr"
+        en_dir = await page.locator('div[dir]').first.get_attribute('dir')
+        assert en_dir == 'ltr', f"Expected dir='ltr' for English locale, got: {en_dir}"
+
+        await asyncio.sleep(2)
+
     finally:
         if context:
             await context.close()
@@ -68,6 +64,5 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
+
 asyncio.run(run_test())
-    

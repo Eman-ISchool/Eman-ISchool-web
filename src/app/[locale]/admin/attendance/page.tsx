@@ -38,6 +38,10 @@ interface AttendanceRecord {
         start_date_time: string;
         end_date_time: string;
         status: string;
+        meet_link: string | null;
+        meeting_title: string | null;
+        meeting_provider: 'google_meet' | 'zoom' | 'teams' | 'other' | null;
+        meeting_duration_min: number | null;
     };
     user: {
         id: string;
@@ -286,13 +290,13 @@ export default function AdminAttendancePage() {
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b">
                                     <tr>
-                                        <th className="p-4 text-right font-medium">المستخدم</th>
-                                        <th className="p-4 text-right font-medium">الدرس</th>
-                                        <th className="p-4 text-right font-medium">الحالة</th>
-                                        <th className="p-4 text-right font-medium">وقت الدخول</th>
-                                        <th className="p-4 text-right font-medium">وقت الخروج</th>
-                                        <th className="p-4 text-right font-medium">المدة</th>
-                                        <th className="p-4 text-right font-medium">الإجراءات</th>
+                                        <th className="p-4 text-end font-medium">المستخدم</th>
+                                        <th className="p-4 text-end font-medium">الدرس</th>
+                                        <th className="p-4 text-end font-medium">الحالة</th>
+                                        <th className="p-4 text-end font-medium">وقت الدخول</th>
+                                        <th className="p-4 text-end font-medium">وقت الخروج</th>
+                                        <th className="p-4 text-end font-medium">المدة</th>
+                                        <th className="p-4 text-end font-medium">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>

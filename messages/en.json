@@ -27,7 +27,7 @@
     "title": "Egyptian Education",
     "titleHighlight": "Online",
     "subtitle": "From Kindergarten to High School",
-    "description": "Enjoy a unique educational experience with Eman-Academy. We provide the Egyptian and Al-Azhar curriculum for your children with exceptional quality and competitive prices with a select group of the best teachers.",
+    "description": "Enjoy a unique educational experience with Eman-Academy. We provide Egyptian and Al-Azhar curriculum for your children with exceptional quality and competitive prices with a select group of best teachers.",
     "ctaPrimary": "Prepare Your Child Confidently",
     "ctaSecondary": "Watch Simulation System"
   },
@@ -41,14 +41,14 @@
   "benefits": {
     "sectionTitle": "Why Choose",
     "sectionTitleHighlight": "Eman-Academy",
-    "sectionDescription": "We offer a comprehensive educational experience that ensures your children's excellence through the latest technologies and the best teaching staff",
+    "sectionDescription": "We offer a comprehensive educational experience that ensures your children's excellence through latest technologies and best teaching staff",
     "curriculum": {
       "title": "Accredited Curricula",
       "description": "Comprehensive explanation of Egyptian, Al-Azhar, and language curricula with high accuracy and compliance with the latest ministerial specifications."
     },
     "teachers": {
       "title": "Elite Teachers",
-      "description": "A team of the best male and female teachers with extensive experience in online teaching and dealing with students."
+      "description": "A team of best male and female teachers with extensive experience in online teaching and dealing with students."
     },
     "tracking": {
       "title": "Continuous Monitoring",
@@ -58,7 +58,7 @@
   "usp": {
     "sectionTitle": "Why We Are",
     "sectionTitleHighlight": "Different",
-    "quote": "\"Others teach lessons. We prepare your child for the real exam.\"",
+    "quote": "\"Others teach lessons. We prepare your child for real exam.\"",
     "points": {
       "dedicated": "100% dedicated to Egyptians abroad - we are not a general platform",
       "notTutoring": "Not private tutoring - Egyptian exam readiness system",
@@ -71,11 +71,11 @@
     "sectionTitleHighlight": "For Your Family",
     "liveClasses": {
       "title": "Interactive Live Classes",
-      "description": "Live explanation from specialized teachers with the ability to interact and participate immediately."
+      "description": "Live explanation from specialized teachers with ability to interact and participate immediately."
     },
     "recordedLessons": {
       "title": "Recorded Lessons Library",
-      "description": "All classes are available for viewing at any time with the ability to rewatch."
+      "description": "All classes are available for viewing at any time with ability to rewatch."
     },
     "homework": {
       "title": "Interactive Homework",
@@ -154,7 +154,7 @@
     "title": "Dashboard",
     "welcome": "Welcome, {name}",
     "noAccessTitle": "Login Required",
-    "noAccessDesc": "Please sign in to access the dashboard and manage lessons",
+    "noAccessDesc": "Please sign in to access dashboard and manage lessons",
     "googleLogin": "Sign in with Google",
     "newLesson": "New Lesson",
     "cancel": "Cancel",
@@ -195,9 +195,59 @@
       "join": "Join"
     }
   },
+  "parent": {
+    "nav": {
+      "home": "Home",
+      "students": "My Children",
+      "enrollments": "Enrollments",
+      "browse": "Browse Courses",
+      "payments": "Payments",
+      "settings": "Settings"
+    },
+    "home": {
+      "welcome": "Welcome, {name}",
+      "myChildren": "My Children",
+      "addChild": "Add Child",
+      "activeEnrollments": "Active Enrollments",
+      "pendingPayments": "Pending Payments"
+    }
+  },
+  "student": {
+    "nav": {
+      "home": "Home",
+      "myCourses": "My Courses",
+      "calendar": "Calendar",
+      "attendance": "Attendance",
+      "support": "Support"
+    },
+    "courses": {
+      "title": "My Courses",
+      "errorLoading": "Failed to load courses",
+      "noCourses": "No courses yet",
+      "noCoursesDescription": "You haven't enrolled in any courses yet. Browse available courses to get started.",
+      "browseCourses": "Browse Courses",
+      "nextLesson": "Next Lesson",
+      "noUpcomingLessons": "No upcoming lessons"
+    },
+    "courseDetail": {
+      "backToCourses": "Back to Courses",
+      "gradeLevel": "Grade Level",
+      "price": "Price",
+      "upcomingLessons": "Upcoming Lessons",
+      "noUpcomingLessons": "No upcoming lessons scheduled",
+      "materials": "Materials",
+      "noMaterials": "No materials available",
+      "download": "Download",
+      "assignments": "Assignments",
+      "noAssignments": "No assignments available",
+      "open": "Open",
+      "closed": "Closed"
+    }
+  },
   "teacher": {
     "nav": {
       "home": "Home",
+      "courses": "My Courses",
       "calendar": "Calendar",
       "chat": "Chat",
       "profile": "Profile"
@@ -208,6 +258,89 @@
       "upcomingLessons": "My Upcoming Lessons",
       "submissions": "Student Submissions",
       "mySubjects": "My Subjects"
+    },
+    "subjects": {
+      "title": "My Subjects",
+      "createNew": "Create New Subject",
+      "noSubjects": "No subjects found. Create your first subject to get started.",
+      "createTitle": "Create New Subject",
+      "name": "Subject Name",
+      "description": "Description",
+      "image": "Cover Image URL",
+      "imageUrlPlaceholder": "https://example.com/image.jpg",
+      "submit": "Create Subject",
+      "cancel": "Cancel",
+      "success": "Subject created successfully"
+    },
+    "courses": {
+      "title": "My Courses",
+      "createNew": "Create New Course",
+      "noCourses": "You haven't created any courses yet.",
+      "students": "Students",
+      "subjects": "Subjects",
+      "price": "Price",
+      "published": "Published",
+      "draft": "Draft",
+      "edit": "Edit",
+      "view": "View",
+      "create": {
+        "title": "Create New Course",
+        "name": "Course Name",
+        "description": "Description",
+        "price": "Price",
+        "currency": "EGP",
+        "grade": "Grade Level",
+        "image": "Course Image (URL)",
+        "imageUrlPlaceholder": "https://example.com/image.jpg",
+        "selectGrade": "Select Grade",
+        "selectSubject": "Select Subject",
+        "noGrades": "No grade levels available. Contact your administrator to set up grade levels.",
+        "noSubjects": "No subjects found. Create a subject first.",
+        "submit": "Create",
+        "cancel": "Cancel",
+        "success": "Course created successfully"
+      }
+    },
+    "courseDetails": {
+      "addSubject": "Add Subject",
+      "noSubjects": "No subjects in this course.",
+      "publish": "Publish Course",
+      "unpublish": "Unpublish",
+      "lessons": "Lessons",
+      "addLesson": "Add Lesson",
+      "edit": "Edit",
+      "delete": "Delete",
+      "subjectTitle": "Subject Title",
+      "save": "Save",
+      "cancel": "Cancel",
+      "backToCourses": "Back to Courses"
+    },
+    "lessons": {
+      "title": "Lessons",
+      "create": "Create New Lesson",
+      "edit": "Edit Lesson",
+      "details": "Lesson Details",
+      "lessonTitle": "Lesson Title",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration (minutes)",
+      "minutes": "minutes",
+      "generateMeet": "Auto-generate Google Meet link",
+      "meetLink": "Google Meet Link (paste URL)",
+      "meetLinkPlaceholder": "https://meet.google.com/...",
+      "startClass": "Start Class",
+      "endClass": "End Class",
+      "description": "Description/Notes",
+      "save": "Save",
+      "cancel": "Cancel",
+      "success": "Lesson saved successfully"
+    },
+    "metrics": {
+      "title": "Course Metrics",
+      "enrolledStudents": "Enrolled Students",
+      "upcomingLessons": "Upcoming Lessons",
+      "materials": "Materials",
+      "assignments": "Assignments"
     },
     "video": {
       "title": "AI Video Generator",
@@ -224,6 +357,52 @@
       "tryAgain": "Try Again",
       "tip": "💡 Tip: Be specific in your description for best results. Videos are automatically published to students.",
       "waitMessage": "This may take 1-2 minutes. Please don't close the page."
+    },
+    "courseHub": {
+      "overview": "Overview",
+      "curriculum": "Curriculum",
+      "students": "Students",
+      "gradebook": "Gradebook",
+      "settings": "Settings"
+    },
+    "publishChecklist": {
+      "title": "Publish Checklist",
+      "hasTitle": "Course has a title",
+      "hasGrade": "Grade level selected",
+      "hasLesson": "At least one lesson exists",
+      "cannotPublish": "Cannot publish course",
+      "readyToPublish": "Ready to publish",
+      "publish": "Publish",
+      "unpublish": "Unpublish"
+    },
+    "modules": {
+      "title": "Modules",
+      "addModule": "Add Module",
+      "editModule": "Edit Module",
+      "deleteModule": "Delete Module",
+      "moduleName": "Module Name",
+      "moduleDescription": "Module Description",
+      "noModules": "No modules yet. Add your first module to organize your lessons.",
+      "unorganizedLessons": "Unorganized Lessons",
+      "lessonsMoved": "lessons moved to unassigned"
+    },
+    "students": {
+      "title": "Students",
+      "name": "Student Name",
+      "email": "Email",
+      "enrolledDate": "Enrolled Date",
+      "status": "Status",
+      "noStudents": "No students enrolled yet.",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "gradebook": {
+      "title": "Gradebook",
+      "student": "Student",
+      "attendance": "Attendance",
+      "assignments": "Assignments",
+      "grade": "Grade",
+      "noGrades": "No grades recorded yet."
     }
   },
   "admin": {
@@ -265,8 +444,8 @@
       "highlights": {
         "title": "Eduverse Platform – A Unique Learning Experience",
         "liveDesc": "Personal Zoom accounts for each student for effective interaction.",
-        "calendarDesc": "Uploaded to the platform with an automatic copy sent to parents via WhatsApp.",
-        "platformDesc": "Comprehensive tools supporting the student throughout the learning journey.",
+        "calendarDesc": "Uploaded to platform with an automatic copy sent to parents via WhatsApp.",
+        "platformDesc": "Comprehensive tools supporting student throughout the learning journey.",
         "recordingsDesc": "Permanent access to all curriculum content recordings.",
         "bankDesc": "Training according to student level considering individual differences.",
         "homeworkDesc": "Grading with written and voice comments for pronunciation and reading.",
@@ -292,47 +471,12 @@
       "newCoupon": "New Coupon"
     }
   },
-  "auth": {
-    "login": {
-      "title": "Welcome to Eman-Academy",
-      "subtitle": "Select account type to login",
-      "noAccount": "Don't have an account?",
-      "register": "Register Now",
-      "roles": {
-        "admin": {
-          "title": "Admin",
-          "desc": "Access for system administrators and supervisors"
-        },
-        "teacher": {
-          "title": "Teacher",
-          "desc": "Access for teachers and class management"
-        },
-        "student": {
-          "title": "Student",
-          "desc": "Access for students and parents"
-        }
-      }
-    },
-    "register": {
-      "title": "Create New Account",
-      "subtitle": "Join Eman-Academy Platform",
-      "googleBtn": "Sign up with Google",
-      "googleLoading": "Creating account...",
-      "or": "OR",
-      "firstName": "First Name",
-      "lastName": "Last Name",
-      "email": "Email",
-      "password": "Password",
-      "placeholder": {
-        "firstName": "John",
-        "lastName": "Doe",
-        "email": "name@example.com"
-      },
-      "emailUnavailable": "Email registration is currently unavailable. Please use Google.",
-      "hasAccount": "Already have an account?",
-      "login": "Login",
-      "error": "An error occurred while creating the account"
-    }
+  "actions": {
+    "newAppointment": "New Appointment",
+    "newLesson": "New Lesson",
+    "newLive": "New Live Session",
+    "newTeacher": "New Teacher",
+    "newCoupon": "New Coupon"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -367,5 +511,67 @@
       "username": "Username",
       "password": "Password"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome to Eman-Academy",
+      "subtitle": "Select account type to login",
+      "noAccount": "Don't have an account?",
+      "register": "Register Now",
+      "roles": {
+        "admin": {
+          "title": "Admin",
+          "desc": "Access for system administrators and supervisors"
+        },
+        "teacher": {
+          "title": "Teacher",
+          "desc": "Access for teachers and class management"
+        },
+        "student": {
+          "title": "Student",
+          "desc": "Access for students and parents"
+        }
+      }
+    },
+    "register": {
+      "title": "Create New Account",
+      "subtitle": "Join Eman-Academy Platform",
+      "googleBtn": "Sign up with Google",
+      "googleLoading": "Creating account...",
+      "or": "OR",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "phone": "Phone Number (Optional)",
+      "placeholder": {
+        "fullName": "John Doe",
+        "email": "name@example.com",
+        "phone": "+1 234 567 890"
+      },
+      "submit": "Create Account",
+      "emailUnavailable": "Email registration is currently unavailable. Please use Google.",
+      "hasAccount": "Already have an account?",
+      "login": "Login",
+      "error": "An error occurred while creating account",
+      "consentLabel": "I agree to the Terms of Service and Privacy Policy",
+      "consentRequired": "You must agree to the Terms of Service and Privacy Policy to register"
+    }
+  },
+  "calendar": {
+    "title": "Schedule",
+    "loading": "Loading sessions...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "upcoming": "Upcoming Sessions",
+    "noLessons": "No upcoming sessions",
+    "fetchError": "Failed to fetch lessons"
+  },
+  "home": {
+    "join": "Join Now",
+    "startsIn": "Starts in",
+    "viewAll": "View All"
   }
 }

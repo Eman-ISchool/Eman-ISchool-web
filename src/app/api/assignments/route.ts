@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/auth';
@@ -53,7 +52,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { courseId, title, description, dueDate, maxScore } = body;
+        const { courseId, title, description, dueDate, maxScore, lessonId } = body;
 
         if (!courseId) {
             return NextResponse.json({ error: 'معرف الدورة مطلوب' }, { status: 400 });
@@ -90,6 +89,7 @@ export async function POST(req: Request) {
                 description: description || null,
                 due_date: dueDate,
                 max_score: maxScore || 100,
+                lesson_id: lessonId || null,
             })
             .select()
             .single();

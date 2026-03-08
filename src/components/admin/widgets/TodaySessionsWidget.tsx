@@ -94,17 +94,17 @@ export default function TodaySessionsWidget({
                                 <div className="flex items-center gap-3">
                                     <div
                                         className={`w-10 h-10 rounded-lg flex items-center justify-center ${session.status === 'live'
-                                                ? 'bg-red-100'
-                                                : session.status === 'upcoming'
-                                                    ? 'bg-teal-100'
-                                                    : 'bg-gray-100'
+                                            ? 'bg-red-100'
+                                            : session.status === 'upcoming'
+                                                ? 'bg-teal-100'
+                                                : 'bg-gray-100'
                                             }`}
                                     >
                                         {getStatusIcon(session.status)}
                                     </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">{session.title}</p>
-                                        <p className="text-sm text-gray-500">{session.teacherName}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-800 truncate">{session.title}</p>
+                                        <p className="text-sm text-gray-500 truncate">{session.teacherName}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">

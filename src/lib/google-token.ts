@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { supabaseAdmin } from './supabase';
+import { decrypt, isEncrypted } from './encryption';
 
 /**
  * Google Token Management Utility
@@ -38,13 +39,13 @@ export async function storeGoogleTokens(
 
     try {
         const updateData: any = {
-            google_access_token: accessToken,
+            google_access_token: encrypt(accessToken),
             google_token_expires_at: expiresAt.toISOString(),
         };
 
         // Only update refresh token if provided (it's not always returned)
         if (refreshToken) {
-            updateData.google_refresh_token = refreshToken;
+            updateData.google_refresh_token = encrypt(refreshToken);
         }
 
         const { error } = await supabaseAdmin
@@ -91,8 +92,8 @@ export async function getGoogleTokens(userId: string): Promise<GoogleTokens | nu
         }
 
         return {
-            accessToken: userData.google_access_token,
-            refreshToken: userData.google_refresh_token,
+            accessToken: isEncrypted(userData.google_access_token) ? decrypt(userData.google_access_token) : userData.google_access_token,
+            refreshToken: userData.google_refresh_token && isEncrypted(userData.google_refresh_token) ? decrypt(userData.google_refresh_token) : userData.google_refresh_token,
             expiresAt: userData.google_token_expires_at
                 ? new Date(userData.google_token_expires_at)
                 : undefined,

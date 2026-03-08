@@ -69,11 +69,11 @@
 .admin-sidebar {
     position: fixed;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     width: var(--admin-sidebar-width);
     height: 100vh;
     background: var(--admin-bg-card);
-    border-right: 1px solid #E2E8F0;
+    border-inline-end: 1px solid #E2E8F0;
     display: flex;
     flex-direction: column;
     z-index: 40;
@@ -170,13 +170,13 @@
    ============================================ */
 
 .admin-main {
-    margin-left: var(--admin-sidebar-width);
+    margin-inline-start: var(--admin-sidebar-width);
     min-height: 100vh;
-    transition: margin-left 0.3s ease;
+    transition: margin-inline-start 0.3s ease;
 }
 
 .admin-sidebar.collapsed+.admin-main {
-    margin-left: var(--admin-sidebar-collapsed);
+    margin-inline-start: var(--admin-sidebar-collapsed);
 }
 
 .admin-topbar {
@@ -189,7 +189,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 1.5rem;
-    z-index: 30;
+    z-index: 50;
 }
 
 .admin-content {
@@ -493,7 +493,7 @@
 }
 
 .admin-search-input {
-    padding-left: 2.5rem;
+    padding-inline-start: 2.5rem;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.3-4.3'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: 0.75rem center;
@@ -826,20 +826,20 @@
    ============================================ */
 
 [dir="rtl"] .admin-sidebar {
-    left: auto;
     right: 0;
-    border-right: none;
+    left: auto;
     border-left: 1px solid #E2E8F0;
+    border-right: none;
 }
 
 [dir="rtl"] .admin-main {
-    margin-left: 0;
     margin-right: var(--admin-sidebar-width);
+    margin-left: 0;
 }
 
 [dir="rtl"] .admin-sidebar.collapsed+.admin-main {
-    margin-left: 0;
     margin-right: var(--admin-sidebar-collapsed);
+    margin-left: 0;
 }
 
 [dir="rtl"] .admin-table th {
