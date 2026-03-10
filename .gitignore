@@ -17,6 +17,12 @@ pnpm-debug.log*
 .pnpm-store
 .pnp*
 
+
+.next-codex-build
+.next-codex-build/*
+
+.next-codex/*
+.next-codex/
 # Next.js
 .next/
 out/

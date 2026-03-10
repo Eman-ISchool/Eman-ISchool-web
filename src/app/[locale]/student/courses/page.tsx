@@ -1,135 +1,198 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { BookOpen, Calendar, User } from 'lucide-react';
+import { BookOpen, Calendar, User, RefreshCw } from 'lucide-react';
+import { CourseStatusTabs, CourseStatusFilter } from '@/components/courses/CourseStatusTabs';
+import { PageError } from '@/components/ui/page-error';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DataState, createIdleState, createLoadingState, createErrorState, createSuccessState, isSuccess, isLoading } from '@/types/page-state';
+import { withLocalePrefix } from '@/lib/locale-path';
+import { BookOpen as BookIcon } from 'lucide-react';
 
-export default async function StudentCoursesPage({
-    params: { locale }
-}: {
-    params: { locale: string };
-}) {
-    const session = await getServerSession(authOptions);
-    const user = session?.user as any;
-    const t = await getTranslations('student.courses');
+interface Course {
+  id: string;
+  title: string;
+  teacher: { name: string; email: string };
+  nextLesson?: {
+    id: string;
+    title: string;
+    start_date_time: string;
+  } | null;
+}
 
-    if (!session || user?.role !== 'student') {
-        redirect(`/${locale}`);
+interface Enrollment {
+  id: string;
+  course_id: string;
+  courses: Course;
+  teachers: { name: string; email: string };
+  nextLesson?: {
+    id: string;
+    title: string;
+    start_date_time: string;
+  } | null;
+}
+
+export default function StudentCoursesPage() {
+  const { data: session } = useSession();
+  const t = useTranslations('student.courses');
+  const user = session?.user as any;
+  const locale = 'ar'; // TODO: Get from context
+
+  const [coursesState, setCoursesState] = useState<DataState<Enrollment[]>>(createIdleState());
+  const [filter, setFilter] = useState<CourseStatusFilter>('all');
+
+  const fetchCourses = async () => {
+    if (!user || user?.role !== 'student') return;
+    
+    setCoursesState(createLoadingState());
+    try {
+      const response = await fetch('/api/courses');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch courses');
+      }
+
+      setCoursesState(createSuccessState(data.enrollments || []));
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCoursesState(createErrorState(
+        locale === 'ar' ? 'فشل تحميل الدورات' : 'Failed to load courses',
+        () => fetchCourses()
+      ));
     }
+  };
 
-    // Fetch active enrollments for the student
-    const { data: enrollments, error } = await supabaseAdmin
-        .from('enrollments')
-        .select(`
-            *,
-            courses(id, title, description, grade_level, teacher_id),
-            teachers(id, name, email),
-            lessons(id, title, start_date_time)
-        `)
-        .eq('student_id', user.id)
-        .eq('status', 'active')
-        .order('enrolled_at', { ascending: false });
+  useEffect(() => {
+    fetchCourses();
+  }, [user?.id, locale]);
 
-    if (error) {
-        console.error('Error fetching enrollments:', error);
-        return (
-            <div className="p-8 text-center text-red-500">
-                {t('errorLoading')}
+  const filteredCourses = isSuccess(coursesState) ? coursesState.data.filter((enrollment) => {
+    const nextLesson = enrollment.nextLesson;
+    if (!nextLesson) return filter === 'all';
+
+    const now = new Date();
+    const lessonDate = new Date(nextLesson.start_date_time);
+    const hoursDiff = (lessonDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    switch (filter) {
+      case 'active':
+        return hoursDiff >= 0 && hoursDiff <= 24;
+      case 'upcoming':
+        return hoursDiff > 24;
+      case 'completed':
+        return hoursDiff < 0;
+      default:
+        return true;
+    }
+  }) : [];
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        {t('title')}
+      </h1>
+
+      {/* Course Status Tabs */}
+      <div className="mb-6">
+        <CourseStatusTabs
+          value={filter}
+          onChange={setFilter}
+        />
+      </div>
+
+      {/* Loading State */}
+      {isLoading(coursesState) && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg border p-6">
+              <Skeleton className="h-6 w-3/4 mb-4" />
+              <div className="flex items-center gap-2 mb-4">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+              <Skeleton className="h-16 w-full" />
             </div>
-        );
-    }
-
-    // For each enrollment, get the next lesson
-    const enrollmentsWithNextLesson = await Promise.all(
-        (enrollments || []).map(async (enrollment) => {
-            const { data: lessons } = await supabaseAdmin
-                .from('lessons')
-                .select('id, title, start_date_time')
-                .eq('course_id', enrollment.course_id)
-                .gt('start_date_time', new Date().toISOString())
-                .order('start_date_time', { ascending: true })
-                .limit(1);
-
-            return {
-                ...enrollment,
-                nextLesson: lessons?.[0] || null
-            };
-        })
-    );
-
-    return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {t('title')}
-            </h1>
-
-            {enrollmentsWithNextLesson.length === 0 ? (
-                <div className="bg-white rounded-lg border p-8 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                        <BookOpen className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                        {t('noCourses')}
-                    </h2>
-                    <p className="text-gray-500 mb-4">
-                        {t('noCoursesDescription')}
-                    </p>
-                    <Link
-                        href="/courses"
-                        className="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-                    >
-                        {t('browseCourses')}
-                    </Link>
-                </div>
-            ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {enrollmentsWithNextLesson.map((enrollment) => (
-                        <Link
-                            key={enrollment.id}
-                            href={`./courses/${enrollment.course_id}`}
-                            className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow block"
-                            prefetch={false}
-                        >
-                            <div className="mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                                    {enrollment.courses?.title}
-                                </h3>
-                                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                                    <User className="w-4 h-4" />
-                                    <span>{enrollment.teachers?.name}</span>
-                                </div>
-                            </div>
-
-                            {enrollment.nextLesson ? (
-                                <div className="flex items-center gap-2 text-sm text-brand-primary bg-brand-primary/5 rounded-lg p-3">
-                                    <Calendar className="w-4 h-4" />
-                                    <div>
-                                        <div className="font-medium">
-                                            {t('nextLesson')}
-                                        </div>
-                                        <div className="text-gray-700">
-                                            {new Date(enrollment.nextLesson.start_date_time).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
-                                    {t('noUpcomingLessons')}
-                                </div>
-                            )}
-                        </Link>
-                    ))}
-                </div>
-            )}
+          ))}
         </div>
-    );
+      )}
+
+      {/* Error State */}
+      {coursesState.status === 'error' && (
+        <PageError
+          message={coursesState.message}
+          onRetry={coursesState.retryFn}
+        />
+      )}
+
+      {/* Empty State */}
+      {coursesState.status === 'success' && filteredCourses.length === 0 && (
+        <EmptyState
+          icon={<BookIcon className="h-12 w-12 text-slate-400" />}
+          title={locale === 'ar' ? 'لا توجد دورات' : 'No Courses'}
+          description={locale === 'ar' 
+            ? 'لم تسجل في أي دورات بعد. تصفح الدورات المتاحة للبدء.'
+            : 'You haven\'t enrolled in any courses yet. Browse available courses to get started.'
+          }
+          action={{
+            label: locale === 'ar' ? 'تصفح الدورات' : 'Browse Courses',
+            href: '/courses',
+          }}
+        />
+      )}
+
+      {/* Success State */}
+      {isSuccess(coursesState) && filteredCourses.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map((enrollment) => (
+            <Link
+              key={enrollment.id}
+              href={`/student/courses/${enrollment.course_id}`}
+              className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow block"
+              prefetch={false}
+            >
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+                  {enrollment.courses?.title}
+                </h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                  <User className="w-4 h-4" />
+                  <span>{enrollment.teachers?.name}</span>
+                </div>
+              </div>
+
+              {enrollment.nextLesson ? (
+                <div className="flex items-center gap-2 text-sm bg-brand-primary/5 rounded-lg p-3">
+                  <Calendar className="w-4 h-4" />
+                  <div>
+                    <div className="font-medium">
+                      {t('nextLesson')}
+                    </div>
+                    <div className="text-gray-700">
+                      {new Date(enrollment.nextLesson.start_date_time).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
+                  {t('noUpcomingLessons')}
+                </div>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

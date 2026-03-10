@@ -2,7 +2,7 @@ import { ParentSideNav } from '@/components/parent/ParentSideNav';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
+import { withLocalePrefix } from '@/lib/locale-path';
 
 export default async function ParentLayout({
     children,
@@ -14,9 +14,15 @@ export default async function ParentLayout({
     const session = await getServerSession(authOptions);
     const user = session?.user as any;
 
-    if (!session || user?.role !== 'parent') {
-        // Redirect to login or home if not authorized
-        // Note: Middleware handles basic protection, but role check is here
+    if (!session) {
+        redirect(withLocalePrefix('/', locale));
+    }
+
+    if (user?.role === 'admin') {
+        redirect(withLocalePrefix('/dashboard', locale));
+    }
+
+    if (user?.role !== 'parent') {
         redirect(withLocalePrefix('/', locale));
     }
 

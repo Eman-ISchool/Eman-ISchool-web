@@ -10,9 +10,20 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 let _supabase: SupabaseClient<any> | null = null;
 let _supabaseAdmin: SupabaseClient<any> | null = null;
 
+function hasMeaningfulSupabaseValue(value: string) {
+    const normalized = value.trim().toLowerCase();
+    return Boolean(
+        normalized &&
+        !normalized.includes('placeholder') &&
+        !normalized.includes('missing')
+    );
+}
+
 // Check if Supabase is configured
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
-export const isSupabaseAdminConfigured = !!(supabaseUrl && supabaseServiceKey);
+export const isSupabaseConfigured =
+    hasMeaningfulSupabaseValue(supabaseUrl) && hasMeaningfulSupabaseValue(supabaseAnonKey);
+export const isSupabaseAdminConfigured =
+    hasMeaningfulSupabaseValue(supabaseUrl) && hasMeaningfulSupabaseValue(supabaseServiceKey);
 
 // Client-side Supabase client (uses anon key, respects RLS)
 export const supabase: SupabaseClient<any> = (() => {
@@ -125,4 +136,3 @@ export type Discount = Database['public']['Tables']['discounts']['Row'];
 export type EnrollmentApplication = Database['public']['Tables']['enrollment_applications']['Row'];
 export type EnrollmentApplicationInsert = Database['public']['Tables']['enrollment_applications']['Insert'];
 export type EnrollmentApplicationUpdate = Database['public']['Tables']['enrollment_applications']['Update'];
-

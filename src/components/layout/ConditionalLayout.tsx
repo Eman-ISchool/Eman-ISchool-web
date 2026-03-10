@@ -15,7 +15,7 @@ import { Footer } from '@/components/layout/Footer';
  * - Footer DOM + style overhead
  * - NetworkMonitor Capacitor initialization
  */
-const PORTAL_PREFIXES = ['/teacher', '/student', '/admin', '/parent', '/auth'];
+const PORTAL_PREFIXES = ['/teacher', '/student', '/admin', '/parent', '/auth', '/dashboard'];
 
 function isPortalRoute(pathname: string): boolean {
     // Strip locale prefix like /en/ or /ar/

@@ -6,7 +6,9 @@ export interface Class { id: string; grade_id: string; name: string; }
 export interface Subject { id: string; class_id: string; teacher_id: string; title: string; }
 export interface Session { id: string; subject_id: string; teacher_id: string; title: string; meetLink: string; google_event_id: string; }
 
-const DB_PATH = path.join(process.cwd(), '.mock-db.json');
+function getDbPath() {
+    return process.env.MOCK_DB_PATH || path.join(process.cwd(), '.mock-db.json');
+}
 
 const defaultDb = {
     grades: [] as Grade[],
@@ -17,8 +19,9 @@ const defaultDb = {
 
 export function getMockDb() {
     try {
-        if (fs.existsSync(DB_PATH)) {
-            const data = fs.readFileSync(DB_PATH, 'utf-8');
+        const dbPath = getDbPath();
+        if (fs.existsSync(dbPath)) {
+            const data = fs.readFileSync(dbPath, 'utf-8');
             return JSON.parse(data);
         }
     } catch (e) {
@@ -29,7 +32,7 @@ export function getMockDb() {
 
 export function saveMockDb(db: any) {
     try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+        fs.writeFileSync(getDbPath(), JSON.stringify(db, null, 2));
     } catch (e) {
         console.error('Error writing mock db', e);
     }

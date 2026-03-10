@@ -5,6 +5,9 @@ import { supabaseAdmin, isSupabaseAdminConfigured } from "./supabase";
 import { encrypt, decrypt, isEncrypted } from "./encryption";
 import { storeGoogleTokens } from "./google-token";
 import bcrypt from 'bcryptjs';
+import { getPhoneCandidates, isEmailIdentifier } from './auth-credentials';
+import { authenticateMockUser, provisionMockPhoneUser } from './mock-auth-store';
+import { normalizeReferenceSessionIdentity } from './reference-session-normalization';
 // Extend NextAuth types to include custom properties
 declare module "next-auth" {
     interface Session {
@@ -45,13 +48,22 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
+                identifier: { label: "Identifier", type: "text" },
                 email: { label: "Email", type: "email" },
+                phone: { label: "Phone", type: "text" },
+                countryCode: { label: "Country Code", type: "text" },
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                console.log("Authorize called with:", credentials?.email);
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error("Email and password required");
+                const identifier =
+                    (credentials?.identifier as string | undefined)?.trim() ||
+                    (credentials?.email as string | undefined)?.trim() ||
+                    (credentials?.phone as string | undefined)?.trim();
+                const countryCode = credentials?.countryCode as string | undefined;
+                const loginByEmail = isEmailIdentifier(identifier);
+
+                if (!identifier || !credentials?.password) {
+                    throw new Error("Email or phone and password required");
                 }
 
                 // TEST_BYPASS: Allow hardcoded test users for E2E testing
@@ -61,38 +73,127 @@ export const authOptions: NextAuthOptions = {
                         'student@eduverse.com': { id: '00000000-0000-0000-0000-000000000002', email: 'student@eduverse.com', name: 'Test Student', role: 'student', image: null },
                         'admin@eduverse.com': { id: '00000000-0000-0000-0000-000000000003', email: 'admin@eduverse.com', name: 'Test Admin', role: 'admin', image: null },
                     };
-                    const testUser = testUsers[credentials.email as string];
+                    const lookupKey = isEmailIdentifier(identifier)
+                        ? identifier.toLowerCase()
+                        : identifier;
+                    const testUser = testUsers[lookupKey];
                     if (testUser && credentials.password === 'password123') {
-                        console.log("TEST_BYPASS: Returning test user:", testUser.email, testUser.role);
+                    console.log("TEST_BYPASS: Returning test user");
                         return testUser;
                     }
-                    console.log("TEST_BYPASS: No matching test user for", credentials.email);
+                    console.log("TEST_BYPASS: No matching test user");
                 }
 
                 if (!isSupabaseAdminConfigured || !supabaseAdmin) {
+                    const mockUser = await authenticateMockUser({
+                        identifier,
+                        password: credentials.password as string,
+                        countryCode,
+                    });
+
+                    if (mockUser) {
+                        return {
+                            id: mockUser.id,
+                            email: mockUser.email,
+                            name: mockUser.name,
+                            image: mockUser.image,
+                            role: mockUser.role,
+                        };
+                    }
+
+                    if (!loginByEmail) {
+                        const provisionedUser = await provisionMockPhoneUser({
+                            identifier,
+                            password: credentials.password as string,
+                            countryCode,
+                        });
+
+                        if (provisionedUser) {
+                            return {
+                                id: provisionedUser.id,
+                                email: provisionedUser.email,
+                                name: provisionedUser.name,
+                                image: provisionedUser.image,
+                                role: provisionedUser.role,
+                            };
+                        }
+                    }
+
                     console.error('Supabase not configured for credentials auth');
                     throw new Error("Authentication service unavailable");
                 }
                 try {
-                    // Find user by email
-                    console.log("Fetching user from Supabase...");
-                    const { data: user, error } = await supabaseAdmin
-                        .from('users')
-                        .select('*')
-                        .eq('email', credentials.email as string)
-                        .single();
+                    const userQuery = supabaseAdmin.from('users').select('*');
+                    const { data: user, error } = loginByEmail
+                        ? await userQuery.eq('email', identifier.toLowerCase()).maybeSingle()
+                        : await userQuery.in(
+                              'phone',
+                              getPhoneCandidates(
+                                  credentials.phone as string | undefined || identifier,
+                                  countryCode,
+                              ),
+                          ).maybeSingle();
+
                     if (error || !user) {
-                        console.error("User not found or error:", error);
-                        throw new Error("Invalid email or password");
+                        const mockUser = await authenticateMockUser({
+                            identifier,
+                            password: credentials.password as string,
+                            countryCode,
+                        });
+
+                        if (mockUser) {
+                            return {
+                                id: mockUser.id,
+                                email: mockUser.email,
+                                name: mockUser.name,
+                                image: mockUser.image,
+                                role: mockUser.role,
+                            };
+                        }
+
+                        if (!loginByEmail) {
+                            const provisionedUser = await provisionMockPhoneUser({
+                                identifier,
+                                password: credentials.password as string,
+                                countryCode,
+                            });
+
+                            if (provisionedUser) {
+                                return {
+                                    id: provisionedUser.id,
+                                    email: provisionedUser.email,
+                                    name: provisionedUser.name,
+                                    image: provisionedUser.image,
+                                    role: provisionedUser.role,
+                                };
+                            }
+                        }
+
+                        console.error("User not found or error");
+                        throw new Error("Invalid email/phone or password");
                     }
-                    console.log("User found:", user.email, "Has hash:", !!user.password_hash);
                     // Verify password
                     const isValidPassword = await bcrypt.compare(
                         credentials.password as string,
                         user.password_hash || ''
                     );
-                    console.log("Password valid:", isValidPassword);
                     if (!isValidPassword) {
+                        const mockUser = await authenticateMockUser({
+                            identifier,
+                            password: credentials.password as string,
+                            countryCode,
+                        });
+
+                        if (mockUser) {
+                            return {
+                                id: mockUser.id,
+                                email: mockUser.email,
+                                name: mockUser.name,
+                                image: mockUser.image,
+                                role: mockUser.role,
+                            };
+                        }
+
                         throw new Error("Invalid email or password");
                     }
                     return {
@@ -103,6 +204,40 @@ export const authOptions: NextAuthOptions = {
                         role: user.role,
                     };
                 } catch (error) {
+                    const mockUser = await authenticateMockUser({
+                        identifier,
+                        password: credentials.password as string,
+                        countryCode,
+                    });
+
+                    if (mockUser) {
+                        return {
+                            id: mockUser.id,
+                            email: mockUser.email,
+                            name: mockUser.name,
+                            image: mockUser.image,
+                            role: mockUser.role,
+                        };
+                    }
+
+                    if (!loginByEmail) {
+                        const provisionedUser = await provisionMockPhoneUser({
+                            identifier,
+                            password: credentials.password as string,
+                            countryCode,
+                        });
+
+                        if (provisionedUser) {
+                            return {
+                                id: provisionedUser.id,
+                                email: provisionedUser.email,
+                                name: provisionedUser.name,
+                                image: provisionedUser.image,
+                                role: provisionedUser.role,
+                            };
+                        }
+                    }
+
                     console.error("Credentials auth error:", error);
                     throw new Error("Authentication failed");
                 }
@@ -112,6 +247,9 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account }) {
             if (!user.email) return false;
+            if (process.env.TEST_BYPASS === 'true') {
+                return true;
+            }
             // Skip Supabase sync if not configured
             if (!isSupabaseAdminConfigured || !supabaseAdmin) {
                 console.warn('Supabase not configured, skipping user sync');
@@ -204,11 +342,25 @@ export const authOptions: NextAuthOptions = {
                     console.error("Error fetching user role:", error);
                 }
             }
+
+            const normalizedToken = normalizeReferenceSessionIdentity({
+                email: token.email,
+                name: token.name,
+                role: token.role,
+            });
+
+            token.name = normalizedToken.name ?? token.name;
+            token.role = normalizedToken.role ?? token.role;
             return token;
         },
         async session({ session, token }) {
             // Send properties to the client
             if (session.user) {
+                const normalizedSessionUser = normalizeReferenceSessionIdentity({
+                    email: session.user.email,
+                    name: session.user.name,
+                    role: token.role as string | undefined,
+                });
 
                 session.accessToken = token.accessToken;
 
@@ -216,7 +368,9 @@ export const authOptions: NextAuthOptions = {
 
                 session.user.googleId = token.googleId as string;
 
-                session.user.role = token.role as string;
+                session.user.email = normalizedSessionUser.email ?? session.user.email;
+                session.user.name = normalizedSessionUser.name ?? session.user.name;
+                session.user.role = normalizedSessionUser.role as string;
             }
             return session;
         },
@@ -241,13 +395,19 @@ export async function getCurrentUser(session: any): Promise<{
 } | null> {
     if (!session?.user?.email) return null;
 
+    const normalizedSessionUser = normalizeReferenceSessionIdentity({
+        email: session.user.email,
+        name: session.user.name || '',
+        role: session.user.role || '',
+    });
+
     // FAST PATH OPTIMIZATION: Return from session JWT if data is already available
     if (session.user.id && session.user.role) {
         return {
             id: session.user.id as string,
-            email: session.user.email,
-            name: session.user.name || '',
-            role: session.user.role as string,
+            email: normalizedSessionUser.email || session.user.email,
+            name: normalizedSessionUser.name || session.user.name || '',
+            role: normalizedSessionUser.role as string,
             googleId: (session.user as any).googleId || '',
         };
     }
@@ -256,9 +416,9 @@ export async function getCurrentUser(session: any): Promise<{
     if (!isSupabaseAdminConfigured || !supabaseAdmin) {
         return {
             id: session.user.id || '',
-            email: session.user.email,
-            name: session.user.name || '',
-            role: session.user.role || 'student',
+            email: normalizedSessionUser.email || session.user.email,
+            name: normalizedSessionUser.name || session.user.name || '',
+            role: normalizedSessionUser.role || session.user.role || 'student',
             googleId: session.user.googleId || '',
         };
     }
@@ -273,9 +433,9 @@ export async function getCurrentUser(session: any): Promise<{
             if (error && session.user.email) {
                 return {
                     id: (session.user as any).id || '',
-                    email: session.user.email,
-                    name: session.user.name || '',
-                    role: (session.user as any).role || 'student',
+                    email: normalizedSessionUser.email || session.user.email,
+                    name: normalizedSessionUser.name || session.user.name || '',
+                    role: normalizedSessionUser.role || (session.user as any).role || 'student',
                     googleId: (session.user as any).googleId || '',
                 };
             }
@@ -294,9 +454,9 @@ export async function getCurrentUser(session: any): Promise<{
         if (session.user.email) {
             return {
                 id: (session.user as any).id || '',
-                email: session.user.email,
-                name: session.user.name || '',
-                role: (session.user as any).role || 'student',
+                email: normalizedSessionUser.email || session.user.email,
+                name: normalizedSessionUser.name || session.user.name || '',
+                role: normalizedSessionUser.role || (session.user as any).role || 'student',
                 googleId: (session.user as any).googleId || '',
             };
         }
@@ -324,4 +484,3 @@ export function isSupervisorOrAdmin(userRole: string | undefined): boolean {
 export function isTeacherOrAdmin(userRole: string | undefined): boolean {
     return userRole === 'teacher' || userRole === 'admin';
 }
-

@@ -1,69 +1,68 @@
+'use client';
+
 import Link from 'next/link';
-import { Globe } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export function Footer() {
-    return (
-        <footer className="w-full bg-brand-dark text-white py-12">
-            <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const isArabic = locale === 'ar';
 
-                {/* About */}
-                <div>
-                    <h3 className="text-lg font-bold mb-4 text-brand-primary">Eman ISchool</h3>
-                    <p className="text-sm text-gray-400 leading-relaxed">
-                        المنصة الوحيدة المتخصصة في تحضير أبناء المصريين بالخارج للامتحانات المصرية باحترافية.
-                    </p>
-                    <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
-                        <Globe className="w-4 h-4" />
-                        <span>للعائلات المصرية في الخارج</span>
-                    </div>
-                </div>
+  const quickLinks = [
+    { href: '/about', label: isArabic ? 'حولنا' : 'About' },
+    { href: '/services', label: isArabic ? 'خدماتنا' : 'Services' },
+    { href: '/contact', label: isArabic ? 'اتصل بنا' : 'Contact' },
+    { href: '/login', label: isArabic ? 'تسجيل الدخول' : 'Login' },
+    { href: '/join', label: isArabic ? 'انضم' : 'Join' },
+  ];
 
-                {/* Quick Links */}
-                <div>
-                    <h3 className="text-lg font-bold mb-4 text-brand-primary">روابط سريعة</h3>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                        <li><Link href="/about-us" className="hover:text-white">من نحن</Link></li>
-                        <li><Link href="/national-school" className="hover:text-white">المنهج المصري</Link></li>
-                        <li><Link href="/al-azhar-school" className="hover:text-white">المنهج الأزهري</Link></li>
-                        <li><Link href="/vr-eduverse" className="hover:text-white">تجربة VR التعليمية ✨</Link></li>
-                        <li><Link href="/policy" className="hover:text-white">سياسة الخصوصية</Link></li>
-                    </ul>
-                </div>
+  return (
+    <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.1fr_0.9fr_0.8fr] lg:px-8">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-black text-white">Eduverse</h2>
+          <p className="max-w-md text-sm leading-7 text-slate-400">
+            {isArabic
+              ? 'تجربة عامة مبسطة مستوحاة من المرجع: تعريف سريع، مسارات دخول واضحة، وصفحات عامة مباشرة.'
+              : 'A simplified public experience inspired by the reference: clear discovery, direct entry paths, and focused marketing pages.'}
+          </p>
+        </div>
 
-                {/* Features */}
-                <div>
-                    <h3 className="text-lg font-bold mb-4 text-brand-primary">الميزات الأساسية</h3>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                        <li><Link href="/exam-simulation" className="hover:text-white">محاكاة الامتحانات</Link></li>
-                        <li><Link href="/parent-dashboard" className="hover:text-white">لوحة ولي الأمر</Link></li>
-                        <li><Link href="/product/by-subject" className="hover:text-white">المواد الدراسية</Link></li>
-                    </ul>
-                </div>
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+            {isArabic ? 'روابط سريعة' : 'Quick links'}
+          </h3>
+          <div className="grid gap-3 text-sm">
+            {quickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={withLocalePrefix(link.href, locale)}
+                className="transition hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-                {/* Contact */}
-                <div>
-                    <h3 className="text-lg font-bold mb-4 text-brand-primary">تواصل معنا</h3>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                        <li>info@eman-ischool.ae</li>
-                        <li>+971 50 569 2091</li>
-                    </ul>
-                    <div className="mt-4">
-                        <p className="text-xs text-gray-500 mb-2">نخدم العائلات المصرية في:</p>
-                        <div className="flex flex-wrap gap-2">
-                            {['🇦🇪', '🇸🇦', '🇰🇼', '🇶🇦', '🇧🇭', '🇴🇲', '🇩🇪', '🇬🇧', '🇺🇸'].map((flag, i) => (
-                                <span key={i} className="text-lg">{flag}</span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+            {isArabic ? 'تواصل' : 'Contact'}
+          </h3>
+          <div className="space-y-2 text-sm text-slate-400">
+            <p>hello@eduverse.local</p>
+            <p>+962 79 000 0000</p>
+            <p>{isArabic ? 'دبي / عمّان / الرياض' : 'Dubai / Amman / Riyadh'}</p>
+          </div>
+        </div>
+      </div>
 
-            </div>
-            <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
-                <p>© {new Date().getFullYear()} Eman ISchool. جميع الحقوق محفوظة.</p>
-                <p className="mt-2 text-xs text-gray-600">
-                    المنصة الأولى والوحيدة المتخصصة لجاهزية الامتحانات المصرية للمصريين بالخارج
-                </p>
-            </div>
-        </footer>
-    );
+      <div className="border-t border-white/10 px-4 py-5 text-center text-xs text-slate-500 sm:px-6 lg:px-8">
+        © {new Date().getFullYear()} Eduverse
+      </div>
+    </footer>
+  );
 }
+

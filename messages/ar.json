@@ -468,7 +468,8 @@
       "newLesson": "درس جديد",
       "newLive": "جلسة مباشرة",
       "newTeacher": "معلم جديد",
-      "newCoupon": "كوبون جديد"
+      "newCoupon": "كوبون جديد",
+      "newCourse": "دورة جديدة"
     }
   },
   "auth": {

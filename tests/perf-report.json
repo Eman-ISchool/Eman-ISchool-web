@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-03-09T01:00:06.707Z",
+  "navigation": {
+    "grades_anon_warm": {
+      "before_ms": 10524,
+      "after_ms": 8677,
+      "delta_ms": 1847,
+      "improvement_pct": 17.6
+    },
+    "teacher_grades_warm": {
+      "before_ms": 1010,
+      "after_ms": 1332,
+      "delta_ms": -322,
+      "improvement_pct": -31.9
+    },
+    "teacher_grade_detail_warm": {
+      "before_ms": 2469,
+      "after_ms": 2352,
+      "delta_ms": 117,
+      "improvement_pct": 4.7
+    }
+  },
+  "endpoint_p50_p95_after": [
+    {
+      "path": "/api/grades/grade-1772487070651",
+      "samples": [
+        99,
+        111,
+        112,
+        260,
+        291
+      ],
+      "p50": 112,
+      "p95": 291
+    },
+    {
+      "path": "/api/grades/grade-1772487070651/courses?page=1&limit=20",
+      "samples": [
+        62,
+        103,
+        176,
+        196,
+        2560
+      ],
+      "p50": 176,
+      "p95": 2560
+    },
+    {
+      "path": "/api/grades/grade-1772487070651/students?page=1&limit=20",
+      "samples": [
+        62,
+        69,
+        95,
+        95,
+        870
+      ],
+      "p50": 95,
+      "p95": 870
+    },
+    {
+      "path": "/api/grades/grade-1772487070651/fees",
+      "samples": [
+        139,
+        142,
+        154,
+        258,
+        1992
+      ],
+      "p50": 154,
+      "p95": 1992
+    },
+    {
+      "path": "/api/grades/grade-1772487070651/schedule",
+      "samples": [
+        54,
+        55,
+        64,
+        87,
+        1083
+      ],
+      "p50": 64,
+      "p95": 1083
+    }
+  ]
+}

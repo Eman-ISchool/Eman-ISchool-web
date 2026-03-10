@@ -1,241 +1,305 @@
-/**
- * Lessons API Endpoint for Courses
- * 
- * GET /api/courses/[id]/lessons - List all lessons for a course
- * POST /api/courses/[id]/lessons - Create a new lesson
- */
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/withAuth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { withRequestId } from '@/lib/request-id';
+import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
+import { getMockDb, saveMockDb } from '@/lib/mockDb';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-/**
- * GET /api/courses/[id]/lessons
- * 
- * List all lessons for a specific course.
- * 
- * Query parameters:
- * - status: Filter by lesson status (scheduled, live, completed, cancelled)
- * - start_date: Filter lessons starting from this date
- * - end_date: Filter lessons ending before this date
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get('status');
-    const startDate = searchParams.get('start_date');
-    const endDate = searchParams.get('end_date');
-
-    let query = supabase
-      .from('lessons')
-      .select(`
-        *,
-        course:courses!lessons_course_id_fkey(id, title, grade_id),
-        teacher:users!lessons_teacher_id_fkey(id, name, email, image)
-      `)
-      .eq('course_id', params.id)
-      .order('start_date_time', { ascending: false });
-
-    // Apply status filter
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    // Apply date range filter
-    if (startDate) {
-      query = query.gte('start_date_time', startDate);
-    }
-
-    if (endDate) {
-      query = query.lte('start_date_time', endDate);
-    }
-
-    const { data: lessons, error } = await query;
-
-    if (error) {
-      console.error('Error fetching lessons:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch lessons' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ lessons });
-  } catch (error) {
-    console.error('Error in GET /api/courses/[id]/lessons:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+function jsonWithRequestId(body: any, status: number, requestId: string) {
+  return withRequestId(NextResponse.json(body, { status }), requestId);
 }
 
-/**
- * POST /api/courses/[id]/lessons
- * 
- * Create a new lesson for a course.
- * 
- * Request body:
- * {
- *   title: string (required)
- *   description: string (optional)
- *   start_date_time: string (required, ISO timestamp)
- *   end_date_time: string (required, ISO timestamp)
- *   recurrence: string (optional, e.g., 'weekly', 'biweekly')
- *   recurrence_end_date: string (optional, ISO timestamp)
- *   meet_link: string (optional)
- *   meeting_provider: 'google_meet' | 'zoom' | 'teams' | 'other' | null
- *   meeting_duration_min: number (optional)
- *   meeting_title: string (optional)
- *   image_url: string (optional)
- *   notes: string (optional)
- *   teacher_notes: string (optional)
- * }
- */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const body = await request.json();
+export const GET = withAuth(async (req, { user, requestId }, { params }) => {
+  const courseId = params.id;
+  const { searchParams } = new URL(req.url);
+  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+  const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 50);
+  const offset = (page - 1) * limit;
+  const status = searchParams.get('status');
 
-    // Validate required fields
-    if (!body.title || !body.start_date_time || !body.end_date_time) {
-      return NextResponse.json(
-        { error: 'Missing required fields: title, start_date_time, end_date_time' },
-        { status: 400 }
-      );
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const courses = Array.isArray(db.courses) ? db.courses : [];
+    const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
+    const course = courses.find((row: any) => row.id === courseId);
+
+    if (!course) {
+      return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+    }
+    if (user.role === 'teacher' && course.teacher_id !== user.id) {
+      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+    }
+    if (user.role === 'student') {
+      const enrollment = enrollments.find((row: any) => row.course_id === courseId && row.student_id === user.id && row.status === 'active');
+      if (!enrollment) {
+        return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+      }
     }
 
-    // Validate dates
-    const startDate = new Date(body.start_date_time);
-    const endDate = new Date(body.end_date_time);
+    let rows = lessons.filter((row: any) => row.course_id === courseId);
+    if (status) {
+      rows = rows.filter((row: any) => row.status === status);
+    }
+    rows = rows.sort((a: any, b: any) => String(a.start_date_time || '').localeCompare(String(b.start_date_time || '')));
+    const total = rows.length;
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return NextResponse.json(
-        { error: 'Invalid date format' },
-        { status: 400 }
-      );
+    return jsonWithRequestId({
+      lessons: rows.slice(offset, offset + limit).map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || '',
+        start_date_time: row.start_date_time,
+        end_date_time: row.end_date_time,
+        status: row.status || 'scheduled',
+        meet_link: row.meet_link || row.meetLink || null,
+        teacher_id: row.teacher_id || course.teacher_id || null,
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+      requestId,
+    }, 200, requestId);
+  }
+
+  const { data: course, error: courseError } = await supabaseAdmin
+    .from('courses')
+    .select('id, teacher_id')
+    .eq('id', courseId)
+    .single();
+
+  if (courseError || !course) {
+    return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
+
+  if (user.role === 'teacher' && course.teacher_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
+  if (user.role === 'student') {
+    const { data: enrollment } = await supabaseAdmin
+      .from('enrollments')
+      .select('id')
+      .eq('course_id', courseId)
+      .eq('student_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (!enrollment) {
+      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+    }
+  }
+
+  let countQuery = supabaseAdmin
+    .from('lessons')
+    .select('id', { head: true, count: 'exact' })
+    .eq('course_id', courseId);
+
+  let listQuery = supabaseAdmin
+    .from('lessons')
+    .select('id, title, description, start_date_time, end_date_time, status, meet_link, teacher_id')
+    .eq('course_id', courseId)
+    .order('start_date_time', { ascending: true })
+    .range(offset, offset + limit - 1);
+
+  if (status) {
+    countQuery = countQuery.eq('status', status);
+    listQuery = listQuery.eq('status', status);
+  }
+
+  const [{ count, error: countError }, { data: lessons, error: lessonsError }] = await Promise.all([
+    countQuery,
+    listQuery,
+  ]);
+
+  if (countError || lessonsError) {
+    return jsonWithRequestId({ error: 'Failed to fetch lessons', code: 'FETCH_ERROR', requestId }, 500, requestId);
+  }
+
+  return jsonWithRequestId(
+    {
+      lessons: lessons || [],
+      meta: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.max(1, Math.ceil((count || 0) / limit)),
+      },
+      requestId,
+    },
+    200,
+    requestId
+  );
+}, { allowedRoles: ['admin', 'supervisor', 'teacher', 'student'] });
+
+export const POST = withAuth(async (req, { user, requestId }, { params }) => {
+  const courseId = params.id;
+  const body = await req.json();
+  const title = String(body.title || '').trim();
+  const description = String(body.description || '').trim();
+  const startDateTime = body.start_date_time || body.startDateTime;
+  const endDateTime = body.end_date_time || body.endDateTime;
+  const providedMeetLink = String(body.meet_link || body.meetLink || '').trim();
+
+  if (!title || !startDateTime || !endDateTime) {
+    return jsonWithRequestId(
+      { error: 'Missing required fields: title, start_date_time, end_date_time', code: 'VALIDATION_ERROR', requestId },
+      400,
+      requestId
+    );
+  }
+
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    if (!Array.isArray(db.lessons)) {
+      db.lessons = [];
+    }
+    const courses = Array.isArray(db.courses) ? db.courses : [];
+    const course = courses.find((row: any) => row.id === courseId);
+    if (!course) {
+      return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+    }
+    if (user.role === 'teacher' && course.teacher_id !== user.id) {
+      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
     }
 
-    if (endDate <= startDate) {
-      return NextResponse.json(
-        { error: 'End date must be after start date' },
-        { status: 400 }
-      );
-    }
-
-    // Get course to verify it exists
-    const { data: course, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title, grade_id, teacher_id')
-      .eq('id', params.id)
-      .single();
-
-    if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Course not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check for schedule conflicts with other lessons in the same grade
-    const { data: existingLessons, error: conflictError } = await supabase
-      .from('lessons')
-      .select('id, title, start_date_time, end_date_time')
-      .eq('course_id', params.id)
-      .neq('status', 'cancelled');
-
-    if (conflictError) {
-      console.error('Error checking for conflicts:', conflictError);
-      // Continue with lesson creation even if conflict check fails
-    }
-
-    // Check for overlapping time slots
-    if (existingLessons && existingLessons.length > 0) {
-      const newStart = new Date(body.start_date_time).getTime();
-      const newEnd = new Date(body.end_date_time).getTime();
-
-      const hasConflict = existingLessons.some((lesson) => {
-        const existingStart = new Date(lesson.start_date_time).getTime();
-        const existingEnd = new Date(lesson.end_date_time).getTime();
-
-        // Check if time ranges overlap
-        return (
-          (newStart >= existingStart && newStart < existingEnd) ||
-          (newEnd > existingStart && newEnd <= existingEnd) ||
-          (newStart <= existingStart && newEnd >= existingEnd)
-        );
-      });
-
-      if (hasConflict) {
-        return NextResponse.json(
-          {
-            error: 'Schedule conflict detected',
-            code: 'SCHEDULE_CONFLICT',
-            message: 'This lesson overlaps with an existing lesson in the same course',
-          },
-          { status: 409 }
+    const allowManualMeet = process.env.TEST_BYPASS === 'true' || process.env.ALLOW_MANUAL_MEET_LINK === 'true';
+    const normalizedProvidedMeetLink = providedMeetLink.startsWith('https://meet.google.com/') ? providedMeetLink : '';
+    let meetResult;
+    if (normalizedProvidedMeetLink && allowManualMeet) {
+      meetResult = { meetLink: normalizedProvidedMeetLink, google_event_id: '' };
+    } else {
+      try {
+        meetResult = await generateMeetLink({
+          summary: title,
+          description: description || 'Eduverse live lesson',
+          startTime: startDateTime,
+          endTime: endDateTime,
+          requestId,
+        });
+      } catch (error: any) {
+        const googleError = toGoogleMeetApiError(error);
+        return jsonWithRequestId(
+          { error: googleError.error, code: googleError.code, detail: googleError.detail, requestId },
+          googleError.status,
+          requestId
         );
       }
     }
 
-    // Create lesson
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .insert({
-        title: body.title,
-        description: body.description || null,
-        start_date_time: body.start_date_time,
-        end_date_time: body.end_date_time,
-        recurrence: body.recurrence || null,
-        recurrence_end_date: body.recurrence_end_date || null,
-        meet_link: body.meet_link || null,
-        meeting_title: body.meeting_title || null,
-        meeting_provider: body.meeting_provider || null,
-        meeting_duration_min: body.meeting_duration_min || null,
-        google_event_id: null,
-        google_calendar_link: null,
-        status: 'scheduled',
-        course_id: params.id,
-        teacher_id: course.teacher_id,
-        recording_url: null,
-        recording_drive_file_id: null,
-        recording_drive_view_link: null,
-        recording_started_at: null,
-        recording_ended_at: null,
-        sort_order: 0,
-        image_url: body.image_url || null,
-        notes: body.notes || null,
-        teacher_notes: body.teacher_notes || null,
-        cancellation_reason: null,
-        rescheduled_from: null,
-      })
-      .select()
-      .single();
+    const lesson = {
+      id: `lesson-${Date.now()}`,
+      title,
+      description: description || null,
+      course_id: courseId,
+      teacher_id: course.teacher_id || user.id,
+      start_date_time: startDateTime,
+      end_date_time: endDateTime,
+      status: 'scheduled',
+      meet_link: meetResult.meetLink,
+      meetLink: meetResult.meetLink,
+      google_event_id: meetResult.google_event_id,
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      console.error('Error creating lesson:', error);
-      return NextResponse.json(
-        { error: 'Failed to create lesson' },
-        { status: 500 }
+    db.lessons.push(lesson);
+    if (!Array.isArray(db.lesson_meetings)) {
+      db.lesson_meetings = [];
+    }
+    db.lesson_meetings = db.lesson_meetings.filter((row: any) => row.lesson_id !== lesson.id);
+    db.lesson_meetings.push({
+      lesson_id: lesson.id,
+      provider: 'google_calendar',
+      meet_url: meetResult.meetLink,
+      event_id: meetResult.google_event_id,
+      created_by_teacher_id: user.id,
+      status: 'active',
+    });
+    saveMockDb(db);
+    return jsonWithRequestId({ lesson, requestId }, 201, requestId);
+  }
+
+  const { data: course, error: courseError } = await supabaseAdmin
+    .from('courses')
+    .select('id, teacher_id')
+    .eq('id', courseId)
+    .single();
+
+  if (courseError || !course) {
+    return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
+
+  if (user.role === 'teacher' && course.teacher_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
+  const allowManualMeet = process.env.TEST_BYPASS === 'true' || process.env.ALLOW_MANUAL_MEET_LINK === 'true';
+  const normalizedProvidedMeetLink = providedMeetLink.startsWith('https://meet.google.com/') ? providedMeetLink : '';
+  let meetResult;
+  if (normalizedProvidedMeetLink && allowManualMeet) {
+    meetResult = { meetLink: normalizedProvidedMeetLink, google_event_id: '' };
+  } else {
+    try {
+      meetResult = await generateMeetLink({
+        summary: title,
+        description: description || 'Eduverse live lesson',
+        startTime: startDateTime,
+        endTime: endDateTime,
+        requestId,
+      });
+    } catch (error: any) {
+      const googleError = toGoogleMeetApiError(error);
+      return jsonWithRequestId(
+        { error: googleError.error, code: googleError.code, detail: googleError.detail, requestId },
+        googleError.status,
+        requestId
       );
     }
+  }
 
-    return NextResponse.json({ lesson }, { status: 201 });
-  } catch (error) {
-    console.error('Error in POST /api/courses/[id]/lessons:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+  const { data: lesson, error: lessonError } = await supabaseAdmin
+    .from('lessons')
+    .insert({
+      title,
+      description: description || null,
+      course_id: courseId,
+      teacher_id: course.teacher_id || user.id,
+      start_date_time: startDateTime,
+      end_date_time: endDateTime,
+      status: 'scheduled',
+      meet_link: meetResult.meetLink,
+      meeting_provider: 'google_meet',
+      google_event_id: meetResult.google_event_id,
+    })
+    .select()
+    .single();
+
+  if (lessonError || !lesson) {
+    return jsonWithRequestId({ error: 'Failed to create lesson', code: 'CREATE_ERROR', requestId }, 500, requestId);
+  }
+
+  const { error: meetingError } = await supabaseAdmin
+    .from('lesson_meetings')
+    .upsert({
+      lesson_id: lesson.id,
+      provider: 'google_calendar',
+      meet_url: meetResult.meetLink,
+      event_id: meetResult.google_event_id,
+      created_by_teacher_id: user.id,
+      status: 'active',
+    }, { onConflict: 'lesson_id' });
+
+  if (meetingError) {
+    await supabaseAdmin.from('lessons').delete().eq('id', lesson.id);
+    return jsonWithRequestId(
+      { error: 'Google Meet persistence failed. Lesson was not created.', code: 'GOOGLE_CALENDAR_ERROR', requestId },
+      503,
+      requestId
     );
   }
-}
+
+  return jsonWithRequestId({ lesson, requestId }, 201, requestId);
+}, { allowedRoles: ['admin', 'teacher'] });

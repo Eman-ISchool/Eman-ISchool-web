@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck } from 'lucide-react';
+import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck, RefreshCw } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
 import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
@@ -11,8 +11,11 @@ import { AssignmentList } from '@/components/student/AssignmentList';
 import { TeacherCardList } from '@/components/student/TeacherCardList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
 import { PaymentList } from '@/components/student/PaymentList';
+import { PageError } from '@/components/ui/page-error';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
+import { DataState, createIdleState, createLoadingState, createErrorState, createSuccessState } from '@/types/page-state';
 
 interface ApiAnnouncement {
     id: string;
@@ -36,25 +39,29 @@ export default function StudentHomePage() {
     const { data: session } = useSession();
     const { t, language } = useLanguage();
     const isRTL = language === 'ar';
-    const [loading, setLoading] = useState(true);
-    const [topAnnouncement, setTopAnnouncement] = useState<ApiAnnouncement | null>(null);
+    const [announcementState, setAnnouncementState] = useState<DataState<ApiAnnouncement[]>>(createIdleState());
 
     useEffect(() => {
         const fetchAnnouncements = async () => {
+            setAnnouncementState(createLoadingState());
             try {
                 const response = await fetch('/api/announcements?role=student');
                 const data = await response.json();
                 if (data.success && data.data.length > 0) {
-                    setTopAnnouncement(data.data[0]);
+                    setAnnouncementState(createSuccessState(data.data));
+                } else {
+                    setAnnouncementState(createSuccessState([]));
                 }
             } catch (error) {
                 console.error('Failed to fetch announcements:', error);
-            } finally {
-                setLoading(false);
+                setAnnouncementState(createErrorState(
+                    isRTL ? 'فشل تحميل الإعلانات' : 'Failed to load announcements',
+                    () => fetchAnnouncements()
+                ));
             }
         };
         fetchAnnouncements();
-    }, []);
+    }, [isRTL]);
 
     const handleUpload = async (assignmentId: string, file: File) => {
         console.log('Uploading file for assignment:', assignmentId, file.name);
@@ -201,12 +208,21 @@ export default function StudentHomePage() {
     return (
         <div className={`space-y-5 pb-6 ${isRTL ? 'rtl' : 'ltr'}`}>
             {/* System-level announcement bar */}
-            {topAnnouncement && (
+            {announcementState.status === 'loading' && (
+                <div className="h-12 animate-pulse bg-slate-100" />
+            )}
+            {announcementState.status === 'error' && (
+                <PageError
+                    message={announcementState.message}
+                    onRetry={announcementState.retryFn}
+                />
+            )}
+            {announcementState.status === 'success' && announcementState.data.length > 0 && (
                 <AnnouncementBar
                     announcement={{
-                        id: topAnnouncement.id,
-                        text: topAnnouncement.title,
-                        createdAt: topAnnouncement.publishedAt,
+                        id: announcementState.data[0].id,
+                        text: announcementState.data[0].title,
+                        createdAt: announcementState.data[0].publishedAt,
                     }}
                     onViewAll={() => console.log('View all announcements')}
                 />
@@ -314,7 +330,7 @@ export default function StudentHomePage() {
 
             {/* ── Upcoming Lessons ──────────────────────────────────── */}
             <section>
-                {loading ? (
+                {announcementState.status === 'loading' ? (
                     <div className="space-y-3">
                         <Skeleton className="h-5 w-36" />
                         <div className="flex gap-4 overflow-hidden">
@@ -333,7 +349,7 @@ export default function StudentHomePage() {
 
             {/* ── Assignments & Quizzes ─────────────────────────────── */}
             <section>
-                {loading ? (
+                {announcementState.status === 'loading' ? (
                     <div className="space-y-3">
                         <Skeleton className="h-5 w-44" />
                         <Skeleton className="h-16 w-full" />
@@ -351,7 +367,7 @@ export default function StudentHomePage() {
 
             {/* ── Teachers ──────────────────────────────────────────── */}
             <section>
-                {loading ? (
+                {announcementState.status === 'loading' ? (
                     <div className="space-y-3">
                         <Skeleton className="h-5 w-28" />
                         <div className="flex gap-4 overflow-hidden">
@@ -374,7 +390,7 @@ export default function StudentHomePage() {
 
             {/* ── Subjects ──────────────────────────────────────────── */}
             <section>
-                {loading ? (
+                {announcementState.status === 'loading' ? (
                     <div className="space-y-3">
                         <Skeleton className="h-5 w-24" />
                         <div className="grid grid-cols-4 gap-3">

@@ -1,23 +1,35 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Cairo } from 'next/font/google';
+import { Tajawal } from 'next/font/google';
+import localFont from 'next/font/local'; // Or import from next/font/google if available
 import { defaultLocale } from '@/i18n/config';
 import { cookies } from 'next/headers';
 import '@/lib/init'; // Initialize application configuration
 import { initializeApp } from '@/lib/init';
 
-const cairo = Cairo({
+const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
-  variable: '--font-cairo',
+  weight: ['200', '300', '400', '500', '700', '800', '900'],
+  variable: '--font-tajawal',
   display: 'swap',
-  preload: true,
+});
+
+// Since Geist might not be available from next/font/google directly in this version,
+// we will just use a generic sans or assuming it's imported correctly.
+// Let's use Inter as the closest fallback to Geist if we don't have Geist files local, 
+// or since Geist became standard in Next 15, we can use Inter for now or fetch Next.js 14 specific.
+import { Inter } from 'next/font/google';
+
+const geistFallback = Inter({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: "Eman ISchool | المدرسة الإلكترونية الأولى",
   description: "منصة تعليمية رائدة تقدم المنهج المصري والأزهري. تعلم أينما كنت.",
   manifest: "/manifest.json",
-  themeColor: "#3b82f6",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -32,6 +44,10 @@ export const metadata: Metadata = {
       { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3b82f6",
 };
 
 export default function RootLayout({
@@ -54,7 +70,7 @@ export default function RootLayout({
   const direction = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={direction} className={`${cairo.variable} ${cairo.className} font-sans`}>
+    <html lang={locale} dir={direction} className={`${tajawal.variable} ${geistFallback.variable} font-sans`}>
       <body className={`antialiased min-h-screen flex flex-col bg-gray-50`}>
         {children}
       </body>

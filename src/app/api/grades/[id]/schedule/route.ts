@@ -1,143 +1,118 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions, getCurrentUser, isAdmin, isTeacherOrAdmin } from '@/lib/auth';
+import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateRequestId } from '@/lib/request-id';
+import { withRequestId } from '@/lib/request-id';
+import { resolveGradeByRef } from '@/lib/grades';
+import { getMockDb } from '@/lib/mockDb';
 
-// GET - Fetch grade schedule (all lessons for all courses in grade)
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const requestId = generateRequestId();
-  const gradeId = params.id;
+function jsonWithRequestId(body: any, status: number, requestId: string) {
+  return withRequestId(NextResponse.json(body, { status }), requestId);
+}
+
+/**
+ * Phase 8 scaffold endpoint.
+ * Event contract:
+ * { sessionId, courseId, title, start, end, teacher }
+ */
+export const GET = withAuth(async (req, { user, requestId }, { params }) => {
+  const gradeRef = await resolveGradeByRef(params.id);
+  if (!gradeRef) {
+    return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
+
+  if (user.role === 'teacher' && gradeRef.supervisor_id && gradeRef.supervisor_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get('start_date');
   const endDate = searchParams.get('end_date');
 
-  try {
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Database not configured', code: 'DATABASE_NOT_CONFIGURED', requestId },
-        { status: 500 }
-      );
-    }
-
-    const session = await getServerSession(authOptions);
-    const currentUser = session?.user ? await getCurrentUser(session) : null;
-
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'UNAUTHORIZED', requestId },
-        { status: 401 }
-      );
-    }
-
-    // Fetch grade to verify access
-    const { data: grade, error: gradeError } = await supabaseAdmin
-      .from('grades')
-      .select('*')
-      .eq('id', gradeId)
-      .single();
-
-    if (gradeError || !grade) {
-      return NextResponse.json(
-        { error: 'Grade not found', code: 'NOT_FOUND', requestId },
-        { status: 404 }
-      );
-    }
-
-    // Check if user has access to this grade
-    const hasAccess = isAdmin(currentUser.role) ||
-                     (isTeacherOrAdmin(currentUser.role) && grade.teacher_id === currentUser.id) ||
-                     currentUser.role === 'supervisor';
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Forbidden', code: 'FORBIDDEN', requestId },
-        { status: 403 }
-      );
-    }
-
-    // Fetch all courses for this grade
-    const { data: courses, error: coursesError } = await supabaseAdmin
-      .from('courses')
-      .select('id, title, teacher_id')
-      .eq('grade_id', gradeId);
-
-    if (coursesError) {
-      console.error('Error fetching courses:', coursesError);
-      return NextResponse.json(
-        { error: 'Failed to fetch courses', code: 'COURSES_FETCH_ERROR', requestId },
-        { status: 500 }
-      );
-    }
-
-    if (!courses || courses.length === 0) {
-      return NextResponse.json({ schedule: [], requestId });
-    }
-
-    const courseIds = courses.map(c => c.id);
-
-    // Build query for lessons
-    let lessonsQuery = supabaseAdmin
-      .from('lessons')
-      .select(`
-        id,
-        title,
-        start_time,
-        end_time,
-        course_id,
-        status,
-        courses!lessons_course_id_fkey(
-          id,
-          title,
-          teacher_id,
-          users!courses_teacher_id_fkey(
-            id,
-            name
-          )
-        )
-      `)
-      .in('course_id', courseIds)
-      .order('start_time', { ascending: true });
-
-    // Apply date filters if provided
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const courses = (Array.isArray(db.courses) ? db.courses : []).filter((course: any) => (
+      course.grade_id === gradeRef.id && (user.role !== 'teacher' || course.teacher_id === user.id)
+    ));
+    const courseIds = courses.map((course: any) => course.id);
+    let lessons = (Array.isArray(db.lessons) ? db.lessons : []).filter((lesson: any) => courseIds.includes(lesson.course_id));
     if (startDate) {
-      lessonsQuery = lessonsQuery.gte('start_time', startDate);
+      lessons = lessons.filter((lesson: any) => String(lesson.start_date_time || '') >= startDate);
     }
     if (endDate) {
-      lessonsQuery = lessonsQuery.lte('start_time', endDate);
+      lessons = lessons.filter((lesson: any) => String(lesson.start_date_time || '') <= endDate);
     }
+    const events = lessons
+      .slice(0, 200)
+      .map((lesson: any) => ({
+        sessionId: lesson.id,
+        courseId: lesson.course_id,
+        title: lesson.title,
+        start: lesson.start_date_time,
+        end: lesson.end_date_time,
+        teacher: lesson.teacher_name || 'Test Teacher',
+      }));
 
-    const { data: lessons, error: lessonsError } = await lessonsQuery;
-
-    if (lessonsError) {
-      console.error('Error fetching lessons:', lessonsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch lessons', code: 'LESSONS_FETCH_ERROR', requestId },
-        { status: 500 }
-      );
-    }
-
-    // Format lessons for calendar
-    const schedule = lessons.map((lesson: any) => ({
-      id: lesson.id,
-      title: lesson.title,
-      start_time: lesson.start_time,
-      end_time: lesson.end_time,
-      course_id: lesson.course_id,
-      course_name: lesson.courses?.title || '',
-      teacher_name: lesson.courses?.users?.name || '',
-      status: lesson.status,
-    }));
-
-    return NextResponse.json({ schedule, requestId });
-  } catch (error) {
-    console.error('Error fetching grade schedule:', error);
-    return NextResponse.json(
-      { error: 'An unexpected error occurred', code: 'INTERNAL_SERVER_ERROR', requestId },
-      { status: 500 }
-    );
+    return jsonWithRequestId({
+      phase: 'Phase 8',
+      contract: 'events[] = { sessionId, courseId, title, start, end, teacher }',
+      events,
+      requestId,
+    }, 200, requestId);
   }
-}
+
+  let coursesQuery = supabaseAdmin.from('courses').select('id').eq('grade_id', gradeRef.id);
+  if (user.role === 'teacher') {
+    coursesQuery = coursesQuery.eq('teacher_id', user.id);
+  }
+
+  const { data: courses, error: coursesError } = await coursesQuery;
+  if (coursesError) {
+    return jsonWithRequestId({ error: 'Failed to fetch schedule', code: 'FETCH_ERROR', requestId }, 500, requestId);
+  }
+
+  const courseIds = (courses || []).map((course: any) => course.id);
+  if (courseIds.length === 0) {
+    return jsonWithRequestId({ phase: 'Phase 8', events: [], requestId }, 200, requestId);
+  }
+
+  let lessonsQuery = supabaseAdmin
+    .from('lessons')
+    .select(`
+      id,
+      title,
+      course_id,
+      start_date_time,
+      end_date_time,
+      teacher:users!lessons_teacher_id_fkey(name)
+    `)
+    .in('course_id', courseIds)
+    .order('start_date_time', { ascending: true });
+
+  if (startDate) lessonsQuery = lessonsQuery.gte('start_date_time', startDate);
+  if (endDate) lessonsQuery = lessonsQuery.lte('start_date_time', endDate);
+
+  const { data: lessons, error: lessonsError } = await lessonsQuery.limit(200);
+  if (lessonsError) {
+    return jsonWithRequestId({ error: 'Failed to fetch schedule', code: 'FETCH_ERROR', requestId }, 500, requestId);
+  }
+
+  const events = (lessons || []).map((lesson: any) => ({
+    sessionId: lesson.id,
+    courseId: lesson.course_id,
+    title: lesson.title,
+    start: lesson.start_date_time,
+    end: lesson.end_date_time,
+    teacher: lesson.teacher?.name || '',
+  }));
+
+  return jsonWithRequestId(
+    {
+      phase: 'Phase 8',
+      contract: 'events[] = { sessionId, courseId, title, start, end, teacher }',
+      events,
+      requestId,
+    },
+    200,
+    requestId
+  );
+}, { allowedRoles: ['admin', 'supervisor', 'teacher'] });

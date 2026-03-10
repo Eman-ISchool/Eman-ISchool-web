@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createNotification } from '@/lib/notifications';
+import { generateRequestId, withRequestId } from '@/lib/request-id';
+import { getMockDb, saveMockDb } from '@/lib/mockDb';
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -17,6 +19,37 @@ export async function GET(req: Request) {
     }
 
     try {
+        if (process.env.TEST_BYPASS === 'true') {
+            const db = getMockDb();
+            let enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+            const { searchParams } = new URL(req.url);
+            const status = searchParams.get('status');
+            const courseId = searchParams.get('courseId');
+            const studentId = searchParams.get('studentId');
+            const limit = parseInt(searchParams.get('limit') || '50', 10);
+            const offset = parseInt(searchParams.get('offset') || '0', 10);
+
+            if (status) {
+                enrollments = enrollments.filter((enrollment: any) => enrollment.status === status);
+            }
+            if (courseId) {
+                enrollments = enrollments.filter((enrollment: any) => enrollment.course_id === courseId);
+            }
+            if (studentId) {
+                enrollments = enrollments.filter((enrollment: any) => enrollment.student_id === studentId);
+            }
+            if (user.role === 'student') {
+                enrollments = enrollments.filter((enrollment: any) => enrollment.student_id === user.id);
+            }
+
+            return NextResponse.json({
+                enrollments: enrollments.slice(offset, offset + limit),
+                total: enrollments.length,
+                limit,
+                offset,
+            });
+        }
+
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status') || 'pending';
         const courseId = searchParams.get('courseId');
@@ -93,25 +126,157 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    const requestId = generateRequestId();
     const session = await getServerSession(authOptions);
     if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return withRequestId(NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED', requestId }, { status: 401 }), requestId);
     }
     const user = session.user as any;
 
-    if (user.role !== 'parent') {
-        return NextResponse.json({ error: 'Only parents can enroll students' }, { status: 403 });
-    }
-
     try {
         const body = await req.json();
-        const { studentId, studentEmail, courseId } = body;
+        const courseId = body.course_id || body.courseId;
+        const studentEmail = body.student_email || body.studentEmail;
+        const studentId = body.student_id || body.studentId;
 
         if (!courseId) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return withRequestId(NextResponse.json({ error: 'course_id is required', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
         }
 
-        // Resolve student ID from email if provided
+        if (process.env.TEST_BYPASS === 'true') {
+            const db = getMockDb();
+            if (!Array.isArray(db.enrollments)) {
+                db.enrollments = [];
+            }
+            if (!Array.isArray(db.users)) {
+                db.users = [
+                    { id: '00000000-0000-0000-0000-000000000001', email: 'teacher@eduverse.com', name: 'Test Teacher', role: 'teacher' },
+                    { id: '00000000-0000-0000-0000-000000000002', email: 'student@eduverse.com', name: 'Test Student', role: 'student' },
+                    { id: '00000000-0000-0000-0000-000000000003', email: 'admin@eduverse.com', name: 'Test Admin', role: 'admin' },
+                ];
+            }
+
+            const courses = Array.isArray(db.courses) ? db.courses : [];
+            const targetCourse = courses.find((course: any) => course.id === courseId);
+            if (!targetCourse) {
+                return withRequestId(NextResponse.json({ error: 'Course not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
+            }
+
+            if (user.role === 'teacher' && targetCourse.teacher_id !== user.id) {
+                return withRequestId(NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, { status: 403 }), requestId);
+            }
+
+            const resolvedStudent = db.users.find((candidate: any) =>
+                (studentId && candidate.id === studentId) ||
+                (studentEmail && String(candidate.email).toLowerCase() === String(studentEmail).toLowerCase())
+            );
+
+            if (!resolvedStudent) {
+                return withRequestId(NextResponse.json({ error: 'User not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
+            }
+            if (resolvedStudent.role !== 'student') {
+                return withRequestId(NextResponse.json({ error: 'Target user is not a student account', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
+            }
+
+            const duplicate = db.enrollments.find((enrollment: any) => (
+                enrollment.course_id === courseId &&
+                enrollment.student_id === resolvedStudent.id &&
+                ['active', 'payment_completed', 'pending'].includes(enrollment.status)
+            ));
+            if (duplicate) {
+                return withRequestId(NextResponse.json({ error: 'Student already enrolled', code: 'CONFLICT', requestId }, { status: 409 }), requestId);
+            }
+
+            const enrollment = {
+                id: `enroll-${Date.now()}`,
+                student_id: resolvedStudent.id,
+                student_email: resolvedStudent.email,
+                student_name: resolvedStudent.name,
+                course_id: courseId,
+                grade_id: targetCourse.grade_id || null,
+                status: 'active',
+                enrollment_date: new Date().toISOString(),
+                enrolled_at: new Date().toISOString(),
+            };
+
+            db.enrollments.push(enrollment);
+            saveMockDb(db);
+            return withRequestId(NextResponse.json({ enrollment, requestId }, { status: 201 }), requestId);
+        }
+
+        // Teacher/Admin enrollment flow (teacher-owned course)
+        if (user.role === 'teacher' || isAdmin(user.role)) {
+            let resolvedStudentId = studentId;
+            if (!resolvedStudentId && studentEmail) {
+                const { data: studentLookup, error: studentLookupError } = await supabaseAdmin
+                    .from('users')
+                    .select('id, role')
+                    .eq('email', studentEmail)
+                    .single();
+
+                if (studentLookupError || !studentLookup) {
+                    return withRequestId(NextResponse.json({ error: 'User not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
+                }
+                if (studentLookup.role !== 'student') {
+                    return withRequestId(NextResponse.json({ error: 'Target user is not a student account', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
+                }
+                resolvedStudentId = studentLookup.id;
+            }
+
+            if (!resolvedStudentId) {
+                return withRequestId(NextResponse.json({ error: 'student_email or student_id is required', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
+            }
+
+            const { data: course, error: courseError } = await supabaseAdmin
+                .from('courses')
+                .select('id, grade_id, teacher_id')
+                .eq('id', courseId)
+                .single();
+
+            if (courseError || !course) {
+                return withRequestId(NextResponse.json({ error: 'Course not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
+            }
+
+            if (user.role === 'teacher' && course.teacher_id !== user.id) {
+                return withRequestId(NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, { status: 403 }), requestId);
+            }
+
+            const { data: duplicate } = await supabaseAdmin
+                .from('enrollments')
+                .select('id, status')
+                .eq('course_id', courseId)
+                .eq('student_id', resolvedStudentId)
+                .in('status', ['active', 'payment_completed', 'pending'])
+                .maybeSingle();
+
+            if (duplicate) {
+                return withRequestId(NextResponse.json({ error: 'Student already enrolled', code: 'CONFLICT', requestId }, { status: 409 }), requestId);
+            }
+
+            const { data: enrollment, error: enrollmentError } = await supabaseAdmin
+                .from('enrollments')
+                .insert({
+                    student_id: resolvedStudentId,
+                    course_id: courseId,
+                    grade_id: course.grade_id,
+                    status: 'active',
+                    enrollment_date: new Date().toISOString(),
+                })
+                .select()
+                .single();
+
+            if (enrollmentError || !enrollment) {
+                return withRequestId(NextResponse.json({ error: 'Failed to create enrollment', code: 'CREATE_ERROR', requestId }, { status: 500 }), requestId);
+            }
+
+            return withRequestId(NextResponse.json({ enrollment, requestId }, { status: 201 }), requestId);
+        }
+
+        // Parent enrollment flow
+        if (user.role !== 'parent') {
+            return withRequestId(NextResponse.json({ error: 'Only parents, teachers, or admins can enroll students', code: 'FORBIDDEN', requestId }, { status: 403 }), requestId);
+        }
+
         let resolvedStudentId = studentId;
         if (studentEmail && !studentId) {
             const { data: student } = await supabaseAdmin
@@ -122,16 +287,15 @@ export async function POST(req: Request) {
                 .single();
 
             if (!student) {
-                return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+                return withRequestId(NextResponse.json({ error: 'Student not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
             }
             resolvedStudentId = student.id;
         }
 
         if (!resolvedStudentId) {
-            return NextResponse.json({ error: 'Missing studentId or studentEmail' }, { status: 400 });
+            return withRequestId(NextResponse.json({ error: 'Missing studentId or studentEmail', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
         }
 
-        // Verify parent-student relationship
         const { data: relationship } = await supabaseAdmin
             .from('parent_student')
             .select('id')
@@ -140,10 +304,9 @@ export async function POST(req: Request) {
             .single();
 
         if (!relationship) {
-            return NextResponse.json({ error: 'Student not linked to this parent' }, { status: 403 });
+            return withRequestId(NextResponse.json({ error: 'Student not linked to this parent', code: 'FORBIDDEN', requestId }, { status: 403 }), requestId);
         }
 
-        // Check if already enrolled
         const { data: existingEnrollment } = await supabaseAdmin
             .from('enrollments')
             .select('id, status')
@@ -152,14 +315,15 @@ export async function POST(req: Request) {
             .single();
 
         if (existingEnrollment) {
-            return NextResponse.json({
+            return withRequestId(NextResponse.json({
                 error: 'Student already enrolled',
+                code: 'CONFLICT',
                 enrollmentId: existingEnrollment.id,
-                status: existingEnrollment.status
-            }, { status: 409 });
+                status: existingEnrollment.status,
+                requestId,
+            }, { status: 409 }), requestId);
         }
 
-        // Create pending enrollment
         const { data: enrollment, error } = await supabaseAdmin
             .from('enrollments')
             .insert({
@@ -167,17 +331,17 @@ export async function POST(req: Request) {
                 course_id: courseId,
                 parent_id: user.id,
                 status: 'pending',
-                enrolled_at: new Date().toISOString()
+                enrolled_at: new Date().toISOString(),
             })
             .select()
             .single();
 
         if (error) throw error;
 
-        return NextResponse.json(enrollment);
+        return withRequestId(NextResponse.json({ enrollment, requestId }, { status: 201 }), requestId);
     } catch (error) {
         console.error('Error creating enrollment:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return withRequestId(NextResponse.json({ error: 'Internal Server Error', code: 'INTERNAL_SERVER_ERROR', requestId }, { status: 500 }), requestId);
     }
 }
 

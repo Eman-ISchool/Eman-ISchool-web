@@ -29,6 +29,10 @@ Auto-generated from all feature plans. Last updated: 2026-01-19
 - Supabase (PostgreSQL 15) — schema additive changes only (no destructive drops) (001-lms-grade-hierarchy)
 - TypeScript 5.x with Next.js 14.2.35 (App Router) + React 18.3.1 + Supabase JS 2.78.0, NextAuth 4.24.13, googleapis 169.0.0, next-intl 4.7.0, TailwindCSS v4, shadcn/ui, lucide-react, Playwright (E2E) (001-teacher-portal-e2e)
 - Supabase PostgreSQL 15 (hosted) — tables: `courses`, `lessons`, `lesson_meetings`, `enrollments`, `attendance`, `users` (001-teacher-portal-e2e)
+- TypeScript 5.x with Next.js 14.2.35 + next-intl 4.7.0, NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, shadcn/ui (Radix UI), lucide-react 0.460.0, Playwright 1.58.2 (001-futurelab-parity)
+- Supabase PostgreSQL 15 (schema unchanged — no migrations) (001-futurelab-parity)
+- TypeScript 5.x with Next.js 14.2.35 (App Router) + next-intl 4.7.0, NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, shadcn/ui (Radix UI), lucide-react 0.460.0, Recharts (area/bar/pie charts), Playwright 1.58.2 (001-dashboard-parity)
+- Supabase PostgreSQL 15 (schema unchanged) + mock data layer (`reference-dashboard-data.ts`, `dashboard-applications.ts`, `mock-auth-store.ts`) (001-dashboard-parity)
 
 - TypeScript 5.x with Next.js 14.2.35 + React 18.3.1, Supabase JS, googleapis 169.0.0, NextAuth 4.24.13, Zustand 5.0.9 (023-multi-session-meet-fix)
 
@@ -48,9 +52,9 @@ npm test && npm run lint
 TypeScript 5.x with Next.js 14.2.35: Follow standard conventions
 
 ## Recent Changes
+- 001-dashboard-parity: Added TypeScript 5.x with Next.js 14.2.35 (App Router) + next-intl 4.7.0, NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, shadcn/ui (Radix UI), lucide-react 0.460.0, Recharts (area/bar/pie charts), Playwright 1.58.2
+- 001-futurelab-parity: Added TypeScript 5.x with Next.js 14.2.35 + next-intl 4.7.0, NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, shadcn/ui (Radix UI), lucide-react 0.460.0, Playwright 1.58.2
 - 001-teacher-portal-e2e: Added TypeScript 5.x with Next.js 14.2.35 (App Router) + React 18.3.1 + Supabase JS 2.78.0, NextAuth 4.24.13, googleapis 169.0.0, next-intl 4.7.0, TailwindCSS v4, shadcn/ui, lucide-react, Playwright (E2E)
-- 001-lms-grade-hierarchy: Added TypeScript 5.x with Next.js 14.2.35 + React 18.3.1 + NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, next-intl 4.7.0, lucide-react, shadcn/ui components
-- 001-fix-tab-perf: Added TypeScript 5.x + Next.js 14.2.35, React 18.3.1, next-intl 4.7.0, NextAuth 4.24.13, Supabase JS 2.78.0, TailwindCSS v4, lucide-reac
 
 
 <!-- MANUAL ADDITIONS START -->

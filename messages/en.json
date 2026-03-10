@@ -468,7 +468,8 @@
       "newLesson": "New Lesson",
       "newLive": "New Live Session",
       "newTeacher": "New Teacher",
-      "newCoupon": "New Coupon"
+      "newCoupon": "New Coupon",
+      "newCourse": "New Course"
     }
   },
   "actions": {
@@ -476,7 +477,8 @@
     "newLesson": "New Lesson",
     "newLive": "New Live Session",
     "newTeacher": "New Teacher",
-    "newCoupon": "New Coupon"
+    "newCoupon": "New Coupon",
+    "newCourse": "New Course"
   },
   "cart": {
     "title": "Shopping Cart",

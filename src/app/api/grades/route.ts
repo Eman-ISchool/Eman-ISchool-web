@@ -15,7 +15,7 @@ export const GET = withAuth(async (req, { user, requestId }) => {
 
   let query = supabaseAdmin
     .from('grades')
-    .select('*, supervisor:users!grades_supervisor_id_fkey(id, name, email, image)')
+    .select('*, supervisor:users!grades_supervisor_id_fkey(id, name, email, image), courses:courses(count)')
     .order('sort_order', { ascending: true });
 
   if (user.role === 'supervisor' && !isActive) {
@@ -75,8 +75,18 @@ export const POST = withAuth(async (req, { user, requestId }) => {
       id: `grade-${Date.now()}`,
       name: body.name,
       slug: body.slug,
-      is_active: true,
-      supervisor_id: user.id
+      sort_order: body.sort_order || 0,
+      is_active: body.is_active !== undefined ? body.is_active : true,
+      supervisor_id: user.id,
+      description: body.description || null,
+      image_url: body.image_url || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      supervisor: {
+        id: user.id,
+        name: user.name || 'Test Teacher',
+        email: user.email || 'teacher@eduverse.com',
+      },
     };
     db.grades.push(newGrade);
     saveMockDb(db);

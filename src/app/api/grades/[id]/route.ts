@@ -1,158 +1,167 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withRequestId } from '@/lib/request-id';
+import { resolveGradeByRef } from '@/lib/grades';
+import { getMockDb, saveMockDb } from '@/lib/mockDb';
 
-/**
- * GET /api/grades/[id]
- * 
- * Get grade details by ID.
- */
-export const GET = withAuth(async (req, { requestId }, { params }) => {
-  const { id } = params;
+function jsonWithRequestId(body: any, status: number, requestId: string) {
+  return withRequestId(NextResponse.json(body, { status }), requestId);
+}
+
+export const GET = withAuth(async (_req, { user, requestId }, { params }) => {
+  const gradeRef = params.id;
+  const gradeRefRecord = await resolveGradeByRef(gradeRef);
+
+  if (!gradeRefRecord) {
+    return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
+
+  if (user.role === 'teacher' && gradeRefRecord.supervisor_id && gradeRefRecord.supervisor_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const grades = Array.isArray(db.grades) ? db.grades : [];
+    const grade = grades.find((item: any) => item.id === gradeRefRecord.id);
+    if (!grade) {
+      return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+    }
+    return jsonWithRequestId({
+      grade: {
+        id: grade.id,
+        name: grade.name || grade.name_en || 'Grade',
+        name_en: grade.name_en || null,
+        slug: grade.slug || null,
+        sort_order: grade.sort_order || 0,
+        is_active: grade.is_active !== false,
+        supervisor_id: grade.supervisor_id || gradeRefRecord.supervisor_id,
+        description: grade.description || null,
+        image_url: grade.image_url || null,
+        created_at: grade.created_at || null,
+        updated_at: grade.updated_at || null,
+        supervisor: grade.supervisor || {
+          id: grade.supervisor_id || gradeRefRecord.supervisor_id,
+          name: 'Test Teacher',
+          email: 'teacher@eduverse.com',
+        },
+      },
+      requestId,
+    }, 200, requestId);
+  }
 
   const { data: grade, error } = await supabaseAdmin
     .from('grades')
-    .select('*, supervisor:users!grades_supervisor_id_fkey(id, name, email, image)')
-    .eq('id', id)
+    .select('id, name, name_en, slug, sort_order, is_active, supervisor_id, description, image_url, created_at, supervisor:users!grades_supervisor_id_fkey(id, name, email)')
+    .eq('id', gradeRefRecord.id)
     .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      return NextResponse.json(
-        { error: 'Grade not found', code: 'NOT_FOUND', requestId },
-        { status: 404 }
-      );
-    }
-    console.error('Error fetching grade:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch grade', code: 'FETCH_ERROR', requestId },
-      { status: 500 }
-    );
+  if (error || !grade) {
+    return jsonWithRequestId({ error: 'Failed to fetch grade', code: 'FETCH_ERROR', requestId }, 500, requestId);
   }
 
-  return NextResponse.json({ grade, requestId }, { status: 200 });
-});
+  return jsonWithRequestId({ grade, requestId }, 200, requestId);
+}, { allowedRoles: ['admin', 'supervisor', 'teacher'] });
 
-/**
- * PATCH /api/grades/[id]
- * 
- * Update grade details.
- * Admin can update any grade.
- * Supervisor can update grades they are assigned to.
- */
 export const PATCH = withAuth(async (req, { user, requestId }, { params }) => {
-  const { id } = params;
+  const gradeRef = params.id;
   const body = await req.json();
 
-  // Check if grade exists
-  const { data: existingGrade, error: fetchError } = await supabaseAdmin
-    .from('grades')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (fetchError) {
-    if (fetchError.code === 'PGRST116') {
-      return NextResponse.json(
-        { error: 'Grade not found', code: 'NOT_FOUND', requestId },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json(
-      { error: 'Failed to fetch grade', code: 'FETCH_ERROR', requestId },
-      { status: 500 }
-    );
+  const gradeRefRecord = await resolveGradeByRef(gradeRef);
+  if (!gradeRefRecord) {
+    return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
   }
 
-  // Role check: Only Admins can edit ANY grade. Supervisors can edit their assigned grades.
-  if (user.role !== 'admin') {
-    if (user.role !== 'supervisor' || existingGrade.supervisor_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden', code: 'FORBIDDEN', requestId },
-        { status: 403 }
-      );
-    }
+  if (user.role === 'teacher' && gradeRefRecord.supervisor_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
   }
 
-  // Build update object
-  const updateData: any = {};
-  if (body.name !== undefined) updateData.name = body.name;
+  const updateData: Record<string, any> = {};
+  if (body.name !== undefined) {
+    const normalizedName = String(body.name).trim();
+    if (!normalizedName) {
+      return jsonWithRequestId({ error: 'Grade name is required', code: 'VALIDATION_ERROR', requestId }, 400, requestId);
+    }
+    updateData.name = normalizedName;
+  }
   if (body.name_en !== undefined) updateData.name_en = body.name_en;
   if (body.slug !== undefined) updateData.slug = body.slug;
   if (body.sort_order !== undefined) updateData.sort_order = body.sort_order;
-  if (body.is_active !== undefined) updateData.is_active = body.is_active;
-  if (body.supervisor_id !== undefined) updateData.supervisor_id = body.supervisor_id;
   if (body.description !== undefined) updateData.description = body.description;
   if (body.image_url !== undefined) updateData.image_url = body.image_url;
+  if (body.is_active !== undefined && user.role !== 'teacher') updateData.is_active = body.is_active;
+  if (body.supervisor_id !== undefined) {
+    if (user.role === 'teacher' && body.supervisor_id !== user.id) {
+      return jsonWithRequestId({ error: 'Teachers can only assign themselves as supervisor', code: 'FORBIDDEN', requestId }, 403, requestId);
+    }
+    updateData.supervisor_id = body.supervisor_id;
+  }
 
-  // Update grade
+  if (Object.keys(updateData).length === 0) {
+    return jsonWithRequestId({ error: 'No fields to update', code: 'VALIDATION_ERROR', requestId }, 400, requestId);
+  }
+
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const grades = Array.isArray(db.grades) ? db.grades : [];
+    const index = grades.findIndex((item: any) => item.id === gradeRefRecord.id);
+    if (index < 0) {
+      return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+    }
+    const current = grades[index];
+    const next = {
+      ...current,
+      ...updateData,
+      updated_at: new Date().toISOString(),
+      supervisor: {
+        id: updateData.supervisor_id || current.supervisor_id || user.id,
+        name: current?.supervisor?.name || 'Test Teacher',
+        email: current?.supervisor?.email || 'teacher@eduverse.com',
+      },
+    };
+    grades[index] = next;
+    db.grades = grades;
+    saveMockDb(db);
+    return jsonWithRequestId({ grade: next, requestId }, 200, requestId);
+  }
+
   const { data: grade, error } = await supabaseAdmin
     .from('grades')
     .update(updateData)
-    .eq('id', id)
-    .select()
+    .eq('id', gradeRefRecord.id)
+    .select('id, name, name_en, slug, sort_order, is_active, supervisor_id, description, image_url, created_at, supervisor:users!grades_supervisor_id_fkey(id, name, email)')
     .single();
 
+  if (error || !grade) {
+    const status = error?.code === '23505' ? 409 : 500;
+    const code = error?.code === '23505' ? 'CONFLICT' : 'UPDATE_ERROR';
+    const message = error?.code === '23505' ? 'Grade with this slug already exists' : 'Failed to update grade';
+    return jsonWithRequestId({ error: message, code, requestId }, status, requestId);
+  }
+
+  return jsonWithRequestId({ grade, requestId }, 200, requestId);
+}, { allowedRoles: ['admin', 'supervisor', 'teacher'] });
+
+export const DELETE = withAuth(async (_req, { requestId }, { params }) => {
+  const gradeRef = params.id;
+  const gradeRefRecord = await resolveGradeByRef(gradeRef);
+  if (!gradeRefRecord) {
+    return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
+
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const grades = Array.isArray(db.grades) ? db.grades : [];
+    db.grades = grades.filter((item: any) => item.id !== gradeRefRecord.id);
+    saveMockDb(db);
+    return jsonWithRequestId({ success: true, requestId }, 200, requestId);
+  }
+
+  const { error } = await supabaseAdmin.from('grades').delete().eq('id', gradeRefRecord.id);
   if (error) {
-    console.error('Error updating grade:', error);
-
-    if (error.code === '23505') {
-      return NextResponse.json(
-        { error: 'Grade with this slug already exists', code: 'CONFLICT', requestId },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to update grade', code: 'UPDATE_ERROR', requestId },
-      { status: 500 }
-    );
+    return jsonWithRequestId({ error: 'Failed to delete grade', code: 'DELETE_ERROR', requestId }, 500, requestId);
   }
 
-  return NextResponse.json({ grade, requestId }, { status: 200 });
-});
-
-/**
- * DELETE /api/grades/[id]
- * 
- * Delete a grade. Only admins can delete grades.
- */
-export const DELETE = withAuth(async (req, { requestId }, { params }) => {
-  const { id } = params;
-
-  // Check if grade exists
-  const { data: existingGrade, error: fetchError } = await supabaseAdmin
-    .from('grades')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (fetchError) {
-    if (fetchError.code === 'PGRST116') {
-      return NextResponse.json(
-        { error: 'Grade not found', code: 'NOT_FOUND', requestId },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json(
-      { error: 'Failed to fetch grade', code: 'FETCH_ERROR', requestId },
-      { status: 500 }
-    );
-  }
-
-  // Delete grade
-  const { error } = await supabaseAdmin
-    .from('grades')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting grade:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete grade', code: 'DELETE_ERROR', requestId },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ message: 'Grade deleted successfully', requestId }, { status: 200 });
+  return jsonWithRequestId({ success: true, requestId }, 200, requestId);
 }, { allowedRoles: ['admin'] });

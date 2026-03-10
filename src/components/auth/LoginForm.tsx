@@ -6,11 +6,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneCountryInput } from '@/components/auth/PhoneCountryInput';
 import Link from 'next/link';
 import {
-    Mail,
     Lock,
     Loader2,
+    Eye,
+    EyeOff,
     ShieldCheck,
     BookOpen,
     GraduationCap,
@@ -55,26 +57,56 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
     const toLocale = (href: string) => withLocalePrefix(href, locale);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [email, setEmail] = useState('');
+    const [countryCode, setCountryCode] = useState('962');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [phoneError, setPhoneError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
 
     const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.student;
     const RoleIcon = config.icon;
 
+    const validateForm = (): boolean => {
+        let isValid = true;
+        setPhoneError(null);
+        setPasswordError(null);
+
+        if (!phone.trim()) {
+            setPhoneError('يرجى إدخال رقم الهاتف');
+            isValid = false;
+        } else if (phone.replace(/\s/g, '').length < 9) {
+            setPhoneError('رقم الهاتف قصير جداً');
+            isValid = false;
+        }
+
+        if (!password) {
+            setPasswordError('يرجى إدخال كلمة المرور');
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
             const result = await signIn('credentials', {
-                email,
+                phone: `+${countryCode}${phone.replace(/\s/g, '')}`,
                 password,
                 redirect: false,
             });
 
             if (result?.error) {
-                setError('فشل تسجيل الدخول. يرجى التحقق من البريد الإلكتروني وكلمة المرور.');
+                setError('بيانات الدخول غير صحيحة');
             } else {
                 const session = await getSession();
                 const userRole = (session?.user as any)?.role;
@@ -152,26 +184,18 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4" data-testid={`login-form-${role}`}>
-                    {/* Email */}
-                    <div className="space-y-1.5">
-                        <Label htmlFor="email" className="text-gray-700 font-medium text-sm">
-                            البريد الإلكتروني
-                        </Label>
-                        <div className="relative">
-                            <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                disabled={isLoading}
-                                data-testid="login-email-input"
-                                className="pr-10 h-11 border-gray-200 focus-visible:border-teal-500 focus-visible:ring-teal-200 transition-all"
-                            />
-                        </div>
-                    </div>
+                    {/* Phone */}
+                    <PhoneCountryInput
+                        countryCode={countryCode}
+                        locale={locale}
+                        onCountryCodeChange={setCountryCode}
+                        onPhoneChange={setPhone}
+                        phone={phone}
+                        disabled={isLoading}
+                        label="رقم الهاتف"
+                        required
+                        error={phoneError}
+                    />
 
                     {/* Password */}
                     <div className="space-y-1.5">
@@ -190,15 +214,35 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                             <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                             <Input
                                 id="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    setPasswordError(null);
+                                }}
                                 required
                                 disabled={isLoading}
                                 data-testid="login-password-input"
-                                className="pr-10 h-11 border-gray-200 focus-visible:border-teal-500 focus-visible:ring-teal-200 transition-all"
+                                className={`ps-10 h-11 border-gray-200 focus-visible:border-teal-500 focus-visible:ring-teal-200 transition-all ${
+                                    passwordError ? 'border-red-500 focus-visible:border-red-500 focus-visible:ring-red-100' : ''
+                                }`}
+                                aria-invalid={!!passwordError}
+                                aria-describedby={passwordError ? 'password-error' : undefined}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
                         </div>
+                        {passwordError && (
+                            <p id="password-error" className="text-sm text-red-500" role="alert">
+                                {passwordError}
+                            </p>
+                        )}
                     </div>
 
                     {/* Submit */}
@@ -233,7 +277,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                     variant="outline"
                     className="w-full h-11 border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-all hover:border-gray-300"
                 >
-                    <svg className="ml-2 h-4 w-4" viewBox="0 0 24 24">
+                    <svg className="ms-2 h-4 w-4" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.04-3.71 1.04-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />

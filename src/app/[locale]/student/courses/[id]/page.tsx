@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { BookOpen, Calendar, User, ArrowLeft } from 'lucide-react';
+import { getMockDb } from '@/lib/mockDb';
 
 export default async function StudentCourseDetailPage({
     params: { locale, id }
@@ -14,52 +15,91 @@ export default async function StudentCourseDetailPage({
     const session = await getServerSession(authOptions);
     const user = session?.user as any;
     const t = await getTranslations('student.courseDetail');
+    const tr = (key: string, fallback: string) => {
+        const hasKey = typeof (t as any).has === 'function' ? (t as any).has(key) : true;
+        return hasKey ? t(key as any) : fallback;
+    };
 
     if (!session || user?.role !== 'student') {
         redirect(`/${locale}`);
     }
 
-    // Fetch course details
-    const { data: course, error: courseError } = await supabaseAdmin
-        .from('courses')
-        .select(`
-            *,
-            grades(id, title, level),
-            teachers(id, name, email, image_url)
-        `)
-        .eq('id', id)
-        .single();
+    let course: any = null;
+    let enrollment: any = null;
+    let lessons: any[] = [];
+    if (process.env.TEST_BYPASS === 'true') {
+        const db = getMockDb();
+        const courses = Array.isArray(db.courses) ? db.courses : [];
+        const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+        const allLessons = Array.isArray(db.lessons) ? db.lessons : [];
+        const grades = Array.isArray(db.grades) ? db.grades : [];
 
-    if (courseError || !course) {
+        course = courses.find((candidate: any) => candidate.id === id) || null;
+        if (course) {
+            course.grades = grades.find((candidate: any) => candidate.id === course.grade_id) || null;
+            course.teachers = course.teacher || { name: 'Test Teacher', email: 'teacher@eduverse.com' };
+        }
+        enrollment = enrollments.find((candidate: any) =>
+            candidate.student_id === user.id &&
+            candidate.course_id === id &&
+            candidate.status === 'active'
+        ) || null;
+        lessons = allLessons
+            .filter((candidate: any) => candidate.course_id === id)
+            .sort((a: any, b: any) => String(a.start_date_time).localeCompare(String(b.start_date_time)));
+    } else {
+        // Fetch course details
+        const { data: dbCourse, error: courseError } = await supabaseAdmin
+            .from('courses')
+            .select(`
+                *,
+                grades(id, title, level),
+                teachers(id, name, email, image_url)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (courseError || !dbCourse) {
+            return (
+                <div className="p-8 text-center text-red-500">
+                    {tr('courseNotFound', 'Course not found')}
+                </div>
+            );
+        }
+        course = dbCourse;
+
+        // Verify student is enrolled in this course
+        const { data: dbEnrollment, error: enrollmentError } = await supabaseAdmin
+            .from('enrollments')
+            .select('*')
+            .eq('student_id', user.id)
+            .eq('course_id', id)
+            .eq('status', 'active')
+            .single();
+        enrollment = dbEnrollment;
+        if (enrollmentError) {
+            console.error('Error fetching enrollment:', enrollmentError);
+        }
+
+        // Fetch lessons for this course
+        const { data: dbLessons, error: lessonsError } = await supabaseAdmin
+            .from('lessons')
+            .select('*')
+            .eq('course_id', id)
+            .order('start_date_time', { ascending: true });
+        lessons = dbLessons || [];
+
+        if (lessonsError) {
+            console.error('Error fetching lessons:', lessonsError);
+        }
+    }
+
+    if (!course) {
         return (
             <div className="p-8 text-center text-red-500">
-                {t('courseNotFound')}
+                {tr('courseNotFound', 'Course not found')}
             </div>
         );
-    }
-
-    // Verify student is enrolled in this course
-    const { data: enrollment, error: enrollmentError } = await supabaseAdmin
-        .from('enrollments')
-        .select('*')
-        .eq('student_id', user.id)
-        .eq('course_id', id)
-        .eq('status', 'active')
-        .single();
-
-    if (enrollmentError) {
-        console.error('Error fetching enrollment:', enrollmentError);
-    }
-
-    // Fetch lessons for this course
-    const { data: lessons, error: lessonsError } = await supabaseAdmin
-        .from('lessons')
-        .select('*')
-        .eq('course_id', id)
-        .order('start_date_time', { ascending: true });
-
-    if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
     }
 
     // Calculate progress (completed lessons / total lessons)
@@ -72,7 +112,7 @@ export default async function StudentCourseDetailPage({
             {/* Breadcrumb */}
             <nav className="mb-6 text-sm text-gray-600">
                 <Link href={`/${locale}/student/courses`} className="hover:text-brand-primary">
-                    {t('courses')}
+                    {tr('courses', 'Courses')}
                 </Link>
                 <span className="mx-2">/</span>
                 <span className="font-medium">{course.title}</span>
@@ -84,7 +124,7 @@ export default async function StudentCourseDetailPage({
                 className="inline-flex items-center gap-2 text-gray-600 hover:text-brand-primary mb-6"
             >
                 <ArrowLeft className="w-4 h-4" />
-                {t('backToCourses')}
+                {tr('backToCourses', 'Back to Courses')}
             </Link>
 
             {/* Course Header */}
@@ -125,7 +165,7 @@ export default async function StudentCourseDetailPage({
                         <div className="flex items-center justify-between">
                             <div>
                                 <div className="text-sm text-gray-600 mb-1">
-                                    {t('enrolledSince')}
+                                    {tr('enrolledSince', 'Enrolled since')}
                                 </div>
                                 <div className="text-sm font-medium">
                                     {new Date(enrollment.enrolled_at).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
@@ -137,7 +177,7 @@ export default async function StudentCourseDetailPage({
                             </div>
                             <div className="text-right">
                                 <div className="text-sm text-gray-600 mb-1">
-                                    {t('progress')}
+                                    {tr('progress', 'Progress')}
                                 </div>
                                 <div className="text-2xl font-bold text-brand-primary">
                                     {progress}%
@@ -149,13 +189,13 @@ export default async function StudentCourseDetailPage({
                     <div className="mt-4 pt-4 border-t">
                         <div className="text-center">
                             <p className="text-gray-600 mb-4">
-                                {t('notEnrolled')}
+                                {tr('notEnrolled', 'You are not enrolled in this course')}
                             </p>
                             <Link
                                 href={`/${locale}/student/courses`}
                                 className="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
                             >
-                                {t('browseCourses')}
+                                {tr('browseCourses', 'Browse courses')}
                             </Link>
                         </div>
                     </div>
@@ -167,7 +207,7 @@ export default async function StudentCourseDetailPage({
                 <div className="bg-white rounded-lg border p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                         <Calendar className="w-6 h-6" />
-                        {t('lessons')}
+                        {tr('lessons', 'Lessons')}
                     </h2>
 
                     <div className="space-y-4">
@@ -218,7 +258,7 @@ export default async function StudentCourseDetailPage({
                                                 ? 'bg-blue-100 text-blue-800'
                                                 : 'bg-yellow-100 text-yellow-800'
                                         }`}>
-                                            {t(`status.${lesson.status}`)}
+                                            {tr(`status.${lesson.status}`, lesson.status)}
                                         </span>
                                     </div>
                                 </div>
@@ -235,10 +275,10 @@ export default async function StudentCourseDetailPage({
                         <Calendar className="w-8 h-8 text-gray-400" />
                     </div>
                     <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                        {t('noLessons')}
+                        {tr('noLessons', 'No lessons yet')}
                     </h2>
                     <p className="text-gray-500">
-                        {t('noLessonsDescription')}
+                        {tr('noLessonsDescription', 'Your teacher has not published lessons for this course yet.')}
                     </p>
                 </div>
             )}

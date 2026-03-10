@@ -1,168 +1,267 @@
-/**
- * Grade Students API Endpoint
- * 
- * GET /api/grades/[id]/students - List all students for a grade (with export option)
- */
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/withAuth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { withRequestId } from '@/lib/request-id';
+import { resolveGradeByRef } from '@/lib/grades';
+import { getMockDb } from '@/lib/mockDb';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+function jsonWithRequestId(body: any, status: number, requestId: string) {
+  return withRequestId(NextResponse.json(body, { status }), requestId);
+}
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function toCsvRow(values: Array<string | number>) {
+  return values
+    .map((value) => {
+      const stringValue = String(value ?? '');
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    })
+    .join(',');
+}
 
-/**
- * GET /api/grades/[id]/students
- * 
- * List all students for a specific grade.
- * 
- * Query parameters:
- * - export: Set to 'csv' to export as CSV file
- * - status: Filter by enrollment status (active, completed, dropped, etc.)
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const exportFormat = searchParams.get('export');
-    const status = searchParams.get('status');
+export const GET = withAuth(async (req, { user, requestId }, { params }) => {
+  const gradeRef = await resolveGradeByRef(params.id);
+  if (!gradeRef) {
+    return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
+  }
 
-    // Query enrollments with student and course information
-    let query = supabase
-      .from('enrollments')
-      .select(`
-        *,
-        student:student_id (
-          id,
+  if (user.role === 'teacher' && gradeRef.supervisor_id && gradeRef.supervisor_id !== user.id) {
+    return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
+  const { searchParams } = new URL(req.url);
+  const exportFormat = searchParams.get('export');
+  const search = (searchParams.get('search') || '').toLowerCase().trim();
+  const statusFilter = searchParams.get('status') || '';
+  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+  const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
+
+  if (process.env.TEST_BYPASS === 'true') {
+    const db = getMockDb();
+    const courses = Array.isArray(db.courses) ? db.courses : [];
+    const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+    const users = Array.isArray(db.users) ? db.users : [];
+    const payments = Array.isArray(db.payments) ? db.payments : [];
+
+    const gradeCourseIds = courses
+      .filter((course: any) => course.grade_id === gradeRef.id && (user.role !== 'teacher' || course.teacher_id === user.id))
+      .map((course: any) => course.id);
+
+    const activeEnrollments = enrollments.filter((enrollment: any) => gradeCourseIds.includes(enrollment.course_id));
+    const studentMap = new Map<string, any>();
+    for (const enrollment of activeEnrollments) {
+      const dbUser = users.find((candidate: any) => candidate.id === enrollment.student_id);
+      const email = dbUser?.email || enrollment.student_email || '';
+      const name = dbUser?.name || enrollment.student_name || email || 'Student';
+      const paymentState = payments.find((payment: any) => payment.student_id === enrollment.student_id && payment.grade_id === gradeRef.id);
+      const paymentStatus = paymentState?.status || 'unpaid';
+      if (!studentMap.has(enrollment.student_id)) {
+        studentMap.set(enrollment.student_id, {
+          id: enrollment.student_id,
           name,
           email,
-          phone,
-          image
-        ),
-        course:course_id (
-          id,
-          title,
-          grade_id
-        )
-      `)
-      .eq('course.grade_id', params.id)
-      .order('enrollment_date', { ascending: false });
-
-    // Apply status filter
-    if (status) {
-      query = query.eq('status', status);
+          enrollment_status: enrollment.status || 'active',
+          payment_status: paymentStatus,
+        });
+      }
     }
 
-    const { data: enrollments, error } = await query;
+    let rows = Array.from(studentMap.values());
+    if (statusFilter) {
+      rows = rows.filter((row: any) => row.enrollment_status === statusFilter);
+    }
+    if (search) {
+      rows = rows.filter((row: any) => row.name.toLowerCase().includes(search) || row.email.toLowerCase().includes(search));
+    }
 
-    if (error) {
-      console.error('Error fetching students for grade:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch students' },
-        { status: 500 }
+    if (exportFormat === 'csv') {
+      const header = ['grade_name', 'student_name', 'email', 'status', 'fees_status'];
+      const csvLines = [
+        toCsvRow(header),
+        ...rows.map((row: any) => toCsvRow([gradeRef.name, row.name, row.email, row.enrollment_status, row.payment_status])),
+      ];
+      return withRequestId(new NextResponse(csvLines.join('\n'), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="grade-${gradeRef.id}-students.csv"`,
+        },
+      }), requestId);
+    }
+
+    const total = rows.length;
+    const start = (page - 1) * limit;
+    return jsonWithRequestId({
+      students: rows.slice(start, start + limit),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+      requestId,
+    }, 200, requestId);
+  }
+
+  let coursesQuery = supabaseAdmin.from('courses').select('id').eq('grade_id', gradeRef.id);
+  if (user.role === 'teacher') {
+    coursesQuery = coursesQuery.eq('teacher_id', user.id);
+  }
+  const { data: courses, error: coursesError } = await coursesQuery;
+  if (coursesError) {
+    return jsonWithRequestId({ error: 'Failed to fetch students', code: 'FETCH_ERROR', requestId }, 500, requestId);
+  }
+
+  const courseIds = (courses || []).map((course: any) => course.id);
+  if (courseIds.length === 0) {
+    if (exportFormat === 'csv') {
+      const csv = ['grade_name,student_name,email,status,fees_status'].join('\n');
+      return withRequestId(
+        new NextResponse(csv, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': `attachment; filename="grade-${gradeRef.id}-students.csv"`,
+          },
+        }),
+        requestId
       );
     }
-
-    // Check if export is requested
-    if (exportFormat === 'csv') {
-      return exportStudentsAsCSV(enrollments || []);
-    }
-
-    // Group students by unique student ID to avoid duplicates
-    const uniqueStudents = new Map();
-    enrollments?.forEach((enrollment: any) => {
-      if (!uniqueStudents.has(enrollment.student.id)) {
-        uniqueStudents.set(enrollment.student.id, {
-          ...enrollment.student,
-          enrollment_count: 1,
-          courses: [enrollment.course],
-        });
-      } else {
-        const student = uniqueStudents.get(enrollment.student.id);
-        student.enrollment_count += 1;
-        student.courses.push(enrollment.course);
-      }
-    });
-
-    const students = Array.from(uniqueStudents.values());
-
-    return NextResponse.json({ students });
-  } catch (error) {
-    console.error('Error in GET /api/grades/[id]/students:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return jsonWithRequestId(
+      {
+        students: [],
+        meta: { page: 1, limit, total: 0, totalPages: 1 },
+        requestId,
+      },
+      200,
+      requestId
     );
   }
-}
 
-/**
- * Export students as CSV file
- */
-function exportStudentsAsCSV(enrollments: any[]): NextResponse {
-  // Group students by unique student ID
-  const uniqueStudents = new Map();
-  enrollments.forEach((enrollment: any) => {
-    if (!uniqueStudents.has(enrollment.student.id)) {
-      uniqueStudents.set(enrollment.student.id, {
-        ...enrollment.student,
-        enrollment_count: 1,
-        courses: [enrollment.course],
+  const { data: enrollments, error: enrollmentsError } = await supabaseAdmin
+    .from('enrollments')
+    .select(`
+      id,
+      student_id,
+      course_id,
+      status,
+      enrollment_date,
+      student:users!enrollments_student_id_fkey(id, name, email)
+    `)
+    .in('course_id', courseIds);
+
+  if (enrollmentsError) {
+    return jsonWithRequestId({ error: 'Failed to fetch students', code: 'FETCH_ERROR', requestId }, 500, requestId);
+  }
+
+  const { data: invoiceItems } = await supabaseAdmin
+    .from('invoice_items')
+    .select('student_id, invoice_id, total, course_id')
+    .in('course_id', courseIds);
+
+  const invoiceIds = [...new Set((invoiceItems || []).map((item: any) => item.invoice_id).filter(Boolean))];
+  const { data: payments } = invoiceIds.length
+    ? await supabaseAdmin.from('payments').select('invoice_id, amount, status').in('invoice_id', invoiceIds)
+    : { data: [] as any[] };
+
+  const paidByInvoice = new Map<string, number>();
+  for (const payment of payments || []) {
+    if (!payment.invoice_id) continue;
+    if (payment.status !== 'paid' && payment.status !== 'succeeded') continue;
+    paidByInvoice.set(payment.invoice_id, (paidByInvoice.get(payment.invoice_id) || 0) + Number(payment.amount || 0));
+  }
+
+  const feeByStudent = new Map<string, { expected: number; paid: number }>();
+  for (const item of invoiceItems || []) {
+    if (!item.student_id) continue;
+    const running = feeByStudent.get(item.student_id) || { expected: 0, paid: 0 };
+    running.expected += Number(item.total || 0);
+    running.paid += Number(paidByInvoice.get(item.invoice_id) || 0);
+    feeByStudent.set(item.student_id, running);
+  }
+
+  const studentMap = new Map<string, { id: string; name: string; email: string; statuses: string[]; payment_status: 'paid' | 'partial' | 'unpaid' }>();
+  for (const enrollment of enrollments || []) {
+    const student = enrollment.student as any;
+    if (!student?.id) continue;
+    const fee = feeByStudent.get(student.id) || { expected: 0, paid: 0 };
+    const payment_status: 'paid' | 'partial' | 'unpaid' =
+      fee.expected === 0 ? 'unpaid' : fee.paid >= fee.expected ? 'paid' : fee.paid > 0 ? 'partial' : 'unpaid';
+
+    const existing = studentMap.get(student.id);
+    if (!existing) {
+      studentMap.set(student.id, {
+        id: student.id,
+        name: student.name || 'Unknown Student',
+        email: student.email || '',
+        statuses: [enrollment.status || 'active'],
+        payment_status,
       });
     } else {
-      const student = uniqueStudents.get(enrollment.student.id);
-      student.enrollment_count += 1;
-      student.courses.push(enrollment.course);
+      existing.statuses.push(enrollment.status || 'active');
+      if (existing.payment_status === 'unpaid' && payment_status !== 'unpaid') {
+        existing.payment_status = payment_status;
+      }
+      if (existing.payment_status === 'partial' && payment_status === 'paid') {
+        existing.payment_status = 'paid';
+      }
     }
-  });
+  }
 
-  const students = Array.from(uniqueStudents.values());
+  let rows = Array.from(studentMap.values()).map((student) => ({
+    id: student.id,
+    name: student.name,
+    email: student.email,
+    enrollment_status: student.statuses.includes('active') ? 'active' : student.statuses[0] || 'active',
+    payment_status: student.payment_status,
+  }));
 
-  // CSV headers
-  const headers = [
-    'Student ID',
-    'Name',
-    'Email',
-    'Phone',
-    'Enrollment Count',
-    'Courses',
-  ];
+  if (statusFilter) {
+    rows = rows.filter((row) => row.enrollment_status === statusFilter);
+  }
 
-  // CSV rows
-  const rows = students.map((student: any) => [
-    student.id,
-    student.name,
-    student.email,
-    student.phone || '',
-    student.enrollment_count,
-    student.courses.map((c: any) => c.title).join('; '),
-  ]);
+  if (search) {
+    rows = rows.filter(
+      (row) => row.name.toLowerCase().includes(search) || row.email.toLowerCase().includes(search)
+    );
+  }
 
-  // Build CSV string
-  const csvContent = [
-    headers.join(','),
-    ...rows.map((row: string[]) => 
-      row.map(cell => {
-        // Escape quotes and wrap in quotes if contains comma
-        const cellStr = String(cell);
-        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-          return `"${cellStr.replace(/"/g, '""')}"`;
-        }
-        return cellStr;
-      }).join(',')
-    ),
-  ].join('\n');
+  if (exportFormat === 'csv') {
+    const header = ['grade_name', 'student_name', 'email', 'status', 'fees_status'];
+    const csvLines = [
+      toCsvRow(header),
+      ...rows.map((row) => toCsvRow([gradeRef.name, row.name, row.email, row.enrollment_status, row.payment_status])),
+    ];
+    const csv = csvLines.join('\n');
+    return withRequestId(
+      new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="grade-${gradeRef.id}-students.csv"`,
+        },
+      }),
+      requestId
+    );
+  }
 
-  // Create response with CSV content
-  return new NextResponse(csvContent, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="students.csv"',
+  const total = rows.length;
+  const start = (page - 1) * limit;
+  const paged = rows.slice(start, start + limit);
+  return jsonWithRequestId(
+    {
+      students: paged,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+      requestId,
     },
-  });
-}
+    200,
+    requestId
+  );
+}, { allowedRoles: ['admin', 'supervisor', 'teacher'] });

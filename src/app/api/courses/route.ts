@@ -13,11 +13,89 @@ export async function GET(req: Request) {
     const requestId = generateRequestId();
 
     try {
+        const { searchParams } = new URL(req.url);
+        const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+        const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 50);
+        const offset = (page - 1) * limit;
+        const subject = searchParams.get('subject');
+        const subjectId = searchParams.get('subjectId'); // Add subjectId filter
+        const teacherId = searchParams.get('teacherId');
+        const published = searchParams.get('published');
+        const search = searchParams.get('search');
+        const gradeId = searchParams.get('gradeId');
+
+        const session = await getServerSession(authOptions);
+        const currentUser = session?.user ? await getCurrentUser(session) : null;
+        const canSeeUnpublished = !!(currentUser && isTeacherOrAdmin(currentUser.role));
+
         if (process.env.TEST_BYPASS === 'true') {
             const { getMockDb } = require('@/lib/mockDb');
             const db = getMockDb();
-            const courses = db.courses || [];
-            return NextResponse.json({ courses, total: courses.length, requestId });
+            const allCourses = Array.isArray(db.courses) ? db.courses : [];
+            const allEnrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+            const allLessons = Array.isArray(db.lessons) ? db.lessons : [];
+            const nowIso = new Date().toISOString();
+
+            let courses = [...allCourses];
+
+            if (currentUser?.role === 'teacher') {
+                courses = courses.filter((course: any) => course.teacher_id === currentUser.id);
+            }
+            if (currentUser?.role === 'student') {
+                const enrolledCourseIds = allEnrollments
+                    .filter((enrollment: any) => enrollment.student_id === currentUser.id && enrollment.status === 'active')
+                    .map((enrollment: any) => enrollment.course_id);
+                courses = courses.filter((course: any) => enrolledCourseIds.includes(course.id));
+            }
+
+            const subjectFilter = subjectId || subject;
+            if (subjectFilter) {
+                courses = courses.filter((course: any) => course.subject_id === subjectFilter);
+            }
+            if (gradeId) {
+                courses = courses.filter((course: any) => course.grade_id === gradeId);
+            }
+            if (teacherId) {
+                courses = courses.filter((course: any) => course.teacher_id === teacherId);
+            }
+            if (!canSeeUnpublished) {
+                courses = courses.filter((course: any) => course.is_published !== false);
+            } else if (published === 'true') {
+                courses = courses.filter((course: any) => course.is_published === true);
+            } else if (published === 'false') {
+                courses = courses.filter((course: any) => course.is_published === false);
+            }
+            if (search) {
+                const needle = search.toLowerCase();
+                courses = courses.filter((course: any) =>
+                    String(course.title || '').toLowerCase().includes(needle) ||
+                    String(course.description || '').toLowerCase().includes(needle)
+                );
+            }
+
+            const enriched = courses.map((course: any) => {
+                const nextLesson = allLessons
+                    .filter((lesson: any) => lesson.course_id === course.id && String(lesson.start_date_time || '') > nowIso)
+                    .sort((a: any, b: any) => String(a.start_date_time).localeCompare(String(b.start_date_time)))[0];
+                return {
+                    ...course,
+                    teacher_name: course.teacher?.name || 'Test Teacher',
+                    next_lesson: nextLesson ? { title: nextLesson.title, start_date_time: nextLesson.start_date_time } : null,
+                };
+            });
+
+            const total = enriched.length;
+            return NextResponse.json({
+                courses: enriched.slice(offset, offset + limit),
+                total,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.max(1, Math.ceil(total / limit)),
+                },
+                requestId,
+            });
         }
 
         if (!supabaseAdmin) {
@@ -26,20 +104,6 @@ export async function GET(req: Request) {
                 { status: 500 }
             );
         }
-
-        const session = await getServerSession(authOptions);
-        const currentUser = session?.user ? await getCurrentUser(session) : null;
-        const canSeeUnpublished = currentUser && isTeacherOrAdmin(currentUser.role);
-
-        const { searchParams } = new URL(req.url);
-        const subject = searchParams.get('subject');
-        const subjectId = searchParams.get('subjectId'); // Add subjectId filter
-        const teacherId = searchParams.get('teacherId');
-        const published = searchParams.get('published');
-        const search = searchParams.get('search');
-        const gradeId = searchParams.get('gradeId');
-        const limit = parseInt(searchParams.get('limit') || '50');
-        const offset = parseInt(searchParams.get('offset') || '0');
 
         let query = supabaseAdmin
             .from('courses')
@@ -52,6 +116,29 @@ export async function GET(req: Request) {
             `, { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
+
+        if (currentUser?.role === 'teacher') {
+            query = query.eq('teacher_id', currentUser.id);
+        }
+
+        if (currentUser?.role === 'student') {
+            const { data: enrollments } = await supabaseAdmin
+                .from('enrollments')
+                .select('course_id')
+                .eq('student_id', currentUser.id)
+                .eq('status', 'active');
+
+            const enrolledCourseIds = (enrollments || []).map((enrollment: any) => enrollment.course_id);
+            if (enrolledCourseIds.length === 0) {
+                return NextResponse.json({
+                    courses: [],
+                    total: 0,
+                    meta: { page, limit, total: 0, totalPages: 1 },
+                    requestId,
+                });
+            }
+            query = query.in('id', enrolledCourseIds);
+        }
 
         // Support both 'subject' and 'subjectId' parameters
         const subjectFilter = subjectId || subject;
@@ -91,7 +178,43 @@ export async function GET(req: Request) {
             );
         }
 
-        return NextResponse.json({ courses, total: count, requestId });
+        const courseIds = (courses || []).map((course: any) => course.id);
+        const { data: nextLessons } = courseIds.length
+            ? await supabaseAdmin
+                .from('lessons')
+                .select('course_id, title, start_date_time')
+                .in('course_id', courseIds)
+                .gt('start_date_time', new Date().toISOString())
+                .order('start_date_time', { ascending: true })
+            : { data: [] as any[] };
+
+        const nextLessonByCourse = new Map<string, { title: string; start_date_time: string }>();
+        for (const lesson of nextLessons || []) {
+            if (!nextLessonByCourse.has(lesson.course_id)) {
+                nextLessonByCourse.set(lesson.course_id, {
+                    title: lesson.title,
+                    start_date_time: lesson.start_date_time,
+                });
+            }
+        }
+
+        const enrichedCourses = (courses || []).map((course: any) => ({
+            ...course,
+            teacher_name: course.teacher?.name || '',
+            next_lesson: nextLessonByCourse.get(course.id) || null,
+        }));
+
+        return NextResponse.json({
+            courses: enrichedCourses,
+            total: count || 0,
+            meta: {
+                page,
+                limit,
+                total: count || 0,
+                totalPages: Math.max(1, Math.ceil((count || 0) / limit)),
+            },
+            requestId,
+        });
     } catch (error) {
         console.error('Error fetching courses:', error);
         return NextResponse.json(

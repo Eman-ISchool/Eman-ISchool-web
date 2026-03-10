@@ -1,34 +1,24 @@
 'use client';
 
-import { ADMIN_PORTAL_ROLES } from '@/lib/roles';
-
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
-    Calendar,
-    Video,
     BookOpen,
-    FileQuestion,
     Users,
-    GraduationCap,
-    DollarSign,
-    Coins,
-    Ticket,
-    FileText,
+    CreditCard,
     MessageSquare,
+    FilePen,
+    ChartNoAxesColumn,
+    Database,
     Settings,
     ChevronLeft,
-    ChevronRight,
-    Bell,
-    Search,
+    ChevronDown,
     Menu,
     X,
-    LogOut,
     User,
-    UserPlus,
 } from 'lucide-react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 import { useTranslations } from 'next-intl';
@@ -42,295 +32,217 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const router = useRouter();
     const { data: session, status } = useSession();
     const pathname = usePathname();
-    const t = useTranslations('admin.nav');
     const locale = useLocale();
-    const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [pendingEnrollmentsCount, setPendingEnrollmentsCount] = useState(0);
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-    // Filter nav items based on user role
-    // @ts-ignore - role is added to session
-    const userRole = session?.user?.role;
-
-    // Fetch pending enrollments count on mount
-    useEffect(() => {
-        const fetchPendingCount = async () => {
-            try {
-                const res = await fetch('/api/enrollments?status=pending&limit=1');
-                if (res.ok) {
-                    const data = await res.json();
-                    setPendingEnrollmentsCount(data.total || 0);
-                }
-            } catch (err) {
-                console.error('Failed to fetch pending enrollments count:', err);
-            }
-        };
-        fetchPendingCount();
-    }, []);
-
-    const navItems = [
+    const navGroups = [
         {
-            icon: <LayoutDashboard className="admin-nav-icon" />,
-            label: t('dashboard'),
-            href: '/admin',
-            badge: pendingEnrollmentsCount > 0 ? pendingEnrollmentsCount : undefined,
+            label: 'الأكاديمي',
+            icon: <BookOpen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'المواد الدراسية', href: '/dashboard/courses' },
+                { label: 'الفئات', href: '/dashboard/categories' },
+                { label: 'الفصول', href: '/dashboard/bundles' },
+                { label: 'الامتحانات', href: '/dashboard/exams' },
+                { label: 'الاختبارات', href: '/dashboard/quizzes' },
+            ]
         },
         {
-            icon: <Video className="admin-nav-icon text-indigo-500" />,
-            label: 'E2E Flow',
-            href: '/e2e-flow',
+            label: 'الإدارة',
+            icon: <Users className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'المستخدمون', href: '/dashboard/users' },
+                { label: 'الطلبات', href: '/dashboard/applications' },
+                { label: 'البيانات المرجعية', href: '/dashboard/lookups' },
+            ]
         },
         {
-            icon: <Calendar className="admin-nav-icon" />,
-            label: t('calendar'),
-            href: '/admin/calendar',
+            label: 'المالية',
+            icon: <CreditCard className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'المدفوعات', href: '/dashboard/payments' },
+                { label: 'المصروفات', href: '/dashboard/expenses' },
+                { label: 'الكوبونات', href: '/dashboard/coupons' },
+                { label: 'البنوك', href: '/dashboard/banks' },
+                { label: 'العملات', href: '/dashboard/currencies' },
+                { label: 'الرواتب', href: '/dashboard/salaries' },
+                { label: 'قسائم الدفع', href: '/dashboard/payslips' },
+            ]
         },
         {
-            icon: <Video className="admin-nav-icon" />,
-            label: t('live'),
-            href: '/admin/live',
-            badge: 3,
+            label: 'التواصل',
+            icon: <MessageSquare className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'الرسائل', href: '/dashboard/messages' },
+                { label: 'الإعلانات', href: '/dashboard/announcements' },
+            ]
         },
         {
-            icon: <BookOpen className="admin-nav-icon" />,
-            label: t('lessons'),
-            href: '/admin/lessons',
+            label: 'المحتوى',
+            icon: <FilePen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'إدارة المحتوى', href: '/dashboard/cms' },
+                { label: 'الترجمات', href: '/dashboard/translations' },
+            ]
         },
         {
-            icon: <FileQuestion className="admin-nav-icon" />,
-            label: t('quizzes'),
-            href: '/admin/quizzes-exams',
+            label: 'التحليلات',
+            icon: <ChartNoAxesColumn className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'التقارير', href: '/dashboard/admin/reports' },
+            ]
         },
         {
-            icon: <Users className="admin-nav-icon" />,
-            label: t('teachers'),
-            href: '/admin/teachers',
-            roles: ['admin', 'manager'],
-        },
-        {
-            icon: <GraduationCap className="admin-nav-icon" />,
-            label: t('students'),
-            href: '/admin/students',
-        },
-        {
-            icon: <UserPlus className="admin-nav-icon" />,
-            label: 'Enrollments', // Ideally from translation, hardcoded for now
-            href: '/admin/enrollment-applications',
-            roles: ['admin', 'manager'],
-            badge: pendingEnrollmentsCount > 0 ? pendingEnrollmentsCount : undefined,
-        },
-        {
-            icon: <FileText className="admin-nav-icon" />,
-            label: 'Enrollment Reports',
-            href: '/admin/enrollment-reports',
-            roles: ['admin', 'manager', 'finance'],
-        },
-        {
-            icon: <DollarSign className="admin-nav-icon" />,
-            label: t('fees'),
-            href: '/admin/fees',
-            roles: ['admin', 'manager', 'finance'],
-        },
-        {
-            icon: <Ticket className="admin-nav-icon" />,
-            label: t('coupons'),
-            href: '/admin/coupons-expenses',
-            roles: ['admin', 'manager', 'finance'],
-        },
-        {
-            icon: <FileText className="admin-nav-icon" />,
-            label: t('content'),
-            href: '/admin/content',
-        },
-        {
-            icon: <Coins className="admin-nav-icon" />,
-            label: t('currency'),
-            href: '/admin/currency-compare',
-            roles: ['admin', 'manager', 'finance'],
-        },
-        {
-            icon: <MessageSquare className="admin-nav-icon" />,
-            label: t('messages'),
-            href: '/admin/messages-audit',
-            roles: ['admin'],
-        },
-        {
-            icon: <Settings className="admin-nav-icon" />,
-            label: t('settings'),
-            href: '/admin/settings',
-            roles: ['admin'],
-        },
+            label: 'إدارة البيانات',
+            icon: <Database className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            items: [
+                { label: 'النسخ الاحتياطي', href: '/dashboard/backup' },
+            ]
+        }
     ];
 
-    // Redirect if not admin
     useEffect(() => {
-        if (status === 'loading') return;
+        const newExpanded: Record<string, boolean> = { ...expandedGroups };
+        navGroups.forEach(group => {
+            const localizedHrefs = group.items.map(i => withLocalePrefix(i.href, locale));
+            if (localizedHrefs.some(href => pathname === href || pathname.startsWith(href + '/'))) {
+                newExpanded[group.label] = true;
+            }
+        });
+        setExpandedGroups(newExpanded);
+    }, [pathname, locale]);
 
-        // @ts-ignore - role is added to session
-        const role = session?.user?.role;
+    const toggleGroup = (label: string) => {
+        setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+    };
 
-        if (!session) {
-            router.push(withLocalePrefix('/login/admin', locale));
-        } else if (role && !ADMIN_PORTAL_ROLES.includes(role)) {
-            // Only redirect to dashboard if we definitively know they are NOT in an allowed role
-            router.push(withLocalePrefix('/dashboard', locale));
-        }
-    }, [session, status, router, locale]);
-
-
-    if (status === 'loading' || !session) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (status === 'loading') {
+        return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
     }
-
-    const filteredNavItems = navItems.filter((item) => {
-        if (!item.roles) return true;
-        // @ts-ignore
-        return item.roles.includes(userRole);
-    });
 
     const isActive = (href: string) => {
         const localizedHref = withLocalePrefix(href, locale);
-        if (href === '/admin') return pathname === localizedHref;
+        if (href === '/dashboard' || href === '/dashboard/system-settings' || href === '/dashboard/profile') {
+            return pathname === localizedHref;
+        }
         return pathname.startsWith(localizedHref);
     };
+
+    const navItemClass = (href: string) => `inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all h-12 px-4 py-2 w-full justify-start text-left font-normal ${isActive(href) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'}`;
 
     const direction = locale === 'ar' ? 'rtl' : 'ltr';
 
     return (
-        <div className="admin-layout" dir={direction}>
-            {/* Mobile Overlay */}
-            {mobileOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-                    onClick={() => setMobileOpen(false)}
-                />
-            )}
-
-            {/* Sidebar */}
-            <aside
-                className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'open' : ''
-                    }`}
-            >
-                {/* Sidebar Header */}
-                <div className="admin-sidebar-header">
-                    <Link href={withLocalePrefix('/admin', locale)} className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">E</span>
-                        </div>
-                        {!collapsed && (
-                            <span className="font-bold text-lg text-gray-800">
-                                Eman ISchool
-                            </span>
-                        )}
-                    </Link>
-                    <button
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="admin-btn admin-btn-ghost admin-btn-icon ms-auto hidden lg:flex"
-                    >
-                        {collapsed ? (
-                            <ChevronLeft className="w-5 h-5 rtl:hidden" />
-                        ) : (
-                            <ChevronLeft className="w-5 h-5 hidden rtl:block" />
-                        )}
-                        {collapsed ? (
-                            <ChevronRight className="w-5 h-5 hidden rtl:block" />
-                        ) : (
-                            <ChevronRight className="w-5 h-5 rtl:hidden" />
-                        )}
-                    </button>
-                    <button
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900" dir={direction}>
+            <div className="flex h-screen overflow-hidden">
+                {/* Mobile overlay */}
+                {mobileOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-40 md:hidden"
                         onClick={() => setMobileOpen(false)}
-                        className="admin-btn admin-btn-ghost admin-btn-icon lg:hidden"
+                    />
+                )}
+
+                {/* Sidebar */}
+                <div className={`fixed inset-y-0 ${direction === 'rtl' ? 'right-0' : 'left-0'} z-50 w-64 bg-white dark:bg-gray-950 border-${direction === 'rtl' ? 'l' : 'r'} border-gray-200 dark:border-gray-800 transform ${mobileOpen ? 'translate-x-0' : direction === 'rtl' ? 'translate-x-full' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col h-full`}>
+
+                    {/* User Profile Header */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                            <div className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full cursor-pointer bg-gray-100 dark:bg-gray-800">
+                                {session?.user?.image ? (
+                                    <img src={session.user.image} alt="Avatar" className="h-full w-full object-cover" />
+                                ) : (
+                                    <span className="flex h-full w-full items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">
+                                        {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'A'}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate dark:text-white">{session?.user?.name || 'Admin User'}</p>
+                                <p className="text-xs text-gray-500 truncate">{session?.user?.email || 'admin@eduverse.com'}</p>
+                            </div>
+                            <button className="md:hidden p-1 text-gray-500 hover:bg-gray-100 rounded-full" onClick={() => setMobileOpen(false)}>
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Navigation Scroll Area */}
+                    <div className="relative overflow-y-auto flex-1 w-full px-3 py-4 scrollbar-hide">
+                        <div className="space-y-1">
+                            {/* Dashboard Home */}
+                            <Link href={withLocalePrefix('/dashboard', locale)} className={navItemClass('/dashboard')} onClick={() => setMobileOpen(false)}>
+                                <LayoutDashboard className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                <span className="w-full rtl:text-right">الرئيسية</span>
+                            </Link>
+
+                            {/* Collapsible Groups */}
+                            {navGroups.map((group) => {
+                                const isExpanded = expandedGroups[group.label] || false;
+                                return (
+                                    <div key={group.label} className="w-full">
+                                        <button
+                                            onClick={() => toggleGroup(group.label)}
+                                            className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all h-12 px-4 py-2 w-full justify-start text-left font-normal text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                        >
+                                            {group.icon}
+                                            <span className="w-full rtl:text-right">{group.label}</span>
+                                            <ChevronLeft className={`h-4 w-4 transition-transform ${isExpanded ? '-rotate-90' : ''}`} />
+                                        </button>
+
+                                        {isExpanded && (
+                                            <div className="mt-1 space-y-1 rtl:pr-6 ltr:pl-6">
+                                                {group.items.map(item => (
+                                                    <Link
+                                                        key={item.href}
+                                                        href={withLocalePrefix(item.href, locale)}
+                                                        className={`block w-full rounded-2xl px-4 py-2 text-sm transition-colors ${isActive(item.href) ? 'text-blue-600 font-medium bg-blue-50 dark:bg-blue-900/30' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100'}`}
+                                                        onClick={() => setMobileOpen(false)}
+                                                    >
+                                                        {item.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+
+                            <Link href={withLocalePrefix('/dashboard/system-settings', locale)} className={navItemClass('/dashboard/system-settings')} onClick={() => setMobileOpen(false)}>
+                                <Settings className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                <span className="w-full rtl:text-right">الإعدادات</span>
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Bottom Profile / Footer Link */}
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                        <Link href={withLocalePrefix('/dashboard/profile', locale)} className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all h-12 px-4 py-2 w-full justify-start text-left font-normal text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" onClick={() => setMobileOpen(false)}>
+                            <User className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                            <span className="w-full rtl:text-right">الملف الشخصي</span>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Mobile Header Trigger */}
+                <div className="md:hidden fixed top-4 left-4 rtl:left-auto rtl:right-4 z-30">
+                    <button
+                        onClick={() => setMobileOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-3xl text-sm font-semibold transition-all border bg-white shadow-sm hover:bg-gray-100 h-10 w-10 outline-none"
                     >
-                        <X className="w-5 h-5" />
+                        <Menu className="h-5 w-5" />
                     </button>
                 </div>
 
-                {/* Navigation */}
-                <nav className="admin-sidebar-nav">
-                    {filteredNavItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={withLocalePrefix(item.href, locale)}
-                            className={`admin-nav-item ${isActive(item.href) ? 'active' : ''}`}
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            {item.icon}
-                            <span className="admin-nav-label">{item.label}</span>
-                            {item.badge && (
-                                <span className="admin-nav-badge">{item.badge}</span>
-                            )}
-                        </Link>
-                    ))}
-                </nav>
-
-                {/* Sidebar Footer */}
-                <div className="admin-sidebar-footer">
-                    <div className="flex items-center gap-3 p-2">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                            {session?.user?.image ? (
-                                <img
-                                    src={session.user.image}
-                                    alt={session.user.name || ''}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <User className="w-5 h-5 text-gray-500" />
-                            )}
-                        </div>
-                        {!collapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-800 truncate">
-                                    {session?.user?.name || 'Admin'}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate">
-                                    {userRole === 'admin' ? 'Admin' : userRole === 'teacher' ? 'Teacher' : 'Manager'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-auto bg-gray-50/50 dark:bg-gray-900 border-l border-r border-transparent">
+                    <main className="p-4 md:p-6 pb-20 md:pb-6 min-h-screen">
+                        {children}
+                    </main>
                 </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="admin-main">
-                {/* Top Bar */}
-                <header className="admin-topbar">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setMobileOpen(true)}
-                            className="admin-btn admin-btn-ghost admin-btn-icon lg:hidden"
-                        >
-                            <Menu className="w-5 h-5" />
-                        </button>
-                        <div className="relative hidden md:block">
-                            <input
-                                type="text"
-                                placeholder={locale === 'ar' ? 'بحث...' : 'Search...'}
-                                className="admin-input admin-search-input w-64"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button className="admin-btn admin-btn-ghost admin-btn-icon relative">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                                5
-                            </span>
-                        </button>
-                        <Link
-                            href="/api/auth/signout"
-                            className="admin-btn admin-btn-ghost admin-btn-icon"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </Link>
-                    </div>
-                </header>
-
-                {/* Page Content */}
-                <div className="admin-content">{children}</div>
-            </main>
+            </div>
         </div>
     );
 }

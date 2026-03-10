@@ -3,8 +3,10 @@ import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notFound, redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
-import { LessonDetailPage } from '@/components/lessons/LessonDetailPage';
+import LessonDetailPage from '@/components/lessons/LessonDetailPage';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
+import { getMockDb } from '@/lib/mockDb';
 
 export default async function StudentLessonDetailPage({
     params: { id, lessonId, locale }
@@ -19,25 +21,50 @@ export default async function StudentLessonDetailPage({
         redirect(withLocalePrefix('/', locale));
     }
 
-    // Fetch lesson details
-    const { data: lesson, error: lessonError } = await supabaseAdmin
-        .from('lessons')
-        .select('*, course:courses(id, title)')
-        .eq('id', lessonId)
-        .single();
+    let lesson: any = null;
+    let enrollment: any = null;
+    if (process.env.TEST_BYPASS === 'true') {
+        const db = getMockDb();
+        const lessons = Array.isArray(db.lessons) ? db.lessons : [];
+        const courses = Array.isArray(db.courses) ? db.courses : [];
+        const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
+        lesson = lessons.find((candidate: any) => candidate.id === lessonId) || null;
+        const course = courses.find((candidate: any) => candidate.id === id) || null;
+        if (lesson) {
+            lesson.course = course ? { id: course.id, title: course.title } : null;
+        }
+        enrollment = enrollments.find((candidate: any) =>
+            candidate.course_id === id &&
+            candidate.student_id === user.id &&
+            candidate.status === 'active'
+        ) || null;
+    } else {
+        // Fetch lesson details
+        const { data: dbLesson, error: lessonError } = await supabaseAdmin
+            .from('lessons')
+            .select('*, course:courses(id, title)')
+            .eq('id', lessonId)
+            .single();
 
-    if (lessonError || !lesson) {
-        notFound();
+        if (lessonError || !dbLesson) {
+            notFound();
+        }
+        lesson = dbLesson;
+
+        // Check if student is enrolled in the course
+        const { data: dbEnrollment } = await supabaseAdmin
+            .from('enrollments')
+            .select('*')
+            .eq('course_id', id)
+            .eq('student_id', user.id)
+            .eq('status', 'active')
+            .single();
+        enrollment = dbEnrollment;
     }
 
-    // Check if student is enrolled in the course
-    const { data: enrollment } = await supabaseAdmin
-        .from('enrollments')
-        .select('*')
-        .eq('course_id', id)
-        .eq('student_id', user.id)
-        .eq('status', 'active')
-        .single();
+    if (!lesson) {
+        notFound();
+    }
 
     if (!enrollment) {
         return (
@@ -55,12 +82,14 @@ export default async function StudentLessonDetailPage({
     }
 
     // Fetch student's attendance record for this lesson
-    const { data: attendance } = await supabaseAdmin
-        .from('attendance')
-        .select('*')
-        .eq('lesson_id', lessonId)
-        .eq('student_id', user.id)
-        .single();
+    const { data: attendance } = process.env.TEST_BYPASS === 'true'
+        ? { data: null as any }
+        : await supabaseAdmin
+            .from('attendance')
+            .select('*')
+            .eq('lesson_id', lessonId)
+            .eq('student_id', user.id)
+            .single();
 
     const isJoined = !!attendance?.join_time;
     const now = new Date();

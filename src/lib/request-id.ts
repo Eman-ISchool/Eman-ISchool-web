@@ -1,3 +1,5 @@
+import { NextResponse } from 'next/server';
+
 /**
  * Request ID Utility
  * 
@@ -12,6 +14,14 @@
  */
 export function generateRequestId(): string {
   return crypto.randomUUID();
+}
+
+/**
+ * Attaches X-Request-Id response header.
+ */
+export function withRequestId(response: NextResponse, requestId: string): NextResponse {
+  response.headers.set('X-Request-Id', requestId);
+  return response;
 }
 
 /**

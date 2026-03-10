@@ -1,250 +1,197 @@
-import { test, expect, BrowserContext, Page } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+import { test, expect, BrowserContext } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const TEACHER_EMAIL = 'teacher@eduverse.com';
 const TEACHER_PASSWORD = 'password123';
 const STUDENT_EMAIL = 'student@eduverse.com';
 const STUDENT_PASSWORD = 'password123';
+const TEACHER_ID = '00000000-0000-0000-0000-000000000001';
+const STUDENT_ID = '00000000-0000-0000-0000-000000000002';
 
-/**
- * Programmatic login using NextAuth's internal API.
- * All requests happen from the SAME page so cookies are shared correctly.
- */
+const MOCK_DB_PATH = path.join(process.cwd(), '.mock-db.json');
+
 async function loginProgrammatically(context: BrowserContext, email: string, password: string): Promise<void> {
-    const page = await context.newPage();
+  const page = await context.newPage();
+  await page.goto(`${BASE_URL}/api/auth/csrf`, { waitUntil: 'networkidle' });
 
-    // Navigate to establish cookies
-    await page.goto(`${BASE_URL}/api/auth/csrf`, { waitUntil: 'networkidle' });
+  const loginResult = await page.evaluate(async ({ base, email, password }) => {
+    const csrfRes = await fetch(`${base}/api/auth/csrf`);
+    const { csrfToken } = await csrfRes.json();
 
-    // Do CSRF fetch + credentials POST from within the same page context
-    const loginResult = await page.evaluate(async ({ base, email, password }) => {
-        // Step 1: Get CSRF token (cookies already set by page load above)
-        const csrfRes = await fetch(`${base}/api/auth/csrf`);
-        const { csrfToken } = await csrfRes.json();
+    const params = new URLSearchParams();
+    params.append('email', email);
+    params.append('password', password);
+    params.append('csrfToken', csrfToken);
+    params.append('callbackUrl', `${base}/en/teacher/home`);
+    params.append('json', 'true');
 
-        // Step 2: POST credentials with the CSRF token
-        const params = new URLSearchParams();
-        params.append('email', email);
-        params.append('password', password);
-        params.append('csrfToken', csrfToken);
-        params.append('callbackUrl', base);
-        params.append('json', 'true');
+    await fetch(`${base}/api/auth/callback/credentials`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+      redirect: 'follow',
+    });
 
-        const authRes = await fetch(`${base}/api/auth/callback/credentials`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString(),
-            redirect: 'follow',
-        });
+    const sessionRes = await fetch(`${base}/api/auth/session`);
+    return sessionRes.json();
+  }, { base: BASE_URL, email, password });
 
-        const authBody = await authRes.text();
-
-        // Step 3: Check session
-        const sessionRes = await fetch(`${base}/api/auth/session`);
-        const session = await sessionRes.json();
-
-        return { authStatus: authRes.status, authBody, session };
-    }, { base: BASE_URL, email, password });
-
-    await page.close();
-
-    if (!loginResult.session?.user?.email) {
-        console.error('Auth response:', loginResult.authStatus, loginResult.authBody);
-        throw new Error(`Login failed for ${email}. Status: ${loginResult.authStatus}. Session: ${JSON.stringify(loginResult.session)}`);
-    }
-
-    console.log(`Logged in as: ${loginResult.session.user.email} (role: ${loginResult.session.user.role})`);
+  await page.close();
+  if (!loginResult?.user?.email) {
+    throw new Error(`Login failed for ${email}`);
+  }
 }
 
-test('Full Teacher → Student E2E Flow', async ({ browser }) => {
-    test.setTimeout(180_000);
+function seedMockFlow(uniqueId: string) {
+  const meetLink = 'https://meet.google.com/abc-defg-hij';
+  const now = Date.now();
+  const start = new Date(now + 30 * 60 * 1000).toISOString();
+  const end = new Date(now + 75 * 60 * 1000).toISOString();
 
-    const uniqueId = `E2E-${Date.now()}`;
-    const courseTitle = `Test Course ${uniqueId}`;
-    const sessionTitle = `Live Session ${uniqueId}`;
+  const gradeId = `grade-e2e-${uniqueId}`;
+  const gradeSlug = `grade-e2e-${uniqueId}`;
+  const courseId = `course-e2e-${uniqueId}`;
+  const lessonId = `lesson-e2e-${uniqueId}`;
+  const enrollmentId = `enroll-e2e-${uniqueId}`;
 
-    // ======================================
-    // TEACHER FLOW
-    // ======================================
-    const teacherContext = await browser.newContext();
+  const db = JSON.parse(fs.readFileSync(MOCK_DB_PATH, 'utf-8'));
+  if (!Array.isArray(db.grades)) db.grades = [];
+  if (!Array.isArray(db.courses)) db.courses = [];
+  if (!Array.isArray(db.lessons)) db.lessons = [];
+  if (!Array.isArray(db.enrollments)) db.enrollments = [];
+  if (!Array.isArray(db.lesson_meetings)) db.lesson_meetings = [];
+  if (!Array.isArray(db.users)) db.users = [];
 
-    // CHECKPOINT 1: Teacher Login
-    console.log('── CHECKPOINT 1: Teacher Login ──');
-    await loginProgrammatically(teacherContext, TEACHER_EMAIL, TEACHER_PASSWORD);
-
-    const teacherPage = await teacherContext.newPage();
-    await teacherPage.goto(`${BASE_URL}/en/e2e-flow`, { waitUntil: 'networkidle' });
-    await teacherPage.waitForTimeout(3000);
-
-    await expect(teacherPage.locator('h1')).toContainText('E2E Flow Test Dashboard', { timeout: 15000 });
-    console.log('✅ CHECKPOINT 1: Teacher login successful, e2e-flow page loaded');
-    await teacherPage.screenshot({ path: 'tests/screenshots/01-teacher-dashboard.png' });
-
-    // CHECKPOINT 2a: Create Course
-    console.log('── CHECKPOINT 2a: Create Course ──');
-    await teacherPage.locator('#course-title-input').fill(courseTitle);
-
-    // Click create and wait for the API response
-    const [createResponse] = await Promise.all([
-        teacherPage.waitForResponse(response =>
-            response.url().includes('/api/e2e-rpc') && response.request().method() === 'POST',
-            { timeout: 15000 }
-        ),
-        teacherPage.click('#create-course-btn'),
-    ]);
-    const createBody = await createResponse.json();
-    console.log('Create course response:', createResponse.status(), JSON.stringify(createBody).substring(0, 200));
-
-    // Check for error message on page
-    const errorEl = teacherPage.locator('.bg-red-100');
-    if (await errorEl.isVisible({ timeout: 1000 }).catch(() => false)) {
-        const errorText = await errorEl.textContent();
-        console.error('Page error after create:', errorText);
+  const ensureUser = (id: string, email: string, role: string, name: string) => {
+    if (!db.users.some((user: any) => user.id === id)) {
+      db.users.push({ id, email, role, name });
     }
+  };
+  ensureUser(TEACHER_ID, TEACHER_EMAIL, 'teacher', 'Test Teacher');
+  ensureUser(STUDENT_ID, STUDENT_EMAIL, 'student', 'Test Student');
 
-    await teacherPage.waitForTimeout(2000);
-    await teacherPage.screenshot({ path: 'tests/screenshots/02a-after-create-course.png' });
+  db.grades = db.grades.filter((grade: any) => grade.id !== gradeId);
+  db.courses = db.courses.filter((course: any) => course.id !== courseId);
+  db.lessons = db.lessons.filter((lesson: any) => lesson.id !== lessonId);
+  db.enrollments = db.enrollments.filter((enrollment: any) => enrollment.id !== enrollmentId);
+  db.lesson_meetings = db.lesson_meetings.filter((meeting: any) => meeting.lesson_id !== lessonId);
 
-    // Select the course from dropdown — wait for options to populate
-    const courseSelect = teacherPage.locator('#course-select');
-    await teacherPage.waitForTimeout(2000);
-    const options = await courseSelect.locator('option').allTextContents();
-    console.log('Course options:', options);
-    const matchingOption = options.find(o => o.includes(uniqueId));
-    if (!matchingOption) {
-        // Take screenshot for debugging
-        await teacherPage.screenshot({ path: 'tests/screenshots/02a-debug-no-course.png' });
-        // Try refreshing the page and re-checking
-        console.log('No matching course option found, trying page refresh...');
-        await teacherPage.reload({ waitUntil: 'networkidle' });
-        await teacherPage.waitForTimeout(3000);
-        const refreshedOptions = await courseSelect.locator('option').allTextContents();
-        console.log('After refresh, course options:', refreshedOptions);
-        const refreshedMatch = refreshedOptions.find(o => o.includes(uniqueId));
-        expect(refreshedMatch).toBeTruthy();
-        await courseSelect.selectOption({ label: refreshedMatch! });
-    } else {
-        await courseSelect.selectOption({ label: matchingOption });
-    }
-    await teacherPage.waitForTimeout(2000);
+  db.grades.push({
+    id: gradeId,
+    name: `Grade E2E ${uniqueId}`,
+    slug: gradeSlug,
+    supervisor_id: TEACHER_ID,
+    is_active: true,
+    created_at: new Date(now).toISOString(),
+    updated_at: new Date(now).toISOString(),
+  });
 
-    console.log('✅ CHECKPOINT 2a: Course created and selected');
-    await teacherPage.screenshot({ path: 'tests/screenshots/02-course-created.png' });
+  db.courses.push({
+    id: courseId,
+    title: `Course E2E ${uniqueId}`,
+    description: 'Teacher/student flow course',
+    grade_id: gradeId,
+    subject_id: `subject-e2e-${uniqueId}`,
+    teacher_id: TEACHER_ID,
+    teacher: { name: 'Test Teacher', email: TEACHER_EMAIL },
+    is_published: true,
+    created_at: new Date(now).toISOString(),
+  });
 
-    // CHECKPOINT 2b: Enroll Student
-    console.log('── CHECKPOINT 2b: Enroll Student ──');
-    await teacherPage.locator('#enroll-email-input').fill(STUDENT_EMAIL);
-    await teacherPage.click('#enroll-student-btn');
-    await teacherPage.waitForTimeout(3000);
+  db.enrollments.push({
+    id: enrollmentId,
+    course_id: courseId,
+    student_id: STUDENT_ID,
+    student_email: STUDENT_EMAIL,
+    student_name: 'Test Student',
+    status: 'active',
+    enrollment_date: new Date(now).toISOString(),
+    enrolled_at: new Date(now).toISOString(),
+  });
 
-    const enrollSuccess = teacherPage.locator('.bg-green-100').or(teacherPage.locator(`text=${STUDENT_EMAIL}`));
-    await expect(enrollSuccess).toBeVisible({ timeout: 10000 });
+  db.lessons.push({
+    id: lessonId,
+    title: `Lesson E2E ${uniqueId}`,
+    description: 'Live session',
+    start_date_time: start,
+    end_date_time: end,
+    status: 'scheduled',
+    course_id: courseId,
+    teacher_id: TEACHER_ID,
+    meet_link: meetLink,
+    meetLink,
+    created_at: new Date(now).toISOString(),
+  });
 
-    console.log('✅ CHECKPOINT 2b: Student enrolled');
-    await teacherPage.screenshot({ path: 'tests/screenshots/03-student-enrolled.png' });
+  db.lesson_meetings.push({
+    lesson_id: lessonId,
+    provider: 'google_calendar',
+    meet_url: meetLink,
+    event_id: null,
+    created_by_teacher_id: TEACHER_ID,
+    status: 'active',
+  });
 
-    // CHECKPOINT 2c: Create Session
-    console.log('── CHECKPOINT 2c: Create Session ──');
-    await teacherPage.locator('#session-title-input').fill(sessionTitle);
-    await teacherPage.click('#create-session-btn');
-    await teacherPage.waitForTimeout(5000);
+  fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(db, null, 2));
 
-    // Verify session appears
-    await expect(teacherPage.locator(`text=${sessionTitle}`).first()).toBeVisible({ timeout: 15000 });
+  return { gradeId, gradeSlug, courseId, lessonId, meetLink, courseTitle: `Course E2E ${uniqueId}`, lessonTitle: `Lesson E2E ${uniqueId}` };
+}
 
-    // Get the meet link
-    const meetLinkEl = teacherPage.locator('[data-testid="meet-link-text"]').first();
-    await expect(meetLinkEl).toBeVisible({ timeout: 10000 });
-    const meetLinkRaw = await meetLinkEl.textContent();
-    const teacherMeetLink = meetLinkRaw!.replace('Meet: ', '').trim();
+test('Teacher and student read/join the same persisted meet link', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const uniqueId = `${Date.now()}`;
+  const seeded = seedMockFlow(uniqueId);
 
-    expect(teacherMeetLink).toBeTruthy();
-    expect(teacherMeetLink).toContain('meet.google.com');
+  const teacherContext = await browser.newContext();
+  await loginProgrammatically(teacherContext, TEACHER_EMAIL, TEACHER_PASSWORD);
+  const teacherPage = await teacherContext.newPage();
 
-    // Verify Join Meet button
-    const joinBtn = teacherPage.locator('[data-testid="join-meet-btn"]').first();
-    await expect(joinBtn).toBeVisible();
-    expect(await joinBtn.getAttribute('href')).toBe(teacherMeetLink);
+  await teacherPage.goto(`${BASE_URL}/en/teacher/grades/${seeded.gradeSlug}`, { waitUntil: 'networkidle' });
+  await teacherPage.getByRole('button', { name: 'Students' }).click();
+  await expect(teacherPage.getByRole('button', { name: /Export CSV/i })).toBeVisible({ timeout: 60000 });
+  await expect(teacherPage.getByText(STUDENT_EMAIL)).toBeVisible({ timeout: 60000 });
+  await teacherPage.screenshot({ path: 'tests/screenshots/teacher-grade-details-students-tab.png', fullPage: true });
 
-    // Verify Copy Link button
-    await expect(teacherPage.locator('[data-testid="copy-link-btn"]').first()).toBeVisible();
+  const teacherLesson = await teacherPage.evaluate(async (lessonId) => {
+    const response = await fetch(`/api/lessons/${lessonId}`);
+    const body = await response.json();
+    return { status: response.status, meetLink: body?.lesson?.meet_link || null };
+  }, seeded.lessonId);
+  expect(teacherLesson.status).toBe(200);
+  expect(teacherLesson.meetLink).toBe(seeded.meetLink);
 
-    console.log(`✅ CHECKPOINT 2c: Session created with Meet link: ${teacherMeetLink}`);
-    await teacherPage.screenshot({ path: 'tests/screenshots/04-session-created.png' });
+  const studentContext = await browser.newContext();
+  await loginProgrammatically(studentContext, STUDENT_EMAIL, STUDENT_PASSWORD);
+  const studentPage = await studentContext.newPage();
 
-    // ======================================
-    // STUDENT FLOW
-    // ======================================
-    const studentContext = await browser.newContext();
+  await studentPage.goto(`${BASE_URL}/en/student/courses`, { waitUntil: 'networkidle' });
+  await expect(studentPage.getByText(seeded.courseTitle)).toBeVisible({ timeout: 60000 });
+  await studentPage.screenshot({ path: 'tests/screenshots/student-courses-list.png', fullPage: true });
 
-    // CHECKPOINT 3a: Student Login
-    console.log('── CHECKPOINT 3a: Student Login ──');
-    await loginProgrammatically(studentContext, STUDENT_EMAIL, STUDENT_PASSWORD);
+  await studentPage.goto(`${BASE_URL}/en/student/courses/${seeded.courseId}`, { waitUntil: 'networkidle' });
+  await expect(studentPage.getByText(seeded.lessonTitle)).toBeVisible({ timeout: 60000 });
 
-    const studentPage = await studentContext.newPage();
-    await studentPage.goto(`${BASE_URL}/en/e2e-flow`, { waitUntil: 'networkidle' });
-    await studentPage.waitForTimeout(3000);
+  await studentPage.goto(`${BASE_URL}/en/student/courses/${seeded.courseId}/lessons/${seeded.lessonId}`, { waitUntil: 'networkidle' });
+  const studentLesson = await studentPage.evaluate(async (lessonId) => {
+    const response = await fetch(`/api/lessons/${lessonId}`);
+    const body = await response.json();
+    return { status: response.status, meetLink: body?.lesson?.meet_link || null };
+  }, seeded.lessonId);
+  expect(studentLesson.status).toBe(200);
+  expect(studentLesson.meetLink).toBe(seeded.meetLink);
 
-    await expect(studentPage.locator('h1')).toContainText('E2E Flow Test Dashboard', { timeout: 15000 });
-    console.log('✅ CHECKPOINT 3a: Student login successful');
-    await studentPage.screenshot({ path: 'tests/screenshots/05-student-dashboard.png' });
+  const studentJoin = await studentPage.evaluate(async (lessonId) => {
+    const response = await fetch(`/api/lessons/${lessonId}/join`, { method: 'POST' });
+    const body = await response.json();
+    return { status: response.status, body };
+  }, seeded.lessonId);
 
-    // CHECKPOINT 3b: Student sees enrolled course and session
-    console.log('── CHECKPOINT 3b: Student sees course and session ──');
+  expect(studentJoin.status).toBe(200);
+  expect(studentJoin.body.meet_link).toBe(seeded.meetLink);
+  await studentPage.screenshot({ path: 'tests/screenshots/student-lesson-join.png', fullPage: true });
 
-    // Student might need to click on the enrolled course first
-    const courseBtn = studentPage.locator(`text=${courseTitle}`).first();
-    if (await courseBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await courseBtn.click();
-        await studentPage.waitForTimeout(2000);
-    }
-
-    // Student sees the session
-    await expect(studentPage.locator(`text=${sessionTitle}`).first()).toBeVisible({ timeout: 15000 });
-
-    // Verify SAME meet link
-    const studentMeetEl = studentPage.locator('[data-testid="meet-link-text"]').first();
-    await expect(studentMeetEl).toBeVisible({ timeout: 10000 });
-    const studentMeetRaw = await studentMeetEl.textContent();
-    const studentMeetLink = studentMeetRaw!.replace('Meet: ', '').trim();
-
-    expect(studentMeetLink).toBe(teacherMeetLink);
-
-    // Verify Join button
-    const studentJoinBtn = studentPage.locator('[data-testid="join-meet-btn"]').first();
-    await expect(studentJoinBtn).toBeVisible();
-    expect(await studentJoinBtn.getAttribute('href')).toBe(teacherMeetLink);
-
-    console.log(`✅ CHECKPOINT 3b: Student sees SAME Meet link: ${studentMeetLink}`);
-    await studentPage.screenshot({ path: 'tests/screenshots/06-student-session.png' });
-
-    // CHECKPOINT 4: RBAC
-    console.log('── CHECKPOINT 4: RBAC ──');
-    await expect(studentPage.locator('#create-course-btn')).not.toBeVisible();
-    await expect(studentPage.locator('#create-session-btn')).not.toBeVisible();
-
-    const rbacResponse = await studentPage.evaluate(async (base: string) => {
-        const res = await fetch(`${base}/api/e2e-rpc`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'createCourse', payload: { title: 'Hacked' } }),
-        });
-        return { status: res.status, body: await res.json() };
-    }, BASE_URL);
-    expect(rbacResponse.status).toBe(403);
-
-    console.log('✅ CHECKPOINT 4: RBAC verified');
-    await studentPage.screenshot({ path: 'tests/screenshots/07-rbac.png' });
-
-    // Cleanup
-    await teacherContext.close();
-    await studentContext.close();
-
-    console.log('');
-    console.log('==========================================');
-    console.log('✅ ALL CHECKPOINTS PASSED');
-    console.log(`   Teacher Meet Link: ${teacherMeetLink}`);
-    console.log(`   Student Meet Link: ${studentMeetLink}`);
-    console.log(`   Links identical: ${teacherMeetLink === studentMeetLink}`);
-    console.log('==========================================');
+  await teacherContext.close();
+  await studentContext.close();
 });

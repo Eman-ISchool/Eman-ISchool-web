@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateMeetLink } from '@/lib/google-meet';
+import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
 import { randomUUID } from 'crypto';
 import { decrypt, validateEncryptionConfig, isEncrypted } from '@/lib/encryption';
 
@@ -109,8 +109,16 @@ export async function POST(
             meetingUrl = meetResult.meetLink;
             googleEventId = meetResult.google_event_id;
         } catch (error: any) {
-            console.error(`[MeetingCreationError] correlationId=${lessonId}`, error);
-            return NextResponse.json({ error: 'Failed to generate meeting link via Google API.', details: error.message }, { status: 500 });
+            const googleError = toGoogleMeetApiError(error);
+            console.error(`[MeetingCreationError] correlationId=${lessonId}`, googleError.detail);
+            return NextResponse.json(
+                {
+                    error: googleError.error,
+                    code: googleError.code,
+                    details: googleError.detail
+                },
+                { status: googleError.status }
+            );
         }
 
         // Link validation guard (server-side)

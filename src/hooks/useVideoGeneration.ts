@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Custom hook for AI video generation
  * Manages video generation workflow and status polling
