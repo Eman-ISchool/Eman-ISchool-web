@@ -13,8 +13,6 @@ import {
     Calendar,
     Award,
     TrendingUp,
-    DollarSign,
-    Coins,
     PlusCircle,
     Trash2,
 } from 'lucide-react';
@@ -106,22 +104,9 @@ export default function QuizzesExamsPage() {
     const [editingQuiz, setEditingQuiz] = useState<QuizExam | null>(null);
     const [selectedQuiz, setSelectedQuiz] = useState<QuizExam | null>(null);
     const [filterType, setFilterType] = useState<'all' | 'quiz' | 'exam'>('all');
-    const [modalTab, setModalTab] = useState<'info' | 'currency' | 'sessions'>('info');
-    const [sessions, setSessions] = useState<{ id: string; date: string; time: string; group: string; class: string; notes: string }[]>([
-        { id: '1', date: '2026-01-20', time: '09:00', group: 'المجموعة أ', class: 'الصف التاسع أ', notes: 'جلسة صباحية' },
-        { id: '2', date: '2026-01-20', time: '14:00', group: 'المجموعة ب', class: 'الصف العاشر أ', notes: 'جلسة مسائية' },
-    ]);
+    const [modalTab, setModalTab] = useState<'info' | 'sessions'>('info');
+    const [sessions, setSessions] = useState<{ id: string; date: string; time: string; group: string; class: string; notes: string }[]>([]);
     const [newSession, setNewSession] = useState({ date: '', time: '', group: '', class: '', notes: '' });
-
-    // Currency rates (mock data)
-    const currencyRates = {
-        EGP: 1,
-        USD: 0.032,
-        EUR: 0.029,
-        SAR: 0.12,
-        AED: 0.118,
-    };
-    const basePrice = 500; // Base price in EGP
 
     useEffect(() => {
         const today = new Date();
@@ -797,16 +782,6 @@ export default function QuizzesExamsPage() {
                                 المعلومات
                             </button>
                             <button
-                                onClick={() => setModalTab('currency')}
-                                className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${modalTab === 'currency'
-                                        ? 'bg-teal-500 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                <DollarSign className="w-4 h-4" />
-                                العملات
-                            </button>
-                            <button
                                 onClick={() => setModalTab('sessions')}
                                 className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${modalTab === 'sessions'
                                         ? 'bg-teal-500 text-white'
@@ -875,48 +850,6 @@ export default function QuizzesExamsPage() {
                                         </div>
                                     </div>
                                 )}
-                            </div>
-                        )}
-
-                        {modalTab === 'currency' && (
-                            <div className="space-y-4">
-                                <div className="p-4 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)' }}>
-                                    <Coins className="w-8 h-8 mx-auto text-yellow-600 mb-2" />
-                                    <p className="text-sm text-yellow-700">السعر بالجنيه المصري</p>
-                                    <p className="text-3xl font-bold text-yellow-800">{basePrice.toLocaleString('ar-EG')} ج.م</p>
-                                </div>
-
-                                <h4 className="font-medium text-gray-700">مقارنة الأسعار بالعملات الأخرى:</h4>
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl">🇺🇸</span>
-                                            <span className="font-medium">الدولار الأمريكي (USD)</span>
-                                        </div>
-                                        <span className="text-lg font-bold text-blue-600">${(basePrice * currencyRates.USD).toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl">🇪🇺</span>
-                                            <span className="font-medium">اليورو (EUR)</span>
-                                        </div>
-                                        <span className="text-lg font-bold text-purple-600">€{(basePrice * currencyRates.EUR).toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl">🇸🇦</span>
-                                            <span className="font-medium">الريال السعودي (SAR)</span>
-                                        </div>
-                                        <span className="text-lg font-bold text-green-600">{(basePrice * currencyRates.SAR).toFixed(2)} ر.س</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-teal-50 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl">🇦🇪</span>
-                                            <span className="font-medium">الدرهم الإماراتي (AED)</span>
-                                        </div>
-                                        <span className="text-lg font-bold text-teal-600">{(basePrice * currencyRates.AED).toFixed(2)} د.إ</span>
-                                    </div>
-                                </div>
                             </div>
                         )}
 
