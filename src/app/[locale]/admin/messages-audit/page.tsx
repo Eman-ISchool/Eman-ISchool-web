@@ -58,136 +58,53 @@ export default function MessagesAuditPage() {
     const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-        const mockThreads: MessageThread[] = [
-            {
-                id: '1',
-                participants: [
-                    { name: 'أ. أحمد محمد', role: 'teacher' },
-                    { name: 'ولي أمر أحمد', role: 'guardian' },
-                ],
-                lastMessage: 'شكراً على المتابعة، سنتواصل معكم قريباً',
-                lastMessageAt: new Date(Date.now() - 30 * 60 * 1000),
-                unreadCount: 2,
-            },
-            {
-                id: '2',
-                participants: [
-                    { name: 'أ. سارة أحمد', role: 'teacher' },
-                    { name: 'فاطمة علي', role: 'student' },
-                ],
-                lastMessage: 'هل يمكنكِ إرسال الواجب مرة أخرى؟',
-                lastMessageAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                unreadCount: 0,
-            },
-            {
-                id: '3',
-                participants: [
-                    { name: 'محمد خالد', role: 'student' },
-                    { name: 'أ. علي حسن', role: 'teacher' },
-                ],
-                lastMessage: 'تم رفع التسجيل الصوتي للقراءة',
-                lastMessageAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-                unreadCount: 1,
-            },
-        ];
+        const fetchData = async () => {
+            try {
+                const [msgRes, auditRes] = await Promise.all([
+                    fetch('/api/admin/messages'),
+                    fetch('/api/admin/audit'),
+                ]);
 
-        const mockAuditLogs: AuditLogEntry[] = [
-            { id: '1', actorName: 'أ. أحمد', actorRole: 'admin', action: 'create', entityType: 'lesson', entityName: 'درس الرياضيات', createdAt: new Date() },
-            { id: '2', actorName: 'أ. سارة', actorRole: 'teacher', action: 'update', entityType: 'attendance', entityName: 'حضور الصف التاسع', createdAt: new Date(Date.now() - 60 * 60 * 1000) },
-            { id: '3', actorName: 'النظام', actorRole: 'system', action: 'create', entityType: 'invoice', entityName: 'فاتورة #1234', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-            { id: '4', actorName: 'أ. علي حسن', actorRole: 'teacher', action: 'create', entityType: 'quiz', entityName: 'اختبار الوحدة الأولى', createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
-            { id: '5', actorName: 'ولي أمر أحمد', actorRole: 'guardian', action: 'update', entityType: 'payment', entityName: 'دفع الرسوم الشهرية', createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-        ];
+                if (msgRes.ok) {
+                    const msgJson = await msgRes.json();
+                    setThreads((msgJson.threads || []).map((t: Record<string, unknown>) => ({
+                        id: t.id,
+                        participants: t.participants || [],
+                        lastMessage: t.last_message || '',
+                        lastMessageAt: new Date(t.last_message_at as string || Date.now()),
+                        unreadCount: t.unread_count || 0,
+                    })));
+                    setMessageHistory((msgJson.history || []).map((h: Record<string, unknown>) => ({
+                        id: h.id,
+                        fromName: h.from_name || '',
+                        fromRole: h.from_role || '',
+                        toName: h.to_name || '',
+                        toRole: h.to_role || '',
+                        message: h.message || '',
+                        createdAt: new Date(h.created_at as string || Date.now()),
+                        searchText: `${h.from_name} ${h.to_name} ${h.from_role} ${h.to_role}`,
+                    })));
+                }
 
-        const mockHistory: MessageHistoryEntry[] = [
-            {
-                id: 'h1',
-                fromName: 'أ. أحمد محمد',
-                fromRole: 'teacher',
-                toName: 'ولي أمر أحمد',
-                toRole: 'guardian',
-                message: 'شكراً على المتابعة، سنتواصل معكم قريباً',
-                createdAt: new Date(Date.now() - 35 * 60 * 1000),
-                searchText: 'أ. أحمد محمد ولي أمر أحمد teacher guardian',
-            },
-            {
-                id: 'h2',
-                fromName: 'ولي أمر أحمد',
-                fromRole: 'guardian',
-                toName: 'أ. أحمد محمد',
-                toRole: 'teacher',
-                message: 'تم استلام الجدول الأسبوعي، شكراً لكم.',
-                createdAt: new Date(Date.now() - 50 * 60 * 1000),
-                searchText: 'ولي أمر أحمد أ. أحمد محمد guardian teacher',
-            },
-            {
-                id: 'h3',
-                fromName: 'أ. سارة أحمد',
-                fromRole: 'teacher',
-                toName: 'فاطمة علي',
-                toRole: 'student',
-                message: 'هل يمكنكِ إرسال الواجب مرة أخرى؟',
-                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                searchText: 'أ. سارة أحمد فاطمة علي teacher student',
-            },
-            {
-                id: 'h4',
-                fromName: 'فاطمة علي',
-                fromRole: 'student',
-                toName: 'أ. سارة أحمد',
-                toRole: 'teacher',
-                message: 'تم رفع الواجب مع التسجيل الصوتي.',
-                createdAt: new Date(Date.now() - 90 * 60 * 1000),
-                searchText: 'فاطمة علي أ. سارة أحمد student teacher',
-            },
-            {
-                id: 'h5',
-                fromName: 'محمد خالد',
-                fromRole: 'student',
-                toName: 'أ. علي حسن',
-                toRole: 'teacher',
-                message: 'أستاذ، أرجو توضيح نقطة في الدرس الأخير',
-                createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-                searchText: 'محمد خالد أ. علي حسن student teacher',
-            },
-            {
-                id: 'h6',
-                fromName: 'أ. علي حسن',
-                fromRole: 'teacher',
-                toName: 'محمد خالد',
-                toRole: 'student',
-                message: 'بالطبع، سأشرحها في الجلسة القادمة',
-                createdAt: new Date(Date.now() - 3.5 * 60 * 60 * 1000),
-                searchText: 'أ. علي حسن محمد خالد teacher student',
-            },
-            {
-                id: 'h7',
-                fromName: 'ولي أمر سارة',
-                fromRole: 'guardian',
-                toName: 'أ. أحمد محمد',
-                toRole: 'teacher',
-                message: 'كيف أداء ابنتي في الاختبار الأخير؟',
-                createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-                searchText: 'ولي أمر سارة أ. أحمد محمد guardian teacher',
-            },
-            {
-                id: 'h8',
-                fromName: 'أ. أحمد محمد',
-                fromRole: 'teacher',
-                toName: 'ولي أمر سارة',
-                toRole: 'guardian',
-                message: 'أداؤها ممتاز، حصلت على 95% في الاختبار',
-                createdAt: new Date(Date.now() - 5.5 * 60 * 60 * 1000),
-                searchText: 'أ. أحمد محمد ولي أمر سارة teacher guardian',
-            },
-        ];
-
-        setTimeout(() => {
-            setThreads(mockThreads);
-            setAuditLogs(mockAuditLogs);
-            setMessageHistory(mockHistory);
-            setLoading(false);
-        }, 500);
+                if (auditRes.ok) {
+                    const auditJson = await auditRes.json();
+                    setAuditLogs((auditJson.data || []).map((a: Record<string, unknown>) => ({
+                        id: a.id,
+                        actorName: a.actor_name || '',
+                        actorRole: a.actor_role || '',
+                        action: a.action || '',
+                        entityType: a.entity_type || '',
+                        entityName: a.entity_name || '',
+                        createdAt: new Date(a.created_at as string || Date.now()),
+                    })));
+                }
+            } catch (err) {
+                console.error('Error fetching messages/audit data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
     const auditColumns: Column<AuditLogEntry>[] = [

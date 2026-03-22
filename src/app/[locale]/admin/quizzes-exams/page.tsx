@@ -109,189 +109,41 @@ export default function QuizzesExamsPage() {
     const [newSession, setNewSession] = useState({ date: '', time: '', group: '', class: '', notes: '' });
 
     useEffect(() => {
-        const today = new Date();
-        const mockQuizzes: QuizExam[] = [
-            {
-                id: '1',
-                title: 'اختبار الوحدة الأولى',
-                description: 'اختبار شامل على الوحدة الأولى في مادة الرياضيات',
-                type: 'quiz',
-                subject: 'الرياضيات',
-                className: 'الصف التاسع أ',
-                teacherName: 'أ. أحمد محمد',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
-                duration: 30,
-                totalMarks: 50,
-                status: 'scheduled',
-                submissionsCount: 0,
-                totalStudents: 25,
-                passingScore: 25,
-                questionsCount: 15,
-            },
-            {
-                id: '2',
-                title: 'امتحان نصف الفصل',
-                description: 'امتحان نصف الفصل الدراسي في مادة الفيزياء',
-                type: 'exam',
-                subject: 'الفيزياء',
-                className: 'الصف العاشر أ',
-                teacherName: 'أ. خالد العمري',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3, 10, 0),
-                duration: 60,
-                totalMarks: 100,
-                status: 'completed',
-                submissionsCount: 28,
-                totalStudents: 28,
-                averageScore: 72,
-                passingScore: 50,
-                questionsCount: 30,
-            },
-            {
-                id: '3',
-                title: 'اختبار القواعد النحوية',
-                description: 'اختبار سريع على قواعد النحو',
-                type: 'quiz',
-                subject: 'اللغة العربية',
-                className: 'الصف الثامن أ',
-                teacherName: 'أ. محمد علي',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 11, 0),
-                duration: 20,
-                totalMarks: 30,
-                status: 'scheduled',
-                submissionsCount: 0,
-                totalStudents: 22,
-                passingScore: 15,
-                questionsCount: 10,
-            },
-            {
-                id: '4',
-                title: 'امتحان الكيمياء العضوية',
-                description: 'امتحان شامل على المركبات العضوية',
-                type: 'exam',
-                subject: 'الكيمياء',
-                className: 'الصف العاشر ب',
-                teacherName: 'أ. فاطمة حسن',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7, 9, 0),
-                duration: 90,
-                totalMarks: 100,
-                status: 'completed',
-                submissionsCount: 24,
-                totalStudents: 26,
-                averageScore: 68,
-                passingScore: 50,
-                questionsCount: 40,
-            },
-            {
-                id: '5',
-                title: 'اختبار المفردات الإنجليزية',
-                description: 'Vocabulary test unit 5',
-                type: 'quiz',
-                subject: 'اللغة الإنجليزية',
-                className: 'الصف التاسع ب',
-                teacherName: 'أ. سارة أحمد',
-                scheduledAt: new Date(),
-                duration: 15,
-                totalMarks: 25,
-                status: 'active',
-                submissionsCount: 12,
-                totalStudents: 23,
-                passingScore: 13,
-                questionsCount: 25,
-            },
-            {
-                id: '6',
-                title: 'امتحان الهندسة الفراغية',
-                description: 'امتحان على الأشكال ثلاثية الأبعاد',
-                type: 'exam',
-                subject: 'الرياضيات',
-                className: 'الصف العاشر أ',
-                teacherName: 'أ. أحمد محمد',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 8, 0),
-                duration: 75,
-                totalMarks: 100,
-                status: 'draft',
-                submissionsCount: 0,
-                totalStudents: 25,
-                passingScore: 50,
-                questionsCount: 35,
-            },
-            {
-                id: '7',
-                title: 'اختبار قوانين الحركة',
-                description: 'اختبار قصير على قوانين نيوتن',
-                type: 'quiz',
-                subject: 'الفيزياء',
-                className: 'الصف التاسع أ',
-                teacherName: 'أ. خالد العمري',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, 10, 0),
-                duration: 25,
-                totalMarks: 40,
-                status: 'completed',
-                submissionsCount: 25,
-                totalStudents: 25,
-                averageScore: 82,
-                passingScore: 20,
-                questionsCount: 12,
-            },
-            {
-                id: '8',
-                title: 'امتحان نهاية الوحدة الثانية',
-                description: 'امتحان شامل على الوحدة الثانية',
-                type: 'exam',
-                subject: 'اللغة العربية',
-                className: 'الصف الثامن ب',
-                teacherName: 'أ. محمد علي',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 9, 30),
-                duration: 60,
-                totalMarks: 80,
-                status: 'scheduled',
-                submissionsCount: 0,
-                totalStudents: 20,
-                passingScore: 40,
-                questionsCount: 25,
-            },
-            {
-                id: '9',
-                title: 'اختبار التفاعلات الكيميائية',
-                description: 'اختبار على موازنة المعادلات',
-                type: 'quiz',
-                subject: 'الكيمياء',
-                className: 'الصف العاشر أ',
-                teacherName: 'أ. فاطمة حسن',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 5, 11, 0),
-                duration: 30,
-                totalMarks: 50,
-                status: 'completed',
-                submissionsCount: 24,
-                totalStudents: 25,
-                averageScore: 76,
-                passingScore: 25,
-                questionsCount: 18,
-            },
-            {
-                id: '10',
-                title: 'امتحان Grammar النهائي',
-                description: 'Final grammar examination',
-                type: 'exam',
-                subject: 'اللغة الإنجليزية',
-                className: 'الصف التاسع أ',
-                teacherName: 'أ. سارة أحمد',
-                scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 8, 0),
-                duration: 45,
-                totalMarks: 100,
-                status: 'draft',
-                submissionsCount: 0,
-                totalStudents: 25,
-                passingScore: 50,
-                questionsCount: 50,
-            },
-        ];
-
-        setTimeout(() => {
-            setQuizzes(mockQuizzes);
-            setLoading(false);
-        }, 500);
-    }, []);
+        const fetchQuizzes = async () => {
+            try {
+                const url = filterType === 'all'
+                    ? '/api/admin/quizzes'
+                    : `/api/admin/quizzes?type=${filterType}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch');
+                const json = await res.json();
+                const rows = json.data || [];
+                setQuizzes(rows.map((q: Record<string, unknown>) => ({
+                    id: q.id,
+                    title: q.title,
+                    description: q.description,
+                    type: q.type,
+                    subject: q.subject_name || '',
+                    className: q.class_name || '',
+                    teacherName: q.teacher_name || '',
+                    scheduledAt: q.scheduled_at ? new Date(q.scheduled_at as string) : new Date(),
+                    duration: q.duration_minutes || 0,
+                    totalMarks: q.total_marks || 0,
+                    status: q.status,
+                    submissionsCount: q.submissions_count || 0,
+                    totalStudents: q.total_students || 0,
+                    averageScore: q.average_score,
+                    passingScore: q.passing_score || 0,
+                    questionsCount: q.questions_count || 0,
+                })));
+            } catch (err) {
+                console.error('Error fetching quizzes:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchQuizzes();
+    }, [filterType]);
 
     const filteredQuizzes = quizzes.filter(q =>
         filterType === 'all' ? true : q.type === filterType
