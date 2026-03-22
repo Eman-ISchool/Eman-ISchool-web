@@ -2,6 +2,14 @@ Admin: admin@eduverse.com / password123
 Teacher: teacher@eduverse.com / password123
 Student: student@eduverse.com / password123
 
+790320149
+
+
+- country: Jordan
+- mobile: 790320149
+- password: 12345678
+
+
 0147
 
 specify init . --ai kilocode
@@ -1668,24 +1676,7 @@ Do not stop early.
 Do not optimize for speed.
 Optimize for completeness, parity, evidence, and quality.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Prompt:
-
-
-
 
 Ensure absolute functional integrity and flawless operation across the entire interface by strictly preserving all existing logic. Every interactive component, specifically the tabbed navigation, action buttons, and dynamic elements, must be fully responsive and bug-free. The implementation must guarantee a seamless user experience where all features perform perfectly without any errors or deviations from the original behavior.
 

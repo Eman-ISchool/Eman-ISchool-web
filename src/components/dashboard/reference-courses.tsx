@@ -1,0 +1,1244 @@
+'use client';
+
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { useLocale } from 'next-intl';
+import {
+  ArrowLeft,
+  Bold,
+  BookOpen,
+  Calendar,
+  CalendarDays,
+  ChevronDown,
+  Clock,
+  Eye,
+  FileText,
+  Image as ImageIcon,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  MessageSquare,
+  Pencil,
+  Phone,
+  Plus,
+  Save,
+  Search,
+  Strikethrough,
+  Trash2,
+  Type,
+  Underline,
+  UploadCloud,
+  Users,
+  Video,
+} from 'lucide-react';
+
+import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
+import {
+  Table as ReferenceTable,
+  TableBody as ReferenceTableBody,
+  TableCell as ReferenceTableCell,
+  TableHead as ReferenceTableHead,
+  TableHeader as ReferenceTableHeader,
+  TableRow as ReferenceTableRow,
+} from '@/components/admin/ReferenceTable';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  bundleDetails,
+  bundleFees,
+  bundleRows,
+  bundleSchedule,
+  bundleStudents,
+  bundleSubjects,
+  categoryRows,
+  courseDetails,
+  courseListItems,
+  lessonDetails,
+  type CourseLiveSessionItem,
+} from '@/lib/dashboard-reference-fixtures';
+import { withLocalePrefix } from '@/lib/locale-path';
+
+function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="text-right">
+      <h1 className="text-[2.15rem] font-black leading-none text-slate-950">{title}</h1>
+      <p className="mt-2 text-sm text-slate-400">{subtitle}</p>
+    </div>
+  );
+}
+
+function SearchField({
+  placeholder,
+  value,
+  onChange,
+}: {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative flex-1">
+      <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-11 rounded-2xl border-slate-200 bg-white pr-11 shadow-sm"
+      />
+    </div>
+  );
+}
+
+function PillButton({
+  children,
+  href,
+  variant = 'primary',
+  onClick,
+}: {
+  children: React.ReactNode;
+  href?: string;
+  variant?: 'primary' | 'secondary';
+  onClick?: () => void;
+}) {
+  const className =
+    variant === 'primary'
+      ? 'inline-flex items-center gap-2 rounded-full bg-[#171717] px-5 py-3 text-sm font-bold text-white transition hover:bg-black/85'
+      : 'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50';
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {children}
+    </button>
+  );
+}
+
+function ActionIcon({ icon: Icon, tone = 'default' }: { icon: typeof Pencil; tone?: 'default' | 'danger' }) {
+  return (
+    <button
+      type="button"
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition ${
+        tone === 'danger' ? 'text-red-500 hover:bg-red-50' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+    </button>
+  );
+}
+
+function StatusChip({ label, tone = 'default' }: { label: string; tone?: 'default' | 'danger' | 'success' }) {
+  const toneClass =
+    tone === 'success'
+      ? 'bg-[#111111] text-white'
+      : tone === 'danger'
+        ? 'bg-red-500 text-white'
+        : 'bg-[#f2f2f2] text-slate-600';
+
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${toneClass}`}>{label}</span>;
+}
+
+function TopBar({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col-reverse gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-1 lg:flex-row lg:items-center">{children}</div>
+      {action ? <div className="flex justify-start lg:justify-end">{action}</div> : null}
+    </div>
+  );
+}
+
+function RichTextBox({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const toolbarButtonClass = 'rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900';
+
+  return (
+    <div className="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center justify-end gap-1 border-b border-slate-200 px-3 py-2">
+        <button type="button" className={toolbarButtonClass}>
+          <Type className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <Link2 className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <ImageIcon className="h-4 w-4" />
+        </button>
+        <div className="mx-2 h-5 w-px bg-slate-200" />
+        <button type="button" className={toolbarButtonClass}>
+          <List className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <ListOrdered className="h-4 w-4" />
+        </button>
+        <div className="mx-2 h-5 w-px bg-slate-200" />
+        <button type="button" className={toolbarButtonClass}>
+          <Bold className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <Italic className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <Underline className="h-4 w-4" />
+        </button>
+        <button type="button" className={toolbarButtonClass}>
+          <Strikethrough className="h-4 w-4" />
+        </button>
+      </div>
+      <Textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-[140px] resize-none border-0 bg-transparent p-4 text-right shadow-none focus-visible:ring-0"
+      />
+    </div>
+  );
+}
+
+function UploadPanel() {
+  return (
+    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-8 text-center">
+      <ImageIcon className="mb-5 h-12 w-12 text-slate-400" strokeWidth={1.5} />
+      <p className="text-sm font-medium text-slate-500">اسحب الصورة هنا أو اخترها من جهازك</p>
+      <button
+        type="button"
+        className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-sm"
+      >
+        <UploadCloud className="h-4 w-4" />
+        رفع صورة
+      </button>
+      <p className="mt-4 text-xs text-slate-400">الصيغ المدعومة: jpg, jpeg, png, gif, webp بحد أقصى 5MB</p>
+    </div>
+  );
+}
+
+function CalendarMonthView() {
+  const columns = ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun'];
+  const events = useMemo(
+    () =>
+      courseDetails['1'].liveSessions.reduce((acc, session) => {
+        acc[session.day] = [...(acc[session.day] || []), session];
+        return acc;
+      }, {} as Record<number, CourseLiveSessionItem[]>),
+    [],
+  );
+
+  const weeks = [
+    [7, 6, 5, 4, 3, 2, 1],
+    [14, 13, 12, 11, 10, 9, 8],
+    [21, 20, 19, 18, 17, 16, 15],
+    [28, 27, 26, 25, 24, 23, 22],
+    [4, 3, 2, 1, 31, 30, 29],
+  ];
+
+  const inMarch = (day: number, weekIndex: number) => !(weekIndex === 4 && day <= 4);
+
+  return (
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-2 rounded-2xl bg-[#f7f7f7] p-1">
+          {['الأجندة', 'اليوم', 'الأسبوع', 'الشهر'].map((label) => (
+            <button
+              key={label}
+              type="button"
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                label === 'الشهر' ? 'bg-[#d9d9d9] text-slate-900' : 'bg-white text-slate-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <h3 className="text-lg font-semibold text-slate-700">March 2026</h3>
+
+        <div className="flex items-center gap-2">
+          {['اليوم', 'السابق', 'التالي'].map((label) => (
+            <button key={label} type="button" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div dir="ltr" className="grid grid-cols-7 overflow-hidden rounded-[1.2rem] border border-slate-200">
+        {columns.map((column) => (
+          <div key={column} className="border-b border-l border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-500 last:border-l-0">
+            {column}
+          </div>
+        ))}
+
+        {weeks.map((week, weekIndex) =>
+          week.map((day, columnIndex) => {
+            const cellEvents = inMarch(day, weekIndex) ? events[day] || [] : [];
+            const isToday = day === 22 && weekIndex === 3 && columnIndex === 6;
+
+            return (
+              <div
+                key={`${weekIndex}-${day}-${columnIndex}`}
+                className={`min-h-[155px] border-b border-l border-slate-200 p-2 align-top last:border-l-0 ${
+                  isToday ? 'bg-[#dcecff]' : weekIndex === 4 && day <= 4 ? 'bg-[#d8d8d8]' : 'bg-white'
+                }`}
+              >
+                <div className="mb-2 text-right text-[13px] font-semibold text-slate-600">{String(day).padStart(2, '0')}</div>
+
+                <div className="space-y-2">
+                  {cellEvents.map((session) => (
+                    <div key={session.id} className="overflow-hidden rounded-2xl border border-[#ffd3ad] bg-[#fff5eb] text-right shadow-sm">
+                      <div className="flex items-start gap-2 border-r-[3px] border-r-[#ff8b17] p-2">
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-[#a45a12]">{session.time}</div>
+                          <div className="mt-1 line-clamp-2 text-[11px] text-slate-500">{session.title}</div>
+                          <div className="mt-2 inline-flex items-center rounded-full bg-white/90 px-2 py-1 text-[11px] text-slate-600">
+                            {session.teacher}
+                          </div>
+                        </div>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff8b17] text-white">
+                          <Video className="h-4 w-4" />
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }),
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CourseInfoTab({
+  title,
+  teacher,
+  details,
+  onTitleChange,
+  onTeacherChange,
+  onDetailsChange,
+  meetingLink,
+  onMeetingLinkChange,
+}: {
+  title: string;
+  teacher: string;
+  details: string;
+  onTitleChange: (value: string) => void;
+  onTeacherChange: (value: string) => void;
+  onDetailsChange: (value: string) => void;
+  meetingLink: string;
+  onMeetingLinkChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+        <div className="grid gap-8 lg:grid-cols-[1fr,340px] lg:items-start">
+          <div className="space-y-5">
+            <div className="space-y-2 text-right">
+              <label className="text-sm font-semibold text-slate-700">اسم المادة</label>
+              <Input value={title} onChange={(event) => onTitleChange(event.target.value)} className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+            </div>
+
+            <div className="space-y-2 text-right">
+              <label className="text-sm font-semibold text-slate-700">المعلم</label>
+              <div className="relative">
+                <select
+                  value={teacher}
+                  onChange={(event) => onTeacherChange(event.target.value)}
+                  className="h-12 w-full appearance-none rounded-[1rem] border border-slate-200 bg-white px-4 text-right text-sm text-slate-700 outline-none"
+                >
+                  <option value="ابراهيم محمد">ابراهيم محمد</option>
+                  <option value="رحمة خليل">رحمة خليل</option>
+                  <option value="Zainab elfadili Ibrahim">Zainab elfadili Ibrahim</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              </div>
+            </div>
+
+            <div className="space-y-2 text-right">
+              <label className="text-sm font-semibold text-slate-700">التفاصيل</label>
+              <RichTextBox value={details} onChange={onDetailsChange} />
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="text-right">
+              <h2 className="text-3xl font-black text-slate-950">بيانات المادة الدراسية</h2>
+              <p className="mt-2 text-sm text-slate-400">قم بتعديل بيانات المادة الدراسية هنا</p>
+            </div>
+
+            <UploadPanel />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1fr,280px] lg:items-start">
+          <div className="space-y-2 text-right">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <Link2 className="h-4 w-4" />
+              رابط الاجتماع
+            </label>
+            <Input
+              value={meetingLink}
+              onChange={(event) => onMeetingLinkChange(event.target.value)}
+              dir="ltr"
+              className="h-12 rounded-[1rem] border-slate-200 bg-white text-left font-mono"
+            />
+          </div>
+
+          <div className="space-y-4 text-right">
+            <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
+            <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+              <Video className="ml-2 h-4 w-4" />
+              إنشاء اجتماع
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ListSectionCard({
+  title,
+  subtitle,
+  actionLabel,
+  children,
+  icon: Icon,
+}: {
+  title: string;
+  subtitle: string;
+  actionLabel: string;
+  children: React.ReactNode;
+  icon: typeof Plus;
+}) {
+  return (
+    <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] shadow-sm">
+      <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        <Button className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
+          <Icon className="ml-2 h-4 w-4" />
+          {actionLabel}
+        </Button>
+
+        <div className="text-right">
+          <h2 className="text-2xl font-black text-slate-950">{title}</h2>
+          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        </div>
+      </div>
+      <div className="p-6">{children}</div>
+    </div>
+  );
+}
+
+function CourseListCard({
+  id,
+  title,
+  subtitle,
+  teacher,
+}: {
+  id: string;
+  title: string;
+  subtitle: string;
+  teacher: string;
+}) {
+  const locale = useLocale();
+  const href = withLocalePrefix(`/dashboard/courses/${id}`, locale);
+
+  return (
+    <div className="rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex justify-center rounded-[1rem] bg-[#f7f7f8] py-8">
+        <BookOpen className="h-8 w-8 text-slate-400" />
+      </div>
+
+      <div className="mt-5 text-right">
+        <h3 className="text-xl font-black text-slate-950">{title}</h3>
+        <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        <p className="mt-2 text-sm text-slate-500">{teacher}</p>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex gap-1">
+          <ActionIcon icon={Trash2} tone="danger" />
+          <ActionIcon icon={Pencil} />
+          <ActionIcon icon={Eye} />
+        </div>
+
+        <Link href={href} className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50">
+          إدارة
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function ReferenceCoursesCatalogPage() {
+  const locale = useLocale();
+  const [query, setQuery] = useState('');
+  const filtered = courseListItems.filter((item) => [item.title, item.subtitle, item.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <SectionHeading title="المواد الدراسية" subtitle="إدارة والوصول إلى المواد الدراسية" />
+
+        <TopBar
+          action={
+            <PillButton href={withLocalePrefix('/dashboard/courses/create', locale)}>
+              <Plus className="h-4 w-4" />
+              إنشاء مادة دراسية
+            </PillButton>
+          }
+        >
+          <PillButton variant="secondary">تصدير</PillButton>
+          <PillButton variant="secondary">استيراد</PillButton>
+          <SearchField placeholder="بحث عن المواد..." value={query} onChange={setQuery} />
+        </TopBar>
+
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((course) => (
+            <CourseListCard key={course.id} {...course} />
+          ))}
+        </div>
+      </div>
+    </ReferenceDashboardShell>
+  );
+}
+
+export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
+  const locale = useLocale();
+  const fixture = courseId ? courseDetails[courseId] : undefined;
+  const [title, setTitle] = useState(fixture?.title || '');
+  const [teacher, setTeacher] = useState(fixture?.teacher || 'ابراهيم محمد');
+  const [details, setDetails] = useState(fixture?.details || '');
+  const [meetingLink, setMeetingLink] = useState(fixture?.meetingLink || '');
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+            <Save className="ml-2 h-4 w-4" />
+            {courseId ? 'حفظ' : 'حفظ المادة'}
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <Link href={withLocalePrefix('/dashboard/courses', locale)} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+              رجوع
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <h1 className="text-[2.2rem] font-black text-slate-950">{fixture?.title || 'إنشاء مادة دراسية'}</h1>
+          </div>
+        </div>
+
+        <Tabs defaultValue="info" dir="rtl" className="space-y-4">
+          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="info" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              المعلومات
+            </TabsTrigger>
+            <TabsTrigger value="lessons" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الدروس
+            </TabsTrigger>
+            <TabsTrigger value="assignments" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الواجبات
+            </TabsTrigger>
+            <TabsTrigger value="exams" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الامتحانات
+            </TabsTrigger>
+            <TabsTrigger value="live" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              <Video className="ml-2 h-4 w-4" />
+              الحصص المباشرة
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="info" className="mt-0">
+            <CourseInfoTab
+              title={title}
+              teacher={teacher}
+              details={details}
+              onTitleChange={setTitle}
+              onTeacherChange={setTeacher}
+              onDetailsChange={setDetails}
+              meetingLink={meetingLink}
+              onMeetingLinkChange={setMeetingLink}
+            />
+          </TabsContent>
+
+          <TabsContent value="lessons" className="mt-0">
+            <ListSectionCard title="الدروس" subtitle="إدارة الدروس المرتبطة بالمادة الدراسية." actionLabel="إضافة درس" icon={Plus}>
+              <div className="space-y-4">
+                {(fixture?.lessons || []).map((lesson) => (
+                  <div key={lesson.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex gap-1">
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                      <Link href={withLocalePrefix(`/dashboard/lessons/${lesson.id}`, locale)}>
+                        <ActionIcon icon={Eye} />
+                      </Link>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <StatusChip label={lesson.status === 'published' ? 'منشور' : 'مسودة'} tone={lesson.status === 'published' ? 'success' : 'default'} />
+                        <h3 className="text-lg font-bold text-slate-950">{lesson.title}</h3>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-500">{lesson.description}</p>
+                      <div className="mt-2 inline-flex items-center gap-2 text-xs text-slate-400">
+                        <Clock className="h-3.5 w-3.5" />
+                        {lesson.date}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="assignments" className="mt-0">
+            <ListSectionCard title="الواجبات" subtitle="إدارة الواجبات وتسليمات الطلاب." actionLabel="إضافة واجب" icon={Plus}>
+              <div className="space-y-4">
+                {(fixture?.assignments || []).map((assignment) => (
+                  <div key={assignment.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex gap-1">
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+
+                    <div className="text-right">
+                      <h3 className="text-lg font-bold text-slate-950">{assignment.title}</h3>
+                      <p className="mt-2 text-sm text-slate-500">{assignment.description}</p>
+                      <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
+                        <span>{assignment.submissions} تسليماً</span>
+                        <span>{assignment.dueDate}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="exams" className="mt-0">
+            <ListSectionCard title="الامتحانات" subtitle="الاختبارات والامتحانات المرتبطة بالمادة." actionLabel="إضافة امتحان" icon={Plus}>
+              <div className="space-y-4">
+                {(fixture?.exams || []).map((exam) => (
+                  <div key={exam.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex gap-1">
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <StatusChip label={exam.status} tone={exam.status === 'نشط' ? 'success' : 'default'} />
+                        <h3 className="text-lg font-bold text-slate-950">{exam.title}</h3>
+                      </div>
+                      <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
+                        <span>{exam.attempts} محاولات</span>
+                        <span>{exam.dueDate}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="live" className="mt-0">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+                  إضافة درس مباشر
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  <h2 className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-lg font-semibold text-slate-800">الفصول المباشرة</h2>
+                  <span className="rounded-2xl bg-[#f4f4f4] px-4 py-3 text-sm text-slate-500">العرض</span>
+                </div>
+              </div>
+
+              <CalendarMonthView />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ReferenceDashboardShell>
+  );
+}
+
+export function ReferenceCategoriesPage() {
+  const [rows, setRows] = useState(categoryRows);
+  const [query, setQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const filtered = rows.filter((row) => [row.name, row.description].join(' ').toLowerCase().includes(query.toLowerCase()));
+
+  const handleCreate = () => {
+    if (!name.trim()) {
+      return;
+    }
+
+    setRows((current) => [
+      {
+        id: `#${current.length + 1}`,
+        name: name.trim(),
+        description: description.trim() || 'لا يوجد وصف',
+        courses: '—',
+        bundles: '—',
+        createdAt: new Date().toISOString(),
+      },
+      ...current,
+    ]);
+    setName('');
+    setDescription('');
+    setShowCreateModal(false);
+  };
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <SectionHeading title="الفئات" subtitle="إدارة فئات المواد الدراسية والفصول" />
+
+        <TopBar action={<PillButton onClick={() => setShowCreateModal(true)}><Plus className="h-4 w-4" />إنشاء فئة</PillButton>}>
+          <SearchField placeholder="بحث عن الفئات..." value={query} onChange={setQuery} />
+        </TopBar>
+
+        <ReferenceTable>
+          <ReferenceTableHeader>
+            <ReferenceTableRow>
+              <ReferenceTableHead>المعرف</ReferenceTableHead>
+              <ReferenceTableHead>الاسم</ReferenceTableHead>
+              <ReferenceTableHead>الوصف</ReferenceTableHead>
+              <ReferenceTableHead>المواد الدراسية</ReferenceTableHead>
+              <ReferenceTableHead>الفصول</ReferenceTableHead>
+              <ReferenceTableHead>تاريخ الإنشاء</ReferenceTableHead>
+              <ReferenceTableHead className="w-[120px]">الإجراءات</ReferenceTableHead>
+            </ReferenceTableRow>
+          </ReferenceTableHeader>
+          <ReferenceTableBody>
+            {filtered.map((row) => (
+              <ReferenceTableRow key={row.id}>
+                <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
+                <ReferenceTableCell className="font-semibold">{row.name}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.description}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-300">{row.courses}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-300">{row.bundles}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.createdAt}</ReferenceTableCell>
+                <ReferenceTableCell>
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    فتح القائمة
+                  </button>
+                </ReferenceTableCell>
+              </ReferenceTableRow>
+            ))}
+          </ReferenceTableBody>
+        </ReferenceTable>
+
+        {showCreateModal ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-[520px] rounded-[1.7rem] bg-white p-6 shadow-2xl">
+              <div className="text-right">
+                <h3 className="text-3xl font-black text-slate-950">إنشاء فئة</h3>
+                <p className="mt-2 text-sm text-slate-400">إضافة فئة جديدة للمواد الدراسية والفصول.</p>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الاسم</label>
+                  <Input value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الوصف</label>
+                  <Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="لا يوجد وصف" className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-start gap-3">
+                <button type="button" onClick={handleCreate} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
+                  إنشاء
+                </button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </ReferenceDashboardShell>
+  );
+}
+
+export function ReferenceBundlesPage() {
+  const locale = useLocale();
+  const [query, setQuery] = useState('');
+  const filtered = bundleRows.filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <SectionHeading title="الفصول" subtitle="إدارة الفصول والبرامج الأكاديمية" />
+
+        <TopBar
+          action={
+            <PillButton href={withLocalePrefix('/dashboard/bundles/create', locale)}>
+              <Plus className="h-4 w-4" />
+              إنشاء فصل
+            </PillButton>
+          }
+        >
+          <SearchField placeholder="بحث عن الفصول..." value={query} onChange={setQuery} />
+        </TopBar>
+
+        <ReferenceTable>
+          <ReferenceTableHeader>
+            <ReferenceTableRow>
+              <ReferenceTableHead>المعرف</ReferenceTableHead>
+              <ReferenceTableHead>الاسم</ReferenceTableHead>
+              <ReferenceTableHead>الوصف</ReferenceTableHead>
+              <ReferenceTableHead>الفئة</ReferenceTableHead>
+              <ReferenceTableHead>المعلم</ReferenceTableHead>
+              <ReferenceTableHead>الطلاب</ReferenceTableHead>
+              <ReferenceTableHead>الحالة</ReferenceTableHead>
+              <ReferenceTableHead>تاريخ الإنشاء</ReferenceTableHead>
+              <ReferenceTableHead>الإجراءات</ReferenceTableHead>
+            </ReferenceTableRow>
+          </ReferenceTableHeader>
+          <ReferenceTableBody>
+            {filtered.map((row) => (
+              <ReferenceTableRow key={row.id}>
+                <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
+                <ReferenceTableCell className="font-semibold">
+                  <Link href={withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale)} className="hover:text-slate-950 hover:underline">
+                    {row.name}
+                  </Link>
+                </ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.description}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.category}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.teacher}</ReferenceTableCell>
+                <ReferenceTableCell className="font-semibold">{row.students}</ReferenceTableCell>
+                <ReferenceTableCell>
+                  <StatusChip label={row.status} tone="success" />
+                </ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500">{row.createdAt}</ReferenceTableCell>
+                <ReferenceTableCell>
+                  <div className="flex items-center gap-2">
+                    <Link href={withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale)}>
+                      <ActionIcon icon={Eye} />
+                    </Link>
+                    <ActionIcon icon={Pencil} />
+                  </div>
+                </ReferenceTableCell>
+              </ReferenceTableRow>
+            ))}
+          </ReferenceTableBody>
+        </ReferenceTable>
+      </div>
+    </ReferenceDashboardShell>
+  );
+}
+
+export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
+  const locale = useLocale();
+  const fixture = bundleId ? bundleDetails[bundleId] : undefined;
+  const [name, setName] = useState(fixture?.name || '');
+  const [description, setDescription] = useState(fixture?.description || '');
+  const [category, setCategory] = useState(fixture?.category || '');
+  const [teacher, setTeacher] = useState(fixture?.teacher || '');
+  const [startDate, setStartDate] = useState(fixture?.startDate || '');
+  const [endDate, setEndDate] = useState(fixture?.endDate || '');
+  const [acceptingRequests, setAcceptingRequests] = useState(fixture?.acceptingRequests ?? true);
+  const [active, setActive] = useState(fixture?.active ?? true);
+  const [studentQuery, setStudentQuery] = useState('');
+  const [studentFilter, setStudentFilter] = useState<'الكل' | 'نشط' | 'قيد المراجعة'>('الكل');
+
+  const toggleClass =
+    'relative inline-flex h-6 w-11 items-center rounded-full transition';
+  const filteredStudents = bundleStudents.filter((student) => {
+    const matchesStatus = studentFilter === 'الكل' || student.status === studentFilter;
+    const haystack = [student.name, student.email, student.phone, student.joinedAt, student.acceptedAt].join(' ').toLowerCase();
+    return matchesStatus && haystack.includes(studentQuery.toLowerCase());
+  });
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+            <Save className="ml-2 h-4 w-4" />
+            حفظ الفصل
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <Link href={withLocalePrefix('/dashboard/bundles', locale)} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+              رجوع
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <SectionHeading title={fixture?.name || 'إنشاء فصل'} subtitle="" />
+          </div>
+        </div>
+
+        <Tabs defaultValue="info" dir="rtl" className="space-y-4">
+          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="info" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              معلومات
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              المواد الدراسية
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الجدول
+            </TabsTrigger>
+            <TabsTrigger value="fees" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الرسوم
+            </TabsTrigger>
+            <TabsTrigger value="students" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              الطلاب
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="info" className="mt-0">
+            <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+              <div className="mb-6 text-right">
+                <h2 className="text-3xl font-black text-slate-950">معلومات الفصل</h2>
+                <p className="mt-2 text-sm text-slate-400">معلومات أساسية عن الفصل بما في ذلك الاسم والوصف والإعدادات.</p>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">اسم الفصل *</label>
+                  <Input value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الوصف</label>
+                  <Textarea value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-[120px] rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الفئة</label>
+                  <div className="relative">
+                    <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-12 w-full appearance-none rounded-[1rem] border border-slate-200 bg-white px-4 text-right text-sm text-slate-700 outline-none">
+                      <option value="">اختر فئة</option>
+                      <option value="اللغات">اللغات</option>
+                      <option value="second">second</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">المعلم</label>
+                  <div className="relative">
+                    <select value={teacher} onChange={(event) => setTeacher(event.target.value)} className="h-12 w-full appearance-none rounded-[1rem] border border-slate-200 bg-white px-4 text-right text-sm text-slate-700 outline-none">
+                      <option value="">اختر المعلم</option>
+                      <option value="ابراهيم محمد">ابراهيم محمد</option>
+                      <option value="رحمة خليل">رحمة خليل</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 text-right">
+                    <label className="text-sm font-semibold text-slate-700">تاريخ البدء</label>
+                    <Input value={startDate} onChange={(event) => setStartDate(event.target.value)} placeholder="اختر تاريخ" className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                  </div>
+                  <div className="space-y-2 text-right">
+                    <label className="text-sm font-semibold text-slate-700">تاريخ الانتهاء</label>
+                    <Input value={endDate} onChange={(event) => setEndDate(event.target.value)} placeholder="اختر تاريخ" className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-10 pt-2">
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm font-semibold text-slate-700">قبول الطلبات</label>
+                    <button type="button" onClick={() => setAcceptingRequests((current) => !current)} className={`${toggleClass} ${acceptingRequests ? 'bg-[#111111]' : 'bg-slate-300'}`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${acceptingRequests ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm font-semibold text-slate-700">نشط</label>
+                    <button type="button" onClick={() => setActive((current) => !current)} className={`${toggleClass} ${active ? 'bg-[#111111]' : 'bg-slate-300'}`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${active ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-right">
+                  <label className="text-sm font-semibold text-slate-700">صورة الفصل</label>
+                  <UploadPanel />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="subjects" className="mt-0">
+            <ListSectionCard title="المواد الدراسية" subtitle="إدارة المواد التعليمية داخل هذا الفصل." actionLabel="إضافة مادة" icon={Plus}>
+              <div className="space-y-4">
+                {bundleSubjects.map((subject) => (
+                  <div key={subject.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" className="h-9 rounded-full border-slate-200 bg-white px-4 text-xs font-bold">
+                        <Video className="ml-2 h-4 w-4" />
+                        بدء حصة مباشرة
+                      </Button>
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-lg font-bold text-slate-950">{subject.name}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{subject.teacher}</p>
+                      <p className="mt-2 text-xs font-mono text-slate-400">{subject.liveLink}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="schedule" className="mt-0">
+            <ListSectionCard title="الجدول" subtitle="أوقات المواد الدراسية داخل الفصل." actionLabel="إضافة موعد" icon={Calendar}>
+              <div className="space-y-4">
+                {bundleSchedule.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex gap-1">
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-lg font-bold text-slate-950">{item.subject}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{item.day} • {item.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="fees" className="mt-0">
+            <ListSectionCard title="الرسوم" subtitle="خطط الرسوم والدفعات لهذا الفصل." actionLabel="إضافة رسم" icon={FileText}>
+              <div className="space-y-4">
+                {bundleFees.map((fee) => (
+                  <div key={fee.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex gap-1">
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-lg font-bold text-slate-950">{fee.title}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{fee.amount} • {fee.dueDate}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="students" className="mt-0">
+            <ListSectionCard title="الطلاب" subtitle="قائمة الطلاب المسجلين في الفصل." actionLabel="إضافة طالب" icon={Users}>
+              <div className="mb-5 flex flex-col gap-3 rounded-[1.2rem] border border-slate-200 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {(['الكل', 'نشط', 'قيد المراجعة'] as const).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setStudentFilter(status)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        studentFilter === status ? 'bg-slate-950 text-white' : 'bg-[#f4f4f5] text-slate-600'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+                <SearchField placeholder="بحث عن طالب..." value={studentQuery} onChange={setStudentQuery} />
+              </div>
+
+              <div className="space-y-4">
+                {filteredStudents.map((student) => (
+                  <div key={student.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                    <div className="flex items-center gap-2">
+                      <ActionIcon icon={Phone} />
+                      <ActionIcon icon={MessageSquare} />
+                      <ActionIcon icon={Trash2} tone="danger" />
+                      <ActionIcon icon={Pencil} />
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <StatusChip label={student.status} tone={student.status === 'نشط' ? 'success' : 'default'} />
+                        <h3 className="text-lg font-bold text-slate-950">{student.name}</h3>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">{student.email}</p>
+                      <div className="mt-2 flex flex-wrap items-center justify-end gap-3 text-xs text-slate-400">
+                        <span>{student.phone}</span>
+                        <span>تاريخ الانضمام: {student.joinedAt}</span>
+                        <span>تاريخ القبول: {student.acceptedAt}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!filteredStudents.length ? (
+                  <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+                    لا يوجد طلاب مطابقون لنتائج البحث الحالية.
+                  </div>
+                ) : null}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ReferenceDashboardShell>
+  );
+}
+
+export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
+  const locale = useLocale();
+  const fixture = lessonDetails[lessonId];
+  const [title, setTitle] = useState(fixture?.title || '');
+  const [content, setContent] = useState(fixture?.content || '');
+  const [videoLink, setVideoLink] = useState(fixture?.videoLink || '');
+
+  if (!fixture) {
+    return (
+      <ReferenceDashboardShell>
+        <div className="rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+          الدرس غير موجود.
+        </div>
+      </ReferenceDashboardShell>
+    );
+  }
+
+  return (
+    <ReferenceDashboardShell>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+            <Save className="ml-2 h-4 w-4" />
+            حفظ الدرس
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <Link href={withLocalePrefix(`/dashboard/courses/${fixture.courseId}`, locale)} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+              رجوع
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <h1 className="text-[2.2rem] font-black text-slate-950">{fixture.title}</h1>
+          </div>
+        </div>
+
+        <Tabs defaultValue="title" dir="rtl" className="space-y-4">
+          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="title" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              عنوان الدرس
+            </TabsTrigger>
+            <TabsTrigger value="materials" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              مواد الدرس
+            </TabsTrigger>
+            <TabsTrigger value="attendance" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+              حضور الطلاب
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="title" className="mt-0">
+            <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+              <div className="space-y-5">
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">عنوان الدرس</label>
+                  <Input value={title} onChange={(event) => setTitle(event.target.value)} className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">محتوى الدرس</label>
+                  <Textarea value={content} onChange={(event) => setContent(event.target.value)} className="min-h-[160px] rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">رابط الفيديو</label>
+                  <Input value={videoLink} onChange={(event) => setVideoLink(event.target.value)} dir="ltr" className="h-12 rounded-[1rem] border-slate-200 bg-white text-left font-mono" />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="materials" className="mt-0">
+            <ListSectionCard title="مواد الدرس" subtitle="الملفات والمواد المرفقة بهذا الدرس." actionLabel="إضافة مادة" icon={Plus}>
+              <div className="space-y-4">
+                {fixture.materials.length ? (
+                  fixture.materials.map((material) => (
+                    <div key={material.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                      <div className="flex gap-1">
+                        <ActionIcon icon={Trash2} tone="danger" />
+                        <ActionIcon icon={Pencil} />
+                      </div>
+
+                      <div className="text-right">
+                        <h3 className="text-lg font-bold text-slate-950">{material.title}</h3>
+                        <p className="mt-1 text-sm text-slate-500">{material.type}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+                    لا توجد مواد مرفقة لهذا الدرس بعد.
+                  </div>
+                )}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+
+          <TabsContent value="attendance" className="mt-0">
+            <ListSectionCard title="حضور الطلاب" subtitle="حالة حضور الطلاب في هذا الدرس." actionLabel="تحديث الحضور" icon={Users}>
+              <div className="space-y-4">
+                {fixture.attendance.length ? (
+                  fixture.attendance.map((row) => (
+                    <div key={row.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                      <div className="flex gap-1">
+                        <StatusChip
+                          label={row.status}
+                          tone={row.status === 'حاضر' ? 'success' : row.status === 'غائب' ? 'danger' : 'default'}
+                        />
+                      </div>
+
+                      <div className="text-right">
+                        <h3 className="text-lg font-bold text-slate-950">{row.studentName}</h3>
+                        <p className="mt-1 text-sm text-slate-500">حالة الحضور لهذا الدرس</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+                    لا توجد سجلات حضور حتى الآن.
+                  </div>
+                )}
+              </div>
+            </ListSectionCard>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ReferenceDashboardShell>
+  );
+}

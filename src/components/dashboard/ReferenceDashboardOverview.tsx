@@ -25,7 +25,18 @@ import { useLocale } from 'next-intl';
 
 import { withLocalePrefix } from '@/lib/locale-path';
 import { getReferenceDashboardData } from '@/lib/reference-dashboard-data';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from '@/components/dashboard/recharts-stub';
 
 export default function ReferenceDashboardOverview() {
   const locale = useLocale();

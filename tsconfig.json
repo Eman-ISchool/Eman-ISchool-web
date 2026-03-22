@@ -37,7 +37,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     ".next-codex/types/**/*.ts",
-    ".next-codex-build/types/**/*.ts"
+    ".next-codex-build/types/**/*.ts",
+    ".next-clean/types/**/*.ts",
+    ".next-poll/types/**/*.ts",
+    ".next-poll-3001/types/**/*.ts",
+    ".next-poll-3002/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

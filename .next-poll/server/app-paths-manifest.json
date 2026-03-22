@@ -1,0 +1,6 @@
+{
+  "/[locale]/dashboard/exams/page": "app/[locale]/dashboard/exams/page.js",
+  "/[locale]/dashboard/bundles/[id]/page": "app/[locale]/dashboard/bundles/[id]/page.js",
+  "/[locale]/dashboard/lessons/[id]/page": "app/[locale]/dashboard/lessons/[id]/page.js",
+  "/[locale]/dashboard/courses/[id]/page": "app/[locale]/dashboard/courses/[id]/page.js"
+}

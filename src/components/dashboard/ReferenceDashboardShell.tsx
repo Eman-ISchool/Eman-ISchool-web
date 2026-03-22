@@ -33,7 +33,7 @@ import { withLocalePrefix } from '@/lib/locale-path';
 
 interface ReferenceDashboardShellProps {
   children: ReactNode;
-  pageTitle: string;
+  pageTitle?: string;
   pageSubtitle?: string;
 }
 
@@ -63,6 +63,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/courses', label: { ar: 'المواد الدراسية', en: 'Courses' }, icon: BookOpen },
       { href: '/dashboard/categories', label: { ar: 'الفئات', en: 'Categories' }, icon: FolderKanban },
       { href: '/dashboard/bundles', label: { ar: 'الفصول', en: 'Bundles' }, icon: CalendarDays },
+      { href: '/dashboard/exams', label: { ar: 'الامتحانات', en: 'Exams' }, icon: ReceiptText },
       { href: '/dashboard/quizzes', label: { ar: 'الاختبارات', en: 'Quizzes' }, icon: FileQuestion },
     ],
   },
@@ -163,52 +164,43 @@ export default function ReferenceDashboardShell({
 
   const userName = session?.user?.name || (isArabic ? 'Fadi' : 'Fadi');
   const userRole = ((session?.user as { role?: string } | undefined)?.role || 'admin').toUpperCase();
-  const todayDate = useMemo(
-    () =>
-      new Intl.DateTimeFormat(isArabic ? 'ar' : 'en', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(new Date()),
-    [isArabic],
-  );
-  const rangeLabel = isArabic ? 'Sep 10, 2025 - Mar 09, 2026' : 'Sep 10, 2025 - Mar 09, 2026';
-
   const mobileLinks = useMemo(
     () => [dashboardOverviewItem, ...navGroups.flatMap((group) => group.items), ...footerItems],
     [],
   );
 
-  const installCard = installDismissed ? null : (
-    <div className="mt-4 rounded-[1.6rem] border border-amber-200 bg-[#fff7e8] p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-black text-slate-950">{isArabic ? 'تثبيت التطبيق' : 'Install app'}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
-            {isArabic
-              ? 'احصل على تجربة أسرع مع الوصول دون اتصال وأيقونة مباشرة.'
-              : 'Get faster loading, offline access, and a direct home-screen shortcut.'}
-          </p>
-        </div>
-        <div className="rounded-2xl bg-white p-2 text-amber-600 shadow-sm">
-          <MonitorDown className="h-4 w-4" />
-        </div>
-      </div>
-
-      <div className="mt-4 flex gap-2">
-        <button
-          type="button"
-          className="flex-1 rounded-full bg-slate-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
-        >
-          {isArabic ? 'تثبيت التطبيق' : 'Install app'}
-        </button>
+  const installBanner = installDismissed ? null : (
+    <div className="bg-[#161616] px-5 py-4 text-white sm:px-8">
+      <div className="flex items-center justify-between gap-5">
         <button
           type="button"
           onClick={() => setInstallDismissed(true)}
-          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50"
+          className="shrink-0 rounded-full p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
+          aria-label={isArabic ? 'إغلاق' : 'Close'}
         >
-          {isArabic ? 'ليس الآن' : 'Not now'}
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex flex-1 items-center justify-center gap-4">
+          <div className="hidden rounded-2xl border border-white/15 bg-white/5 p-2 text-white/80 md:flex">
+            <MonitorDown className="h-4 w-4" />
+          </div>
+
+          <div className="text-center">
+            <p className="text-base font-bold">{isArabic ? 'تثبيت التطبيق' : 'Install app'}</p>
+            <p className="mt-1 text-sm text-white/70">
+              {isArabic
+                ? 'احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع'
+                : 'Get the full app experience with offline access and faster loading'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="shrink-0 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
+        >
+          {isArabic ? 'تثبيت التطبيق' : 'Install app'}
         </button>
       </div>
     </div>
@@ -216,6 +208,18 @@ export default function ReferenceDashboardShell({
 
   const sidebar = (
     <div className="flex h-full flex-col">
+      <div className="border-b border-slate-200 px-5 py-5">
+        <div className="flex items-center justify-between">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f5f5f5] text-sm font-black text-slate-900">
+            {(userName || 'F').charAt(0).toUpperCase()}
+          </span>
+          <div className="text-right">
+            <p className="text-lg font-semibold text-slate-950">{userName}</p>
+            <p className="text-xs tracking-[0.16em] text-slate-400">{userRole}</p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <Link
           prefetch={false}
@@ -314,8 +318,6 @@ export default function ReferenceDashboardShell({
           })}
         </div>
 
-        {installCard}
-
         <button
           type="button"
           onClick={logout}
@@ -330,73 +332,34 @@ export default function ReferenceDashboardShell({
 
   return (
     <div className="min-h-screen bg-[#f6f6f7]" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="mx-auto flex max-w-[1700px] md:flex-row-reverse">
+      <div className="flex min-h-screen md:flex-row-reverse">
         <aside className="hidden min-h-screen w-[252px] shrink-0 border-l border-slate-200 bg-white md:block">
           {sidebar}
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 bg-[#f6f6f7]/95 backdrop-blur">
-            <div className="px-4 py-4 sm:px-6 lg:px-8">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setMobileOpen(true)}
-                    className="rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm md:hidden"
-                    aria-label="Open navigation menu"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </button>
+          {installBanner}
 
-                  <span className="rounded-[1.35rem] border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 shadow-sm">
-                    {todayDate}
-                  </span>
-                  <Link
-                    prefetch={false}
-                    href={withLocalePrefix('/dashboard/reports', locale)}
-                    className="rounded-[1.35rem] bg-[#3f7cff] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                  >
-                    {isArabic ? 'عرض التقارير' : 'View reports'}
-                  </Link>
-                  <span className="rounded-[1.35rem] border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-600 shadow-sm">
-                    {rangeLabel}
-                  </span>
-                </div>
+          <div className="px-4 pt-4 md:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="rounded-full border border-slate-200 bg-white p-3 text-slate-600 shadow-sm"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    {isOverview ? (
-                      <p className="max-w-[28rem] text-lg leading-8 text-slate-600">
-                        {isArabic
-                          ? 'مرحباً بعودتك! إليك ما يحدث في مدرستك اليوم.'
-                          : 'Welcome back. Here is what is happening across your school today.'}
-                      </p>
-                    ) : (
-                      <>
-                        <h1 className="text-[2rem] font-black leading-none text-slate-950">{pageTitle}</h1>
-                        {pageSubtitle ? (
-                          <p className="mt-2 text-sm text-slate-500">{pageSubtitle}</p>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3 rounded-full bg-white px-3 py-2 shadow-sm">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-900">{userName}</p>
-                      <p className="text-[11px] tracking-[0.18em] text-slate-400">{userRole}</p>
-                    </div>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-black text-slate-900">
-                      {(userName || 'F').charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                </div>
+          <div className="flex-1 px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+            {!isOverview && pageTitle ? (
+              <div className="mb-6 hidden md:block">
+                <h1 className="text-[2.2rem] font-black leading-none text-slate-950">{pageTitle}</h1>
+                {pageSubtitle ? <p className="mt-2 text-sm text-slate-500">{pageSubtitle}</p> : null}
               </div>
-            </div>
-          </header>
-
-          <div className="flex-1 px-4 pb-8 pt-2 sm:px-6 lg:px-8">{children}</div>
+            ) : null}
+            {children}
+          </div>
         </div>
       </div>
 
