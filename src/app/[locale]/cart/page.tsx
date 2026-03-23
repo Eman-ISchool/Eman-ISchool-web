@@ -62,7 +62,7 @@ export default function CartPage() {
                                 <div className="w-24 h-24 bg-gray-100 rounded-lg shrink-0 overflow-hidden relative">
                                     {/* We can use the actual image here if available, or a fallback */}
                                     {item.image ? (
-                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        <img loading="lazy" decoding="async" src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">?</div>
                                     )}

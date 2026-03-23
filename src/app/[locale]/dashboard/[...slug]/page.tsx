@@ -1,32 +1,35 @@
 import { ComponentType } from 'react';
 import { notFound } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
-import ReferenceDashboardOverview from '@/components/dashboard/ReferenceDashboardOverview';
-import ReferenceAssessmentWorkspace from '@/components/dashboard/ReferenceAssessmentWorkspace';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-import ReferenceCatalogWorkspace from '@/components/dashboard/ReferenceCatalogWorkspace';
-import ReferenceContentWorkspace from '@/components/dashboard/ReferenceContentWorkspace';
-import ReferenceFinanceWorkspace from '@/components/dashboard/ReferenceFinanceWorkspace';
-import ReferencePeopleWorkspace from '@/components/dashboard/ReferencePeopleWorkspace';
-import ReferenceReportsWorkspace from '@/components/dashboard/ReferenceReportsWorkspace';
-import ReferenceScheduleWorkspace from '@/components/dashboard/ReferenceScheduleWorkspace';
-import ReferenceSettingsWorkspace from '@/components/dashboard/ReferenceSettingsWorkspace';
 import {
   DashboardModuleKey,
   referenceDashboardAliasRoutes,
 } from '@/lib/reference-route-inventory';
 
-import ContentPage from '../../admin/content/page';
-import EnrollmentApplicationsPage from '../../admin/enrollment-applications/page';
-import EnrollmentReportsPage from '../../admin/enrollment-reports/page';
-import CouponsExpensesPage from '../../admin/coupons-expenses/page';
-import CurrencyComparePage from '../../admin/currency-compare/page';
-import FeesPage from '../../admin/fees/page';
-import CalendarPage from '../../admin/calendar/page';
-import LessonsPage from '../../admin/lessons/page';
-import QuizzesExamsPage from '../../admin/quizzes-exams/page';
-import SettingsPage from '../../admin/settings/page';
-import StudentsPage from '../../admin/students/page';
+// Dynamic imports — only the visited page's code is loaded
+const ReferenceDashboardOverview = dynamic(() => import('@/components/dashboard/ReferenceDashboardOverview'));
+const ReferenceAssessmentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceAssessmentWorkspace'));
+const ReferenceCatalogWorkspace = dynamic(() => import('@/components/dashboard/ReferenceCatalogWorkspace'));
+const ReferenceContentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceContentWorkspace'));
+const ReferenceFinanceWorkspace = dynamic(() => import('@/components/dashboard/ReferenceFinanceWorkspace'));
+const ReferencePeopleWorkspace = dynamic(() => import('@/components/dashboard/ReferencePeopleWorkspace'));
+const ReferenceReportsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceReportsWorkspace'));
+const ReferenceScheduleWorkspace = dynamic(() => import('@/components/dashboard/ReferenceScheduleWorkspace'));
+const ReferenceSettingsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceSettingsWorkspace'));
+
+const ContentPage = dynamic(() => import('../../admin/content/page'));
+const EnrollmentApplicationsPage = dynamic(() => import('../../admin/enrollment-applications/page'));
+const EnrollmentReportsPage = dynamic(() => import('../../admin/enrollment-reports/page'));
+const CouponsExpensesPage = dynamic(() => import('../../admin/coupons-expenses/page'));
+const CurrencyComparePage = dynamic(() => import('../../admin/currency-compare/page'));
+const FeesPage = dynamic(() => import('../../admin/fees/page'));
+const CalendarPage = dynamic(() => import('../../admin/calendar/page'));
+const LessonsPage = dynamic(() => import('../../admin/lessons/page'));
+const QuizzesExamsPage = dynamic(() => import('../../admin/quizzes-exams/page'));
+const SettingsPage = dynamic(() => import('../../admin/settings/page'));
+const StudentsPage = dynamic(() => import('../../admin/students/page'));
 
 interface DashboardCatchAllPageProps {
   params: {

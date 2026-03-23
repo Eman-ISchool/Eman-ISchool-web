@@ -55,13 +55,13 @@ export default function StudentHomePage() {
             } catch (error) {
                 console.error('Failed to fetch announcements:', error);
                 setAnnouncementState(createErrorState(
-                    isRTL ? 'فشل تحميل الإعلانات' : 'Failed to load announcements',
+                    'Failed to load announcements',
                     () => fetchAnnouncements()
                 ));
             }
         };
         fetchAnnouncements();
-    }, [isRTL]);
+    }, []);
 
     const handleUpload = async (assignmentId: string, file: File) => {
         console.log('Uploading file for assignment:', assignmentId, file.name);
@@ -224,7 +224,7 @@ export default function StudentHomePage() {
                         text: announcementState.data[0].title,
                         createdAt: announcementState.data[0].publishedAt,
                     }}
-                    onViewAll={() => console.log('View all announcements')}
+                    onViewAll={() => router.push(withLocalePrefix('/student/announcements', locale))}
                 />
             )}
 
@@ -321,10 +321,10 @@ export default function StudentHomePage() {
             </div>
 
             {/* ── Announcement Card ─────────────────────────────────── */}
-            {!loading && mockAnnouncement && (
+            {mockAnnouncement && (
                 <AnnouncementCard
                     announcement={mockAnnouncement}
-                    onViewAll={() => console.log('View all announcements')}
+                    onViewAll={() => router.push(withLocalePrefix('/student/announcements', locale))}
                 />
             )}
 
@@ -342,7 +342,7 @@ export default function StudentHomePage() {
                     <LessonCarousel
                         lessons={mockLessons}
                         title={t('home.upcomingLessons')}
-                        onSeeAll={() => console.log('See all lessons')}
+                        onSeeAll={() => router.push(withLocalePrefix('/student/courses', locale))}
                     />
                 )}
             </section>
@@ -359,7 +359,7 @@ export default function StudentHomePage() {
                     <AssignmentList
                         assignments={mockAssignments}
                         title={t('home.assignments')}
-                        onSeeAll={() => console.log('See all assignments')}
+                        onSeeAll={() => router.push(withLocalePrefix('/student/assignments', locale))}
                         onUpload={handleUpload}
                     />
                 )}
@@ -401,8 +401,8 @@ export default function StudentHomePage() {
                     <SubjectGrid
                         subjects={mockSubjects}
                         title={t('home.subjects')}
-                        onSeeAll={() => console.log('See all subjects')}
-                        onSubjectClick={(id) => console.log('Subject clicked:', id)}
+                        onSeeAll={() => router.push(withLocalePrefix('/student/courses', locale))}
+                        onSubjectClick={(id) => router.push(withLocalePrefix(`/student/courses`, locale))}
                     />
                 )}
             </section>

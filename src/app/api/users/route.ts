@@ -51,7 +51,9 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: 'فشل جلب المستخدمين' }, { status: 500 });
         }
 
-        return NextResponse.json({ users, total: count });
+        const response = NextResponse.json({ users, total: count });
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     } catch (error) {
         console.error('Error fetching users:', error);
         return NextResponse.json({ error: 'فشل جلب المستخدمين' }, { status: 500 });

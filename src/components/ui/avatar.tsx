@@ -14,7 +14,7 @@ Avatar.displayName = 'Avatar';
 
 const AvatarImage = React.forwardRef<HTMLImageElement, React.ImgHTMLAttributes<HTMLImageElement>>(
     ({ className, ...props }, ref) => (
-        <img ref={ref} alt={props.alt || ""} className={`aspect-square h-full w-full object-cover ${className || ''}`} {...props} />
+        <img ref={ref} alt={props.alt || ""} loading="lazy" decoding="async" className={`aspect-square h-full w-full object-cover ${className || ''}`} {...props} />
     )
 );
 AvatarImage.displayName = 'AvatarImage';

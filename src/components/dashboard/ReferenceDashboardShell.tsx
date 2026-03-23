@@ -63,7 +63,6 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/courses', label: { ar: 'المواد الدراسية', en: 'Courses' }, icon: BookOpen },
       { href: '/dashboard/categories', label: { ar: 'الفئات', en: 'Categories' }, icon: FolderKanban },
       { href: '/dashboard/bundles', label: { ar: 'الفصول', en: 'Bundles' }, icon: CalendarDays },
-      { href: '/dashboard/exams', label: { ar: 'الامتحانات', en: 'Exams' }, icon: ReceiptText },
       { href: '/dashboard/quizzes', label: { ar: 'الاختبارات', en: 'Quizzes' }, icon: FileQuestion },
     ],
   },
@@ -198,6 +197,11 @@ export default function ReferenceDashboardShell({
 
         <button
           type="button"
+          onClick={() => {
+            if ('serviceWorker' in navigator) {
+              window.alert(isArabic ? 'افتح قائمة المتصفح واختر "إضافة إلى الشاشة الرئيسية"' : 'Open browser menu and choose "Add to Home Screen"');
+            }
+          }}
           className="shrink-0 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
         >
           {isArabic ? 'تثبيت التطبيق' : 'Install app'}

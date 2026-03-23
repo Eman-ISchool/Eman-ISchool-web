@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Bold,
@@ -57,7 +58,14 @@ import {
   courseDetails,
   courseListItems,
   lessonDetails,
+  type BundleFeeItem,
+  type BundleScheduleItem,
+  type BundleSubject,
+  type CourseAssignmentItem,
+  type CourseExamItem,
+  type CourseLessonItem,
   type CourseLiveSessionItem,
+  type LessonReferenceMaterial,
 } from '@/lib/dashboard-reference-fixtures';
 import { withLocalePrefix } from '@/lib/locale-path';
 
@@ -123,10 +131,11 @@ function PillButton({
   );
 }
 
-function ActionIcon({ icon: Icon, tone = 'default' }: { icon: typeof Pencil; tone?: 'default' | 'danger' }) {
+function ActionIcon({ icon: Icon, tone = 'default', onClick }: { icon: typeof Pencil; tone?: 'default' | 'danger'; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition ${
         tone === 'danger' ? 'text-red-500 hover:bg-red-50' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
       }`}
@@ -169,42 +178,71 @@ function RichTextBox({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const toolbarButtonClass = 'rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900';
+
+  const wrapSelection = (before: string, after: string = before) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = value.slice(start, end);
+    const newValue = value.slice(0, start) + before + selected + after + value.slice(end);
+    onChange(newValue);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + before.length, end + before.length);
+    });
+  };
+
+  const insertLine = (prefix: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+    const newValue = value.slice(0, lineStart) + prefix + value.slice(lineStart);
+    onChange(newValue);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, start + prefix.length);
+    });
+  };
 
   return (
     <div className="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-end gap-1 border-b border-slate-200 px-3 py-2">
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('`')} title="Code">
           <Type className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('[', '](url)')} title="Link">
           <Link2 className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('![alt](', ')')} title="Image">
           <ImageIcon className="h-4 w-4" />
         </button>
         <div className="mx-2 h-5 w-px bg-slate-200" />
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => insertLine('- ')} title="Bullet list">
           <List className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => insertLine('1. ')} title="Numbered list">
           <ListOrdered className="h-4 w-4" />
         </button>
         <div className="mx-2 h-5 w-px bg-slate-200" />
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('**')} title="Bold">
           <Bold className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('_')} title="Italic">
           <Italic className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('<u>', '</u>')} title="Underline">
           <Underline className="h-4 w-4" />
         </button>
-        <button type="button" className={toolbarButtonClass}>
+        <button type="button" className={toolbarButtonClass} onClick={() => wrapSelection('~~')} title="Strikethrough">
           <Strikethrough className="h-4 w-4" />
         </button>
       </div>
       <Textarea
+        ref={textareaRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="min-h-[140px] resize-none border-0 bg-transparent p-4 text-right shadow-none focus-visible:ring-0"
@@ -214,13 +252,31 @@ function RichTextBox({
 }
 
 function UploadPanel() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setFileName(file.name);
+  };
+
   return (
     <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-8 text-center">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       <ImageIcon className="mb-5 h-12 w-12 text-slate-400" strokeWidth={1.5} />
-      <p className="text-sm font-medium text-slate-500">اسحب الصورة هنا أو اخترها من جهازك</p>
+      <p className="text-sm font-medium text-slate-500">
+        {fileName ? fileName : 'اسحب الصورة هنا أو اخترها من جهازك'}
+      </p>
       <button
         type="button"
         className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-sm"
+        onClick={() => fileInputRef.current?.click()}
       >
         <UploadCloud className="h-4 w-4" />
         رفع صورة
@@ -230,8 +286,18 @@ function UploadPanel() {
   );
 }
 
+const CALENDAR_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 function CalendarMonthView() {
   const columns = ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun'];
+  const [activeView, setActiveView] = useState<string>('الشهر');
+  const [monthOffset, setMonthOffset] = useState(0); // 0 = March 2026
+
+  const currentMonthIndex = (2 + monthOffset + 120) % 12; // March is index 2
+  const yearOffset = Math.floor((2 + monthOffset) / 12);
+  const displayYear = 2026 + yearOffset;
+  const displayMonth = CALENDAR_MONTHS[currentMonthIndex];
+
   const events = useMemo(
     () =>
       courseDetails['1'].liveSessions.reduce((acc, session) => {
@@ -249,7 +315,7 @@ function CalendarMonthView() {
     [4, 3, 2, 1, 31, 30, 29],
   ];
 
-  const inMarch = (day: number, weekIndex: number) => !(weekIndex === 4 && day <= 4);
+  const inCurrentMonth = (day: number, weekIndex: number) => !(weekIndex === 4 && day <= 4);
 
   return (
     <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
@@ -259,8 +325,9 @@ function CalendarMonthView() {
             <button
               key={label}
               type="button"
+              onClick={() => setActiveView(label)}
               className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                label === 'الشهر' ? 'bg-[#d9d9d9] text-slate-900' : 'bg-white text-slate-600'
+                label === activeView ? 'bg-[#d9d9d9] text-slate-900' : 'bg-white text-slate-600'
               }`}
             >
               {label}
@@ -268,14 +335,12 @@ function CalendarMonthView() {
           ))}
         </div>
 
-        <h3 className="text-lg font-semibold text-slate-700">March 2026</h3>
+        <h3 className="text-lg font-semibold text-slate-700">{displayMonth} {displayYear}</h3>
 
         <div className="flex items-center gap-2">
-          {['اليوم', 'السابق', 'التالي'].map((label) => (
-            <button key={label} type="button" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">
-              {label}
-            </button>
-          ))}
+          <button type="button" onClick={() => setMonthOffset(0)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">اليوم</button>
+          <button type="button" onClick={() => setMonthOffset((o) => o - 1)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">السابق</button>
+          <button type="button" onClick={() => setMonthOffset((o) => o + 1)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">التالي</button>
         </div>
       </div>
 
@@ -288,14 +353,14 @@ function CalendarMonthView() {
 
         {weeks.map((week, weekIndex) =>
           week.map((day, columnIndex) => {
-            const cellEvents = inMarch(day, weekIndex) ? events[day] || [] : [];
-            const isToday = day === 22 && weekIndex === 3 && columnIndex === 6;
+            const cellEvents = inCurrentMonth(day, weekIndex) && monthOffset === 0 ? events[day] || [] : [];
+            const isToday = day === 22 && weekIndex === 3 && columnIndex === 6 && monthOffset === 0;
 
             return (
               <div
                 key={`${weekIndex}-${day}-${columnIndex}`}
                 className={`min-h-[155px] border-b border-l border-slate-200 p-2 align-top last:border-l-0 ${
-                  isToday ? 'bg-[#dcecff]' : weekIndex === 4 && day <= 4 ? 'bg-[#d8d8d8]' : 'bg-white'
+                  isToday ? 'bg-[#dcecff]' : !inCurrentMonth(day, weekIndex) ? 'bg-[#d8d8d8]' : 'bg-white'
                 }`}
               >
                 <div className="mb-2 text-right text-[13px] font-semibold text-slate-600">{String(day).padStart(2, '0')}</div>
@@ -336,6 +401,7 @@ function CourseInfoTab({
   onDetailsChange,
   meetingLink,
   onMeetingLinkChange,
+  onCreateMeeting,
 }: {
   title: string;
   teacher: string;
@@ -345,6 +411,7 @@ function CourseInfoTab({
   onDetailsChange: (value: string) => void;
   meetingLink: string;
   onMeetingLinkChange: (value: string) => void;
+  onCreateMeeting?: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -406,7 +473,7 @@ function CourseInfoTab({
 
           <div className="space-y-4 text-right">
             <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
-            <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+            <Button onClick={onCreateMeeting} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
               <Video className="ml-2 h-4 w-4" />
               إنشاء اجتماع
             </Button>
@@ -423,17 +490,19 @@ function ListSectionCard({
   actionLabel,
   children,
   icon: Icon,
+  onAction,
 }: {
   title: string;
   subtitle: string;
   actionLabel: string;
   children: React.ReactNode;
   icon: typeof Plus;
+  onAction?: () => void;
 }) {
   return (
     <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-        <Button className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
+        <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
           <Icon className="ml-2 h-4 w-4" />
           {actionLabel}
         </Button>
@@ -453,13 +522,16 @@ function CourseListCard({
   title,
   subtitle,
   teacher,
+  onDelete,
 }: {
   id: string;
   title: string;
   subtitle: string;
   teacher: string;
+  onDelete?: () => void;
 }) {
   const locale = useLocale();
+  const router = useRouter();
   const href = withLocalePrefix(`/dashboard/courses/${id}`, locale);
 
   return (
@@ -476,9 +548,9 @@ function CourseListCard({
 
       <div className="mt-4 flex items-center justify-between">
         <div className="flex gap-1">
-          <ActionIcon icon={Trash2} tone="danger" />
-          <ActionIcon icon={Pencil} />
-          <ActionIcon icon={Eye} />
+          <ActionIcon icon={Trash2} tone="danger" onClick={onDelete} />
+          <ActionIcon icon={Pencil} onClick={() => router.push(href)} />
+          <ActionIcon icon={Eye} onClick={() => router.push(href)} />
         </div>
 
         <Link href={href} className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50">
@@ -492,7 +564,14 @@ function CourseListCard({
 export function ReferenceCoursesCatalogPage() {
   const locale = useLocale();
   const [query, setQuery] = useState('');
-  const filtered = courseListItems.filter((item) => [item.title, item.subtitle, item.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+  const [items, setItems] = useState(courseListItems);
+  const filtered = items.filter((item) => [item.title, item.subtitle, item.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+
+  const handleDelete = useCallback((id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    }
+  }, []);
 
   return (
     <ReferenceDashboardShell>
@@ -514,7 +593,7 @@ export function ReferenceCoursesCatalogPage() {
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((course) => (
-            <CourseListCard key={course.id} {...course} />
+            <CourseListCard key={course.id} {...course} onDelete={() => handleDelete(course.id)} />
           ))}
         </div>
       </div>
@@ -524,17 +603,89 @@ export function ReferenceCoursesCatalogPage() {
 
 export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   const locale = useLocale();
+  const router = useRouter();
   const fixture = courseId ? courseDetails[courseId] : undefined;
   const [title, setTitle] = useState(fixture?.title || '');
   const [teacher, setTeacher] = useState(fixture?.teacher || 'ابراهيم محمد');
   const [details, setDetails] = useState(fixture?.details || '');
   const [meetingLink, setMeetingLink] = useState(fixture?.meetingLink || '');
+  const [lessons, setLessons] = useState<CourseLessonItem[]>(fixture?.lessons || []);
+  const [assignments, setAssignments] = useState<CourseAssignmentItem[]>(fixture?.assignments || []);
+  const [exams, setExams] = useState<CourseExamItem[]>(fixture?.exams || []);
+  const [courseFeeRows, setCourseFeeRows] = useState<Array<{ id: string; plan: string; price: string; duration: string; status: string }>>([
+    { id: '1', plan: 'شهري', price: '100 ر.س', duration: 'شهر واحد', status: 'نشط' },
+    { id: '2', plan: 'فصلي', price: '270 ر.س', duration: '3 أشهر', status: 'نشط' },
+    { id: '3', plan: 'سنوي', price: '900 ر.س', duration: '12 شهراً', status: 'نشط' },
+  ]);
+  const [showAddFee, setShowAddFee] = useState(false);
+  const [newFeePlan, setNewFeePlan] = useState('');
+  const [newFeePrice, setNewFeePrice] = useState('');
+  const [newFeeDuration, setNewFeeDuration] = useState('');
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [addSection, setAddSection] = useState<'lesson' | 'assignment' | 'exam' | 'live' | null>(null);
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemContent, setNewItemContent] = useState('');
+  const [newItemVideoUrl, setNewItemVideoUrl] = useState('');
+  const [newItemPublish, setNewItemPublish] = useState(false);
+  const [newItemDueDate, setNewItemDueDate] = useState('');
+  const [newItemDescription, setNewItemDescription] = useState('');
+  const [newItemTime, setNewItemTime] = useState('');
+  const [newLessonDate, setNewLessonDate] = useState('');
+  const [newExamGroup, setNewExamGroup] = useState('');
+  const [newExamDuration, setNewExamDuration] = useState('60');
+  const [newExamPassingScore, setNewExamPassingScore] = useState('50');
+  const [newExamMaxScore, setNewExamMaxScore] = useState('100');
+  const [newExamStatus, setNewExamStatus] = useState('مسودة');
+  const [newLessonVideoFile, setNewLessonVideoFile] = useState<string | null>(null);
+  const lessonVideoInputRef = useRef<HTMLInputElement>(null);
+
+  const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(null), 2500);
+  }, []);
+
+  const handleSave = useCallback(() => showSaved(), [showSaved]);
+
+  const resetModal = useCallback(() => {
+    setAddSection(null);
+    setNewItemTitle('');
+    setNewItemContent('');
+    setNewItemVideoUrl('');
+    setNewItemPublish(false);
+    setNewItemDueDate('');
+    setNewItemDescription('');
+    setNewItemTime('');
+    setNewLessonDate('');
+    setNewExamGroup('');
+    setNewExamDuration('60');
+    setNewExamPassingScore('50');
+    setNewExamMaxScore('100');
+    setNewExamStatus('مسودة');
+    setNewLessonVideoFile(null);
+  }, []);
+
+  const handleAddItem = useCallback(() => {
+    if (!newItemTitle.trim()) return;
+    const id = Date.now().toString();
+    if (addSection === 'lesson') {
+      setLessons((prev) => [...prev, { id, title: newItemTitle.trim(), description: newItemContent.trim(), date: newLessonDate || new Date().toLocaleDateString('ar-SA'), status: newItemPublish ? 'published' : 'draft' }]);
+    } else if (addSection === 'assignment') {
+      setAssignments((prev) => [...prev, { id, title: newItemTitle.trim(), description: newItemDescription.trim(), dueDate: newItemDueDate || '-', submissions: 0 }]);
+    } else if (addSection === 'exam') {
+      setExams((prev) => [...prev, { id, title: newItemTitle.trim(), status: newExamStatus === 'منشور' ? 'نشط' : 'غير نشط', dueDate: '-', attempts: 0 }]);
+    }
+    resetModal();
+  }, [addSection, newItemTitle, newItemContent, newItemVideoUrl, newItemPublish, newItemDueDate, newItemDescription, newItemTime, newLessonDate, newExamGroup, newExamDuration, newExamPassingScore, newExamMaxScore, newExamStatus, resetModal]);
 
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
+        {savedMsg ? (
+          <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div>
+        ) : null}
+
         <div className="flex items-center justify-between">
-          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+          <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
             <Save className="ml-2 h-4 w-4" />
             {courseId ? 'حفظ' : 'حفظ المادة'}
           </Button>
@@ -578,17 +729,28 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
               onDetailsChange={setDetails}
               meetingLink={meetingLink}
               onMeetingLinkChange={setMeetingLink}
+              onCreateMeeting={() => {
+                if (meetingLink) {
+                  window.open(meetingLink, '_blank');
+                } else {
+                  showSaved('يرجى إدخال رابط الاجتماع أولاً');
+                }
+              }}
             />
           </TabsContent>
 
           <TabsContent value="lessons" className="mt-0">
-            <ListSectionCard title="الدروس" subtitle="إدارة الدروس المرتبطة بالمادة الدراسية." actionLabel="إضافة درس" icon={Plus}>
+            <ListSectionCard title="دروس المادة الدراسية" subtitle="إدارة دروس هذه المادة الدراسية." actionLabel="إضافة درس جديد" icon={Plus} onAction={() => setAddSection('lesson')}>
               <div className="space-y-4">
-                {(fixture?.lessons || []).map((lesson) => (
+                {lessons.map((lesson) => (
                   <div key={lesson.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                     <div className="flex gap-1">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                        if (window.confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
+                          setLessons((prev) => prev.filter((l) => l.id !== lesson.id));
+                        }
+                      }} />
+                      <ActionIcon icon={Pencil} onClick={() => router.push(withLocalePrefix(`/dashboard/lessons/${lesson.id}`, locale))} />
                       <Link href={withLocalePrefix(`/dashboard/lessons/${lesson.id}`, locale)}>
                         <ActionIcon icon={Eye} />
                       </Link>
@@ -612,59 +774,106 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
           </TabsContent>
 
           <TabsContent value="assignments" className="mt-0">
-            <ListSectionCard title="الواجبات" subtitle="إدارة الواجبات وتسليمات الطلاب." actionLabel="إضافة واجب" icon={Plus}>
-              <div className="space-y-4">
-                {(fixture?.assignments || []).map((assignment) => (
-                  <div key={assignment.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
-                    <div className="flex gap-1">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
-                    </div>
+            <ListSectionCard title="اختبارات المادة الدراسية" subtitle="إدارة اختبارات هذه المادة الدراسية.">
+              {assignments.length > 0 ? (
+                <div className="space-y-4">
+                  {assignments.map((assignment) => (
+                    <div key={assignment.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                      <div className="flex gap-1">
+                        <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                          if (window.confirm('هل أنت متأكد من حذف هذا الاختبار؟')) {
+                            setAssignments((prev) => prev.filter((a) => a.id !== assignment.id));
+                          }
+                        }} />
+                        <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر الاختبار...')} />
+                      </div>
 
-                    <div className="text-right">
-                      <h3 className="text-lg font-bold text-slate-950">{assignment.title}</h3>
-                      <p className="mt-2 text-sm text-slate-500">{assignment.description}</p>
-                      <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
-                        <span>{assignment.submissions} تسليماً</span>
-                        <span>{assignment.dueDate}</span>
+                      <div className="text-right">
+                        <h3 className="text-lg font-bold text-slate-950">{assignment.title}</h3>
+                        <p className="mt-2 text-sm text-slate-500">{assignment.description}</p>
+                        <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
+                          <span>{assignment.submissions} تسليماً</span>
+                          <span>{assignment.dueDate}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-slate-200 bg-white py-12 text-center">
+                  <p className="text-sm text-slate-500">لا توجد اختبارات</p>
+                  <p className="mt-1 text-xs text-slate-400">قم بالاضافة من شاشة الدروس</p>
+                </div>
+              )}
             </ListSectionCard>
           </TabsContent>
 
           <TabsContent value="exams" className="mt-0">
-            <ListSectionCard title="الامتحانات" subtitle="الاختبارات والامتحانات المرتبطة بالمادة." actionLabel="إضافة امتحان" icon={Plus}>
-              <div className="space-y-4">
-                {(fixture?.exams || []).map((exam) => (
-                  <div key={exam.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
-                    <div className="flex gap-1">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
-                    </div>
-
-                    <div className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <StatusChip label={exam.status} tone={exam.status === 'نشط' ? 'success' : 'default'} />
-                        <h3 className="text-lg font-bold text-slate-950">{exam.title}</h3>
-                      </div>
-                      <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
-                        <span>{exam.attempts} محاولات</span>
-                        <span>{exam.dueDate}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setAddSection('exam')}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#171717] px-5 py-3 text-sm font-bold text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  إضافة امتحان جديد
+                </button>
+                <div className="text-right">
+                  <h2 className="text-3xl font-black text-slate-950">امتحانات المادة الدراسية</h2>
+                  <p className="mt-1 text-sm text-slate-400">إدارة امتحانات هذه المادة الدراسية.</p>
+                </div>
               </div>
-            </ListSectionCard>
+
+              <div className="text-right font-bold text-xl text-slate-900 mb-4">الامتحانات</div>
+
+              {exams.length > 0 ? (
+                <div className="space-y-4">
+                  {exams.map((exam) => (
+                    <div key={exam.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
+                      <div className="flex gap-1">
+                        <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                          if (window.confirm('هل أنت متأكد من حذف هذا الامتحان؟')) {
+                            setExams((prev) => prev.filter((e) => e.id !== exam.id));
+                          }
+                        }} />
+                        <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر الامتحان...')} />
+                      </div>
+
+                      <div className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <StatusChip label={exam.status} tone={exam.status === 'نشط' ? 'success' : 'default'} />
+                          <h3 className="text-lg font-bold text-slate-950">{exam.title}</h3>
+                        </div>
+                        <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
+                          <span>{exam.attempts} محاولات</span>
+                          <span>{exam.dueDate}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-slate-200 bg-white py-16 text-center">
+                  <FileText className="mb-4 h-12 w-12 text-slate-300" />
+                  <p className="text-sm text-slate-500">لم يتم إضافة أي امتحانات بعد</p>
+                  <button
+                    type="button"
+                    onClick={() => setAddSection('exam')}
+                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#171717] px-5 py-3 text-sm font-bold text-white"
+                  >
+                    <Plus className="h-4 w-4" />
+                    قم بإضافة اول امتحان
+                  </button>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="live" className="mt-0">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+                <Button onClick={() => setAddSection('live')} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
                   إضافة درس مباشر
                 </Button>
 
@@ -677,8 +886,376 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
               <CalendarMonthView />
             </div>
           </TabsContent>
+
+          <TabsContent value="fees" className="mt-0">
+            <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowAddFee(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#171717] px-5 py-3 text-sm font-bold text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  إضافة رسوم
+                </button>
+                <div className="text-right">
+                  <h2 className="text-3xl font-black text-slate-950">الرسوم</h2>
+                  <p className="mt-1 text-sm text-slate-400">خطط الرسوم الدراسية لهذه المادة.</p>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white">
+                <table className="w-full text-right text-sm">
+                  <thead className="border-b border-slate-200 bg-[#f4f4f4]">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold text-slate-700">اسم الخطة</th>
+                      <th className="px-5 py-3 font-semibold text-slate-700">السعر</th>
+                      <th className="px-5 py-3 font-semibold text-slate-700">المدة</th>
+                      <th className="px-5 py-3 font-semibold text-slate-700">الحالة</th>
+                      <th className="px-5 py-3 font-semibold text-slate-700 w-[100px]">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {courseFeeRows.map((fee) => (
+                      <tr key={fee.id} className="hover:bg-slate-50">
+                        <td className="px-5 py-4 font-semibold text-slate-900">{fee.plan}</td>
+                        <td className="px-5 py-4 text-slate-700">{fee.price}</td>
+                        <td className="px-5 py-4 text-slate-500">{fee.duration}</td>
+                        <td className="px-5 py-4">
+                          <StatusChip label={fee.status} tone={fee.status === 'نشط' ? 'success' : 'default'} />
+                        </td>
+                        <td className="px-5 py-4">
+                          <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                            if (window.confirm('هل أنت متأكد من حذف هذه الخطة؟')) {
+                              setCourseFeeRows((prev) => prev.filter((f) => f.id !== fee.id));
+                            }
+                          }} />
+                        </td>
+                      </tr>
+                    ))}
+                    {!courseFeeRows.length ? (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-8 text-center text-slate-400">لا توجد خطط رسوم مضافة بعد.</td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
+
+      {addSection ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className={`w-full rounded-[1.7rem] bg-white p-6 shadow-2xl ${addSection === 'exam' ? 'max-w-2xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto`}>
+            <div className="mb-5 text-right">
+              <h3 className="text-2xl font-black text-slate-950">
+                {addSection === 'lesson' ? 'إنشاء درس' : addSection === 'assignment' ? 'إضافة واجب جديد' : addSection === 'exam' ? 'إنشاء امتحان' : 'إضافة حصة مباشرة'}
+              </h3>
+              {addSection === 'lesson' ? (
+                <p className="mt-2 text-sm text-slate-400">إضافة درس جديد للمادة الدراسية</p>
+              ) : addSection === 'exam' ? (
+                <p className="mt-2 text-sm text-slate-400">إدارة امتحانات هذه المادة الدراسية.</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-4 text-right">
+              {/* Title field — all types */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  {addSection === 'lesson' ? 'عنوان الدرس' : addSection === 'assignment' ? 'عنوان الواجب' : addSection === 'exam' ? 'عنوان الامتحان' : 'عنوان الحصة'}
+                </label>
+                <Input
+                  value={newItemTitle}
+                  onChange={(event) => setNewItemTitle(event.target.value)}
+                  placeholder={addSection === 'lesson' ? 'أدخل عنوان الدرس' : addSection === 'assignment' ? 'أدخل عنوان الواجب' : addSection === 'exam' ? 'العنوان' : 'أدخل عنوان الحصة'}
+                  autoFocus
+                  className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                />
+              </div>
+
+              {/* Content textarea — lesson only */}
+              {addSection === 'lesson' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">المحتوى</label>
+                  <Textarea
+                    value={newItemContent}
+                    onChange={(event) => setNewItemContent(event.target.value)}
+                    placeholder="أدخل محتوى الدرس"
+                    className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Description textarea — assignment only */}
+              {addSection === 'assignment' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">الوصف</label>
+                  <Textarea
+                    value={newItemDescription}
+                    onChange={(event) => setNewItemDescription(event.target.value)}
+                    placeholder="أدخل الوصف"
+                    className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Exam-specific fields matching reference */}
+              {addSection === 'exam' ? (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">التفاصيل</label>
+                    <Textarea
+                      value={newItemDescription}
+                      onChange={(event) => setNewItemDescription(event.target.value)}
+                      placeholder="التفاصيل"
+                      className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">مجموعة الاختبارات</label>
+                    <div className="relative">
+                      <select
+                        value={newExamGroup}
+                        onChange={(event) => setNewExamGroup(event.target.value)}
+                        className="h-12 w-full appearance-none rounded-[1rem] border border-slate-200 bg-white px-4 text-right text-sm text-slate-700 outline-none"
+                      >
+                        <option value="">اختر مجموعة</option>
+                        <option value="اختبارات نهائية">اختبارات نهائية</option>
+                        <option value="اختبارات شهرية">اختبارات شهرية</option>
+                        <option value="اختبارات يومية">اختبارات يومية</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">المدة</label>
+                    <Input
+                      type="number"
+                      value={newExamDuration}
+                      onChange={(event) => setNewExamDuration(event.target.value)}
+                      placeholder="60"
+                      className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">درجة النجاح</label>
+                    <Input
+                      type="number"
+                      value={newExamPassingScore}
+                      onChange={(event) => setNewExamPassingScore(event.target.value)}
+                      placeholder="50"
+                      className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">اعلى درجة</label>
+                    <Input
+                      type="number"
+                      value={newExamMaxScore}
+                      onChange={(event) => setNewExamMaxScore(event.target.value)}
+                      placeholder="100"
+                      className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">الحالة</label>
+                    <div className="relative">
+                      <select
+                        value={newExamStatus}
+                        onChange={(event) => setNewExamStatus(event.target.value)}
+                        className="h-12 w-full appearance-none rounded-[1rem] border border-slate-200 bg-white px-4 text-right text-sm text-slate-700 outline-none"
+                      >
+                        <option value="مسودة">مسودة</option>
+                        <option value="منشور">منشور</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    </div>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Due date — assignment only */}
+              {addSection === 'assignment' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">تاريخ الاستحقاق</label>
+                  <Input
+                    type="date"
+                    value={newItemDueDate}
+                    onChange={(event) => setNewItemDueDate(event.target.value)}
+                    className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Lesson date — optional */}
+              {addSection === 'lesson' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    تاريخ الدرس
+                    <span className="mr-1 text-xs font-normal text-slate-400">(اختياري)</span>
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={newLessonDate}
+                    onChange={(event) => setNewLessonDate(event.target.value)}
+                    placeholder="اختر تاريخ ووقت الدرس"
+                    className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Date field — live session */}
+              {addSection === 'live' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">التاريخ</label>
+                  <Input
+                    type="date"
+                    value={newItemDueDate}
+                    onChange={(event) => setNewItemDueDate(event.target.value)}
+                    className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Time field — live session */}
+              {addSection === 'live' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">الوقت</label>
+                  <Input
+                    type="time"
+                    value={newItemTime}
+                    onChange={(event) => setNewItemTime(event.target.value)}
+                    className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+                  />
+                </div>
+              ) : null}
+
+              {/* Video file upload — lesson only (matching reference) */}
+              {addSection === 'lesson' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    رابط الفيديو
+                    <span className="mr-1 text-xs font-normal text-slate-400">(اختياري)</span>
+                  </label>
+                  <input
+                    ref={lessonVideoInputRef}
+                    type="file"
+                    accept="video/mp4,video/mpeg,video/quicktime,video/webm,video/3gpp,video/x-msvideo,video/x-matroska,video/x-flv,video/x-ms-wmv"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setNewLessonVideoFile(file.name);
+                    }}
+                  />
+                  <div className="flex min-h-[120px] flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-slate-300 bg-white p-6 text-center">
+                    <UploadCloud className="mb-3 h-8 w-8 text-slate-400" strokeWidth={1.5} />
+                    <p className="text-sm text-slate-500">
+                      {newLessonVideoFile ? newLessonVideoFile : 'قم بسحب الملف هنا او'}
+                    </p>
+                    {!newLessonVideoFile ? (
+                      <button
+                        type="button"
+                        onClick={() => lessonVideoInputRef.current?.click()}
+                        className="mt-2 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm"
+                      >
+                        اختر ملف
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setNewLessonVideoFile(null)}
+                        className="mt-2 text-xs text-red-500 hover:underline"
+                      >
+                        إزالة
+                      </button>
+                    )}
+                    <p className="mt-2 text-xs text-slate-400">الحد الأقصى: 300 ميجابايت | mp4, mpeg, mov, webm, avi, mkv</p>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Live session link */}
+              {addSection === 'live' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">رابط الحصة</label>
+                  <Input
+                    dir="ltr"
+                    value={newItemVideoUrl}
+                    onChange={(event) => setNewItemVideoUrl(event.target.value)}
+                    placeholder="https://"
+                    className="h-12 rounded-[1rem] border-slate-200 bg-white font-mono"
+                  />
+                </div>
+              ) : null}
+
+              {/* Publish checkbox — lesson only */}
+              {addSection === 'lesson' ? (
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <label className="text-sm font-semibold text-slate-700">نشر هذا الدرس</label>
+                  <input
+                    type="checkbox"
+                    checked={newItemPublish}
+                    onChange={(event) => setNewItemPublish(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 accent-slate-900"
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-6 flex justify-start gap-3">
+              <button type="button" onClick={handleAddItem} className="inline-flex items-center gap-2 rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
+                {addSection === 'exam' ? <><Save className="h-4 w-4" /> إنشاء</> : addSection === 'lesson' ? 'إنشاء' : addSection === 'assignment' ? 'إنشاء واجب' : 'إضافة حصة'}
+              </button>
+              <button type="button" onClick={resetModal} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showAddFee ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-[520px] rounded-[1.7rem] bg-white p-6 shadow-2xl">
+            <div className="mb-5 text-right">
+              <h3 className="text-2xl font-black text-slate-950">إضافة رسوم</h3>
+            </div>
+            <div className="space-y-4 text-right">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">اسم الخطة</label>
+                <Input value={newFeePlan} onChange={(event) => setNewFeePlan(event.target.value)} placeholder="مثال: شهري" className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">السعر</label>
+                <Input value={newFeePrice} onChange={(event) => setNewFeePrice(event.target.value)} placeholder="مثال: 100 ر.س" className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">المدة</label>
+                <Input value={newFeeDuration} onChange={(event) => setNewFeeDuration(event.target.value)} placeholder="مثال: شهر واحد" className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-start gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newFeePlan.trim()) return;
+                  setCourseFeeRows((prev) => [...prev, { id: Date.now().toString(), plan: newFeePlan.trim(), price: newFeePrice.trim() || '-', duration: newFeeDuration.trim() || '-', status: 'نشط' }]);
+                  setNewFeePlan(''); setNewFeePrice(''); setNewFeeDuration('');
+                  setShowAddFee(false);
+                }}
+                className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white"
+              >
+                إضافة
+              </button>
+              <button type="button" onClick={() => { setShowAddFee(false); setNewFeePlan(''); setNewFeePrice(''); setNewFeeDuration(''); }} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </ReferenceDashboardShell>
   );
 }
@@ -689,6 +1266,9 @@ export function ReferenceCategoriesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [editRow, setEditRow] = useState<typeof categoryRows[0] | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const filtered = rows.filter((row) => [row.name, row.description].join(' ').toLowerCase().includes(query.toLowerCase()));
 
   const handleCreate = () => {
@@ -745,6 +1325,7 @@ export function ReferenceCategoriesPage() {
                 <ReferenceTableCell>
                   <button
                     type="button"
+                    onClick={() => { setEditRow(row); setEditName(row.name); setEditDescription(row.description); }}
                     className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                   >
                     فتح القائمة
@@ -786,6 +1367,42 @@ export function ReferenceCategoriesPage() {
             </div>
           </div>
         ) : null}
+
+        {editRow ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-[520px] rounded-[1.7rem] bg-white p-6 shadow-2xl">
+              <div className="text-right">
+                <h3 className="text-3xl font-black text-slate-950">تعديل فئة</h3>
+              </div>
+              <div className="mt-6 space-y-4">
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الاسم</label>
+                  <Input value={editName} onChange={(event) => setEditName(event.target.value)} className="h-12 rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+                <div className="space-y-2 text-right">
+                  <label className="text-sm font-semibold text-slate-700">الوصف</label>
+                  <Textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right" />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-start gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!editName.trim()) return;
+                    setRows((prev) => prev.map((r) => r.id === editRow.id ? { ...r, name: editName.trim(), description: editDescription.trim() } : r));
+                    setEditRow(null);
+                  }}
+                  className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white"
+                >
+                  حفظ
+                </button>
+                <button type="button" onClick={() => setEditRow(null)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </ReferenceDashboardShell>
   );
@@ -793,6 +1410,7 @@ export function ReferenceCategoriesPage() {
 
 export function ReferenceBundlesPage() {
   const locale = useLocale();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const filtered = bundleRows.filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
 
@@ -848,7 +1466,7 @@ export function ReferenceBundlesPage() {
                     <Link href={withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale)}>
                       <ActionIcon icon={Eye} />
                     </Link>
-                    <ActionIcon icon={Pencil} />
+                    <ActionIcon icon={Pencil} onClick={() => router.push(withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale))} />
                   </div>
                 </ReferenceTableCell>
               </ReferenceTableRow>
@@ -873,10 +1491,40 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
   const [active, setActive] = useState(fixture?.active ?? true);
   const [studentQuery, setStudentQuery] = useState('');
   const [studentFilter, setStudentFilter] = useState<'الكل' | 'نشط' | 'قيد المراجعة'>('الكل');
+  const [subjects, setSubjects] = useState<BundleSubject[]>(bundleSubjects);
+  const [schedule, setSchedule] = useState<BundleScheduleItem[]>(bundleSchedule);
+  const [fees, setFees] = useState<BundleFeeItem[]>(bundleFees);
+  const [students, setStudents] = useState(bundleStudents);
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [addSection, setAddSection] = useState<'subject' | 'schedule' | 'fee' | 'student' | null>(null);
+  const [newItemName, setNewItemName] = useState('');
 
-  const toggleClass =
-    'relative inline-flex h-6 w-11 items-center rounded-full transition';
-  const filteredStudents = bundleStudents.filter((student) => {
+  const toggleClass = 'relative inline-flex h-6 w-11 items-center rounded-full transition';
+
+  const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(null), 2500);
+  }, []);
+
+  const handleSave = useCallback(() => showSaved(), [showSaved]);
+
+  const handleAddItem = useCallback(() => {
+    if (!newItemName.trim()) return;
+    const id = Date.now().toString();
+    if (addSection === 'subject') {
+      setSubjects((prev) => [...prev, { id, name: newItemName.trim(), teacher: '-', liveLink: '' }]);
+    } else if (addSection === 'schedule') {
+      setSchedule((prev) => [...prev, { id, subject: newItemName.trim(), day: '-', time: '-' }]);
+    } else if (addSection === 'fee') {
+      setFees((prev) => [...prev, { id, title: newItemName.trim(), amount: '-', dueDate: '-' }]);
+    } else if (addSection === 'student') {
+      setStudents((prev) => [...prev, { id, name: newItemName.trim(), email: '-', phone: '-', status: 'قيد المراجعة', joinedAt: new Date().toLocaleDateString('ar-SA'), acceptedAt: '-' }]);
+    }
+    setNewItemName('');
+    setAddSection(null);
+  }, [addSection, newItemName]);
+
+  const filteredStudents = students.filter((student) => {
     const matchesStatus = studentFilter === 'الكل' || student.status === studentFilter;
     const haystack = [student.name, student.email, student.phone, student.joinedAt, student.acceptedAt].join(' ').toLowerCase();
     return matchesStatus && haystack.includes(studentQuery.toLowerCase());
@@ -885,8 +1533,12 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
+        {savedMsg ? (
+          <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div>
+        ) : null}
+
         <div className="flex items-center justify-between">
-          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+          <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
             <Save className="ml-2 h-4 w-4" />
             حفظ الفصل
           </Button>
@@ -996,17 +1648,25 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </TabsContent>
 
           <TabsContent value="subjects" className="mt-0">
-            <ListSectionCard title="المواد الدراسية" subtitle="إدارة المواد التعليمية داخل هذا الفصل." actionLabel="إضافة مادة" icon={Plus}>
+            <ListSectionCard title="المواد الدراسية" subtitle="إدارة المواد التعليمية داخل هذا الفصل." actionLabel="إضافة مادة دراسية جديدة" icon={Plus} onAction={() => setAddSection('subject')}>
               <div className="space-y-4">
-                {bundleSubjects.map((subject) => (
+                {subjects.map((subject) => (
                   <div key={subject.id} className="flex items-start justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" className="h-9 rounded-full border-slate-200 bg-white px-4 text-xs font-bold">
+                      <Button
+                        variant="outline"
+                        onClick={() => { if (subject.liveLink) { window.open(subject.liveLink, '_blank'); } else { showSaved('لا يوجد رابط للحصة المباشرة'); } }}
+                        className="h-9 rounded-full border-slate-200 bg-white px-4 text-xs font-bold"
+                      >
                         <Video className="ml-2 h-4 w-4" />
                         بدء حصة مباشرة
                       </Button>
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                        if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
+                          setSubjects((prev) => prev.filter((s) => s.id !== subject.id));
+                        }
+                      }} />
+                      <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر المادة...')} />
                     </div>
                     <div className="text-right">
                       <h3 className="text-lg font-bold text-slate-950">{subject.name}</h3>
@@ -1020,13 +1680,17 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </TabsContent>
 
           <TabsContent value="schedule" className="mt-0">
-            <ListSectionCard title="الجدول" subtitle="أوقات المواد الدراسية داخل الفصل." actionLabel="إضافة موعد" icon={Calendar}>
+            <ListSectionCard title="جدول الفصل" subtitle="قم بإعداد جدول لجلسات هذا الفصل." actionLabel="إضافة جدول" icon={Calendar} onAction={() => setAddSection('schedule')}>
               <div className="space-y-4">
-                {bundleSchedule.map((item) => (
+                {schedule.map((item) => (
                   <div key={item.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                     <div className="flex gap-1">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                        if (window.confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+                          setSchedule((prev) => prev.filter((s) => s.id !== item.id));
+                        }
+                      }} />
+                      <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر الموعد...')} />
                     </div>
                     <div className="text-right">
                       <h3 className="text-lg font-bold text-slate-950">{item.subject}</h3>
@@ -1039,13 +1703,17 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </TabsContent>
 
           <TabsContent value="fees" className="mt-0">
-            <ListSectionCard title="الرسوم" subtitle="خطط الرسوم والدفعات لهذا الفصل." actionLabel="إضافة رسم" icon={FileText}>
+            <ListSectionCard title="الرسوم" subtitle="رسوم الفصل" actionLabel="اضافة رسوم" icon={FileText} onAction={() => setAddSection('fee')}>
               <div className="space-y-4">
-                {bundleFees.map((fee) => (
+                {fees.map((fee) => (
                   <div key={fee.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                     <div className="flex gap-1">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                        if (window.confirm('هل أنت متأكد من حذف هذا الرسم؟')) {
+                          setFees((prev) => prev.filter((f) => f.id !== fee.id));
+                        }
+                      }} />
+                      <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر الرسم...')} />
                     </div>
                     <div className="text-right">
                       <h3 className="text-lg font-bold text-slate-950">{fee.title}</h3>
@@ -1058,7 +1726,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </TabsContent>
 
           <TabsContent value="students" className="mt-0">
-            <ListSectionCard title="الطلاب" subtitle="قائمة الطلاب المسجلين في الفصل." actionLabel="إضافة طالب" icon={Users}>
+            <ListSectionCard title="الطلاب" subtitle="طلاب الفصل">
               <div className="mb-5 flex flex-col gap-3 rounded-[1.2rem] border border-slate-200 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   {(['الكل', 'نشط', 'قيد المراجعة'] as const).map((status) => (
@@ -1081,10 +1749,14 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                 {filteredStudents.map((student) => (
                   <div key={student.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <ActionIcon icon={Phone} />
-                      <ActionIcon icon={MessageSquare} />
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={Pencil} />
+                      <ActionIcon icon={Phone} onClick={() => { if (student.phone && student.phone !== '-') window.open(`tel:${student.phone}`); }} />
+                      <ActionIcon icon={MessageSquare} onClick={() => showSaved(`سيتم التواصل مع ${student.name}`)} />
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                        if (window.confirm(`هل أنت متأكد من حذف الطالب ${student.name}؟`)) {
+                          setStudents((prev) => prev.filter((s) => s.id !== student.id));
+                        }
+                      }} />
+                      <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح ملف الطالب...')} />
                     </div>
                     <div className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -1111,6 +1783,36 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </TabsContent>
         </Tabs>
       </div>
+
+      {addSection ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-[480px] rounded-[1.7rem] bg-white p-6 shadow-2xl">
+            <div className="text-right">
+              <h3 className="text-2xl font-black text-slate-950">
+                {addSection === 'subject' ? 'إضافة مادة' : addSection === 'schedule' ? 'إضافة موعد' : addSection === 'fee' ? 'إضافة رسم' : 'إضافة طالب'}
+              </h3>
+            </div>
+            <div className="mt-4 space-y-2 text-right">
+              <label className="text-sm font-semibold text-slate-700">{addSection === 'student' ? 'الاسم' : 'الاسم / العنوان'}</label>
+              <Input
+                value={newItemName}
+                onChange={(event) => setNewItemName(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') handleAddItem(); }}
+                autoFocus
+                className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+              />
+            </div>
+            <div className="mt-6 flex justify-start gap-3">
+              <button type="button" onClick={handleAddItem} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
+                إضافة
+              </button>
+              <button type="button" onClick={() => { setAddSection(null); setNewItemName(''); }} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </ReferenceDashboardShell>
   );
 }
@@ -1121,6 +1823,33 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
   const [title, setTitle] = useState(fixture?.title || '');
   const [content, setContent] = useState(fixture?.content || '');
   const [videoLink, setVideoLink] = useState(fixture?.videoLink || '');
+  const [materials, setMaterials] = useState<LessonReferenceMaterial[]>(fixture?.materials || []);
+  const [attendance, setAttendance] = useState(fixture?.attendance || []);
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [addMaterialOpen, setAddMaterialOpen] = useState(false);
+  const [newMaterialTitle, setNewMaterialTitle] = useState('');
+
+  const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(null), 2500);
+  }, []);
+
+  const handleSave = useCallback(() => showSaved(), [showSaved]);
+
+  const handleAddMaterial = useCallback(() => {
+    if (!newMaterialTitle.trim()) return;
+    setMaterials((prev) => [...prev, { id: Date.now().toString(), title: newMaterialTitle.trim(), type: 'ملف' }]);
+    setNewMaterialTitle('');
+    setAddMaterialOpen(false);
+  }, [newMaterialTitle]);
+
+  const cycleAttendance = useCallback((id: string) => {
+    setAttendance((prev) => prev.map((row) => {
+      if (row.id !== id) return row;
+      const next = row.status === 'حاضر' ? 'غائب' : row.status === 'غائب' ? 'متأخر' : 'حاضر';
+      return { ...row, status: next as 'حاضر' | 'غائب' | 'متأخر' };
+    }));
+  }, []);
 
   if (!fixture) {
     return (
@@ -1135,8 +1864,12 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
+        {savedMsg ? (
+          <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div>
+        ) : null}
+
         <div className="flex items-center justify-between">
-          <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
+          <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
             <Save className="ml-2 h-4 w-4" />
             حفظ الدرس
           </Button>
@@ -1185,14 +1918,18 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
           </TabsContent>
 
           <TabsContent value="materials" className="mt-0">
-            <ListSectionCard title="مواد الدرس" subtitle="الملفات والمواد المرفقة بهذا الدرس." actionLabel="إضافة مادة" icon={Plus}>
+            <ListSectionCard title="مواد الدرس" subtitle="الملفات والمواد المرفقة بهذا الدرس." actionLabel="إضافة مادة" icon={Plus} onAction={() => setAddMaterialOpen(true)}>
               <div className="space-y-4">
-                {fixture.materials.length ? (
-                  fixture.materials.map((material) => (
+                {materials.length ? (
+                  materials.map((material) => (
                     <div key={material.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
                       <div className="flex gap-1">
-                        <ActionIcon icon={Trash2} tone="danger" />
-                        <ActionIcon icon={Pencil} />
+                        <ActionIcon icon={Trash2} tone="danger" onClick={() => {
+                          if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
+                            setMaterials((prev) => prev.filter((m) => m.id !== material.id));
+                          }
+                        }} />
+                        <ActionIcon icon={Pencil} onClick={() => showSaved('جارٍ فتح محرر المادة...')} />
                       </div>
 
                       <div className="text-right">
@@ -1211,21 +1948,26 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
           </TabsContent>
 
           <TabsContent value="attendance" className="mt-0">
-            <ListSectionCard title="حضور الطلاب" subtitle="حالة حضور الطلاب في هذا الدرس." actionLabel="تحديث الحضور" icon={Users}>
+            <ListSectionCard title="حضور الطلاب" subtitle="اضغط على الحالة لتغييرها. احفظ بعد الانتهاء." actionLabel="تحديث الحضور" icon={Users} onAction={() => showSaved('تم تحديث الحضور')}>
               <div className="space-y-4">
-                {fixture.attendance.length ? (
-                  fixture.attendance.map((row) => (
+                {attendance.length ? (
+                  attendance.map((row) => (
                     <div key={row.id} className="flex items-center justify-between rounded-[1.2rem] border border-slate-200 bg-white p-4">
-                      <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => cycleAttendance(row.id)}
+                        className="flex gap-1 focus:outline-none"
+                        title="اضغط لتغيير حالة الحضور"
+                      >
                         <StatusChip
                           label={row.status}
                           tone={row.status === 'حاضر' ? 'success' : row.status === 'غائب' ? 'danger' : 'default'}
                         />
-                      </div>
+                      </button>
 
                       <div className="text-right">
                         <h3 className="text-lg font-bold text-slate-950">{row.studentName}</h3>
-                        <p className="mt-1 text-sm text-slate-500">حالة الحضور لهذا الدرس</p>
+                        <p className="mt-1 text-sm text-slate-500">اضغط على الحالة لتغييرها</p>
                       </div>
                     </div>
                   ))
@@ -1239,6 +1981,34 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
           </TabsContent>
         </Tabs>
       </div>
+
+      {addMaterialOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-[480px] rounded-[1.7rem] bg-white p-6 shadow-2xl">
+            <div className="text-right">
+              <h3 className="text-2xl font-black text-slate-950">إضافة مادة</h3>
+            </div>
+            <div className="mt-4 space-y-2 text-right">
+              <label className="text-sm font-semibold text-slate-700">عنوان المادة</label>
+              <Input
+                value={newMaterialTitle}
+                onChange={(event) => setNewMaterialTitle(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') handleAddMaterial(); }}
+                autoFocus
+                className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
+              />
+            </div>
+            <div className="mt-6 flex justify-start gap-3">
+              <button type="button" onClick={handleAddMaterial} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
+                إضافة
+              </button>
+              <button type="button" onClick={() => { setAddMaterialOpen(false); setNewMaterialTitle(''); }} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </ReferenceDashboardShell>
   );
 }

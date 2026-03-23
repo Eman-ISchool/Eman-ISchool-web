@@ -31,14 +31,18 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(
+    const activeGrades = (grades || []).filter((g) => g.is_active);
+    const response = NextResponse.json(
       {
-        grades: grades || [],
-        total: grades?.length || 0,
+        grades: activeGrades,
+        total: activeGrades.length,
         requestId,
       },
       { status: 200 }
     );
+    // Grade levels rarely change — cache aggressively
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    return response;
   } catch (err) {
     console.error('[grade-levels] Unexpected error:', err);
     return NextResponse.json(

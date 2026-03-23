@@ -303,7 +303,7 @@ export default function TeachersPage() {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
                         {teacher.image ? (
-                            <img src={teacher.image} alt={teacher.name} className="w-full h-full rounded-full object-cover" />
+                            <img loading="lazy" decoding="async" src={teacher.image} alt={teacher.name} className="w-full h-full rounded-full object-cover" />
                         ) : (
                             <span className="text-teal-600 font-medium">
                                 {teacher.name.charAt(0)}

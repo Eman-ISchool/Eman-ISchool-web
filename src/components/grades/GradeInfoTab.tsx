@@ -290,7 +290,7 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
         <div className="grade-info-view">
           <div className="grade-header">
             {grade.image_url && (
-              <img src={grade.image_url} alt={grade.name} className="grade-image" />
+              <img loading="lazy" decoding="async" src={grade.image_url} alt={grade.name} className="grade-image" />
             )}
             <div className="grade-title">
               <h1>{grade.name}</h1>

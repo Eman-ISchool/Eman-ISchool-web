@@ -63,7 +63,7 @@ export default async function TeacherSubjectsPage({ params: { locale } }: { para
                         >
                             {subject.image_url ? (
                                 <div className="h-32 overflow-hidden">
-                                    <img src={subject.image_url} alt={subject.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                    <img loading="lazy" decoding="async" src={subject.image_url} alt={subject.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                 </div>
                             ) : (
                                 <div className="h-32 bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">

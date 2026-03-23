@@ -381,7 +381,7 @@ export default function StudentsPage() {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center">
                         {student.image ? (
-                            <img src={student.image} alt={student.name} className="w-full h-full rounded-full object-cover" />
+                            <img loading="lazy" decoding="async" src={student.image} alt={student.name} className="w-full h-full rounded-full object-cover" />
                         ) : (
                             <span className="text-teal-600 font-medium">
                                 {student.name.charAt(0)}

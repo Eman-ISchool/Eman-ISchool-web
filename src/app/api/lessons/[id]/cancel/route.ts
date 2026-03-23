@@ -5,13 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin as supabase } from '@/lib/supabase';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * POST /api/lessons/[id]/cancel
@@ -43,8 +39,10 @@ export async function POST(
       );
     }
 
-    // Get current session (TODO: Implement proper session management)
-    // For now, we'll assume the user is authenticated and has proper permissions
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Verify lesson exists
     const { data: lesson, error: fetchError } = await supabase
@@ -81,9 +79,6 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    // TODO: Verify user has permission to cancel this lesson
-    // For now, we'll skip the permission check and allow any authenticated user
 
     // Update lesson to 'cancelled' status
     const { data: updatedLesson, error: updateError } = await supabase

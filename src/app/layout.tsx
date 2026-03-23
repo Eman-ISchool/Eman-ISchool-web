@@ -5,7 +5,6 @@ import localFont from 'next/font/local'; // Or import from next/font/google if a
 import { defaultLocale } from '@/i18n/config';
 import { cookies } from 'next/headers';
 import '@/lib/init'; // Initialize application configuration
-import { initializeApp } from '@/lib/init';
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
@@ -55,16 +54,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Initialize application configuration on first render
-  if (typeof window !== 'undefined') {
-    try {
-      initializeApp();
-    } catch (error) {
-      console.error('Failed to initialize application:', error);
-      // Don't block rendering, but log the error for debugging
-    }
-  }
-
   const cookieStore = cookies();
   const locale = cookieStore.get('NEXT_LOCALE')?.value ?? defaultLocale;
   const direction = locale === 'ar' ? 'rtl' : 'ltr';

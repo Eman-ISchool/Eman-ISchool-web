@@ -204,7 +204,7 @@ export async function GET(req: Request) {
             next_lesson: nextLessonByCourse.get(course.id) || null,
         }));
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             courses: enrichedCourses,
             total: count || 0,
             meta: {
@@ -215,6 +215,9 @@ export async function GET(req: Request) {
             },
             requestId,
         });
+        // Cache GET responses for 60s, allow stale-while-revalidate for 5min
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     } catch (error) {
         console.error('Error fetching courses:', error);
         return NextResponse.json(

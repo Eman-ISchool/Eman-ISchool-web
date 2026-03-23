@@ -38,7 +38,9 @@ export const GET = withAuth(async (req, { user, requestId }) => {
     );
   }
 
-  return NextResponse.json({ grades, requestId }, { status: 200 });
+  const response = NextResponse.json({ grades, requestId }, { status: 200 });
+  response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
+  return response;
 });
 
 /**

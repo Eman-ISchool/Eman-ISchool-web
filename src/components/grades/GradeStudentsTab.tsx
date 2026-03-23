@@ -180,7 +180,7 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
             <div key={student.id} className="student-card">
               <div className="student-avatar">
                 {student.image ? (
-                  <img src={student.image} alt={student.name} />
+                  <img loading="lazy" decoding="async" src={student.image} alt={student.name} />
                 ) : (
                   <div className="avatar-placeholder">
                     {student.name.charAt(0).toUpperCase()}

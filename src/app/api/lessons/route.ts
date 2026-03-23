@@ -12,13 +12,17 @@ export async function GET(req: Request) {
             const { getMockDb } = require('@/lib/mockDb');
             const db = getMockDb();
             // Optionally apply some filters if needed, but for E2E just returning everything is fine
-            return NextResponse.json(db.lessons || []);
+            const response = NextResponse.json(db.lessons || []);
+            response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=150');
+            return response;
         }
 
         // Check if Supabase is configured
         if (!supabaseAdmin) {
             console.warn('Supabase admin client not configured');
-            return NextResponse.json([]);
+            const response = NextResponse.json([]);
+            response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=150');
+            return response;
         }
 
         const { searchParams } = new URL(req.url);
@@ -135,7 +139,9 @@ export async function GET(req: Request) {
             return lessonData;
         }) || [];
 
-        return NextResponse.json(transformedLessons);
+        const response = NextResponse.json(transformedLessons);
+        response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=150');
+        return response;
     } catch (error) {
         console.error('Error fetching lessons:', error);
         return NextResponse.json({ error: 'Failed to fetch lessons' }, { status: 500 });

@@ -103,9 +103,11 @@ export async function GET(request: NextRequest) {
         return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
         success: true,
         data: filteredAnnouncements,
         count: filteredAnnouncements.length,
     });
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    return response;
 }

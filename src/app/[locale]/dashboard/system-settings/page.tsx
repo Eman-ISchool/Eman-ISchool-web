@@ -57,7 +57,7 @@ function AssetPreview({ label, src }: { label: string; src: string }) {
     <div className="space-y-3">
       <Label>{label}</Label>
       <div className="relative inline-block border rounded-xl bg-slate-50 dark:bg-slate-900 border-dashed border-slate-300 dark:border-slate-700 p-2">
-        <img alt="Preview" className="h-24 w-24 rounded-lg object-contain bg-white dark:bg-black p-1" src={src} />
+        <img loading="lazy" decoding="async" alt="Preview" className="h-24 w-24 rounded-lg object-contain bg-white dark:bg-black p-1" src={src} />
         <button
           type="button"
           className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 transition-colors"

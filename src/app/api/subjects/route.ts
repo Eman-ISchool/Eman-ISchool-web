@@ -58,7 +58,9 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json({ subjects: subjects || [], total: count || 0, requestId });
+    const response = NextResponse.json({ subjects: subjects || [], total: count || 0, requestId });
+    response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
+    return response;
   } catch (error) {
     console.error('Error fetching subjects:', error);
     return NextResponse.json(

@@ -21,8 +21,11 @@ export { LoadingState, ErrorState, EmptyState, CardSkeleton, TableRowSkeleton, T
 
 // Dashboard Components
 export { default as KPIStatCard } from './KPIStatCard';
-export { default as DashboardChart } from './DashboardChart';
 export { default as DateRangeFilter } from './DateRangeFilter';
+
+// DashboardChart: use dynamic import to avoid loading recharts (~200KB) eagerly
+// Import directly: import DashboardChart from '@/components/admin/DashboardChart'
+// Or use: const DashboardChart = dynamic(() => import('@/components/admin/DashboardChart'), { ssr: false })
 
 // Types
 export type { Column, DataTableProps } from './DataTable';

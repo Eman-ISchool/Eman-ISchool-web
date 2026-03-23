@@ -42,12 +42,14 @@ export async function GET(req: Request) {
                 enrollments = enrollments.filter((enrollment: any) => enrollment.student_id === user.id);
             }
 
-            return NextResponse.json({
+            const response = NextResponse.json({
                 enrollments: enrollments.slice(offset, offset + limit),
                 total: enrollments.length,
                 limit,
                 offset,
             });
+            response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+            return response;
         }
 
         const { searchParams } = new URL(req.url);
@@ -113,12 +115,14 @@ export async function GET(req: Request) {
 
         const { count } = await countQuery;
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             enrollments,
             total: count || 0,
             limit,
             offset
         });
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     } catch (error) {
         console.error('Error fetching enrollments:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

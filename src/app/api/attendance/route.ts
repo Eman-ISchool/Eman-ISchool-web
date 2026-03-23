@@ -77,7 +77,9 @@ export async function GET(req: Request) {
             `)
             .eq('student_id', currentUser.id);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-        return NextResponse.json({ attendance: data || [] });
+        const response = NextResponse.json({ attendance: data || [] });
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     }
 
     // Teachers can only view attendance for their lessons
@@ -118,7 +120,9 @@ export async function GET(req: Request) {
         if (endDate) query = query.lte('joined_at', endDate);
         const { data, error } = await query.range(offset, offset + limit - 1);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-        return NextResponse.json({ attendance: data || [], total: data?.length || 0 });
+        const response = NextResponse.json({ attendance: data || [], total: data?.length || 0 });
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     }
 
     // Admins can view all attendance
@@ -153,7 +157,9 @@ export async function GET(req: Request) {
 
         const { data, error } = await query.range(offset, offset + limit - 1);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-        return NextResponse.json({ attendance: data || [], total: totalCount || 0 });
+        const response = NextResponse.json({ attendance: data || [], total: totalCount || 0 });
+        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        return response;
     }
 
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

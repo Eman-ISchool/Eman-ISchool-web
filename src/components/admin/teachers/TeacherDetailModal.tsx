@@ -510,7 +510,7 @@ export default function TeacherDetailModal({
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-xl bg-teal-100 flex items-center justify-center">
                             {teacher.image ? (
-                                <img src={teacher.image} alt={teacher.name} className="w-full h-full rounded-xl object-cover" />
+                                <img loading="lazy" decoding="async" src={teacher.image} alt={teacher.name} className="w-full h-full rounded-xl object-cover" />
                             ) : (
                                 <span className="text-teal-600 font-bold text-xl">{teacher.name.charAt(0)}</span>
                             )}

@@ -152,7 +152,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                             <div className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full cursor-pointer bg-gray-100 dark:bg-gray-800">
                                 {session?.user?.image ? (
-                                    <img src={session.user.image} alt="Avatar" className="h-full w-full object-cover" />
+                                    <img src={session.user.image} alt="Avatar" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                                 ) : (
                                     <span className="flex h-full w-full items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">
                                         {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'A'}

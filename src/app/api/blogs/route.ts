@@ -33,7 +33,9 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json({ posts });
+        const response = NextResponse.json({ posts });
+        response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
+        return response;
     } catch (error: any) {
         console.error('API Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

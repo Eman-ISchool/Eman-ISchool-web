@@ -10,14 +10,24 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
                 hostname: 'cdn.sanity.io',
             },
+            {
+                protocol: 'https',
+                hostname: '*.supabase.co',
+            },
         ],
-        unoptimized: true,
+        // Only disable optimization for Capacitor static export builds
+        unoptimized: process.env.NEXT_OUTPUT === 'export',
+        formats: ['image/avif', 'image/webp'],
+        minimumCacheTTL: 60 * 60 * 24, // 24 hours
     },
     webpack: (config, { isServer }) => {
         // Mark pdf-parse as external to avoid ESM/worker issues in static export

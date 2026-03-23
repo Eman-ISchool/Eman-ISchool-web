@@ -27,7 +27,7 @@ export default function TeacherProfilePage() {
                 <div className="flex items-center gap-4">
                     <div className="relative">
                         <div className="w-20 h-20 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center overflow-hidden">
-                            {session?.user?.image ? <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" /> : <User className="w-10 h-10 text-[var(--color-primary)]" />}
+                            {session?.user?.image ? <img loading="lazy" decoding="async" src={session.user.image} alt="Profile" className="w-full h-full object-cover" /> : <User className="w-10 h-10 text-[var(--color-primary)]" />}
                         </div>
                         <button className="absolute bottom-0 right-0 w-7 h-7 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white shadow-lg"><Camera className="w-4 h-4" /></button>
                     </div>
