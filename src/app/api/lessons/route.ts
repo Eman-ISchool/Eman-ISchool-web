@@ -8,15 +8,6 @@ import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
 // GET - Fetch lessons with filters
 export async function GET(req: Request) {
     try {
-        if (process.env.TEST_BYPASS === 'true') {
-            const { getMockDb } = require('@/lib/mockDb');
-            const db = getMockDb();
-            // Optionally apply some filters if needed, but for E2E just returning everything is fine
-            const response = NextResponse.json(db.lessons || []);
-            response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=150');
-            return response;
-        }
-
         // Check if Supabase is configured
         if (!supabaseAdmin) {
             console.warn('Supabase admin client not configured');
@@ -189,48 +180,42 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'courseId is required' }, { status: 400 });
         }
 
-        let course: any = null;
-        if (process.env.TEST_BYPASS === 'true') {
-            const { getMockDb } = require('@/lib/mockDb');
-            const db = getMockDb();
-            const mockCourses = Array.isArray(db.courses) ? db.courses : [];
-            course = mockCourses.find((candidate: any) => candidate.id === courseId);
-            if (!course) {
-                return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-            }
-            if (currentUser.role === 'teacher' && course.teacher_id !== currentUser.id) {
-                return NextResponse.json({ error: 'Forbidden. You can only create lessons for your own courses.' }, { status: 403 });
-            }
-        } else {
-            const { data: dbCourse, error: courseError } = await supabaseAdmin
-                .from('courses')
-                .select('id, teacher_id')
-                .eq('id', courseId)
-                .single();
+        const { data: course, error: courseError } = await supabaseAdmin
+            .from('courses')
+            .select('id, teacher_id')
+            .eq('id', courseId)
+            .single();
 
-            if (courseError || !dbCourse) {
-                return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-            }
-            if (currentUser.role === 'teacher' && dbCourse.teacher_id !== currentUser.id) {
-                return NextResponse.json({ error: 'Forbidden. You can only create lessons for your own courses.' }, { status: 403 });
-            }
-            course = dbCourse;
+        if (courseError || !course) {
+            return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+        }
+        if (currentUser.role === 'teacher' && course.teacher_id !== currentUser.id) {
+            return NextResponse.json({ error: 'Forbidden. You can only create lessons for your own courses.' }, { status: 403 });
+        }
 
-            // T026: Schedule conflict validation
-            const { data: overlappingLessons, error: overlapError } = await supabaseAdmin
-                .from('lessons')
-                .select('id, title')
-                .eq('teacher_id', currentUser.id)
-                .neq('status', 'cancelled')
-                // Overlap condition: existing.start < new.end AND existing.end > new.start
-                .or(`and(start_date_time.lt.${endDateTime},end_date_time.gt.${startDateTime})`)
-                .limit(1);
+        // T026: Schedule conflict validation
+        // Validate that date strings are valid ISO dates before interpolation into PostgREST filter
+        const startDt = new Date(startDateTime);
+        const endDt = new Date(endDateTime);
+        if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) {
+            return NextResponse.json({ error: 'Invalid date format for startDateTime or endDateTime' }, { status: 400 });
+        }
+        const safeStartISO = startDt.toISOString();
+        const safeEndISO = endDt.toISOString();
 
-            if (!overlapError && overlappingLessons && overlappingLessons.length > 0) {
-                return NextResponse.json({
-                    error: `Schedule conflict: You already have a lesson ("${overlappingLessons[0].title}") scheduled during this time.`
-                }, { status: 409 });
-            }
+        const { data: overlappingLessons, error: overlapError } = await supabaseAdmin
+            .from('lessons')
+            .select('id, title')
+            .eq('teacher_id', currentUser.id)
+            .neq('status', 'cancelled')
+            // Overlap condition: existing.start < new.end AND existing.end > new.start
+            .or(`and(start_date_time.lt.${safeEndISO},end_date_time.gt.${safeStartISO})`)
+            .limit(1);
+
+        if (!overlapError && overlappingLessons && overlappingLessons.length > 0) {
+            return NextResponse.json({
+                error: `Schedule conflict: You already have a lesson ("${overlappingLessons[0].title}") scheduled during this time.`
+            }, { status: 409 });
         }
 
         // T006: Past session detection - set status to "completed" when start time is in past
@@ -239,7 +224,7 @@ export async function POST(req: Request) {
 
         // Auto-generate Google Meet link if none provided.
         // The link must come from Google Calendar conferenceData flow.
-        const allowManualMeet = process.env.TEST_BYPASS === 'true' || process.env.ALLOW_MANUAL_MEET_LINK === 'true';
+        const allowManualMeet = process.env.ALLOW_MANUAL_MEET_LINK === 'true';
         let meetLink = providedMeetLink && providedMeetLink.startsWith('https://meet.google.com/') && allowManualMeet
             ? providedMeetLink
             : '';
@@ -263,40 +248,6 @@ export async function POST(req: Request) {
                     detail: googleError.detail,
                 }, { status: googleError.status });
             }
-        }
-
-        if (process.env.TEST_BYPASS === 'true') {
-            const { getMockDb, saveMockDb } = require('@/lib/mockDb');
-            const db = getMockDb();
-            if (!db.lessons) db.lessons = [];
-            if (!db.lesson_meetings) db.lesson_meetings = [];
-
-            const newLesson = {
-                id: `lesson-${Date.now()}`,
-                title,
-                description: description || '',
-                start_date_time: startDateTime,
-                end_date_time: endDateTime,
-                meet_link: meetLink || null,
-                google_event_id: googleEventId || null,
-                status: lessonStatus,
-                course_id: courseId || null,
-                subject_id: subjectId || null,
-                teacher_id: currentUser.id,
-                _id: `lesson-${Date.now()}`,
-                message: 'Lesson created successfully'
-            };
-            db.lessons.push(newLesson);
-            db.lesson_meetings.push({
-                lesson_id: newLesson.id,
-                provider: 'google_calendar',
-                meet_url: meetLink,
-                event_id: googleEventId || null,
-                created_by_teacher_id: currentUser.id,
-                status: 'active',
-            });
-            saveMockDb(db);
-            return NextResponse.json(newLesson);
         }
 
         // Insert lesson into Supabase

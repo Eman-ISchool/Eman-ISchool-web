@@ -90,5 +90,15 @@ specs/
 logs/
 *.log
 
+# Test Artifacts
+test-results/
+playwright-report/
+
+# Local Config / Planning Docs
+.mcp.json
+.env-stable-backup
+IMPLEMENTATION_ROADMAP.md
+QA-AUDIT-REPORT.md
+
 # Misc
 .worktrees/

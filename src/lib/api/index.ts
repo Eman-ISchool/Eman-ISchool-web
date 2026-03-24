@@ -1,60 +1,59 @@
 /**
  * API Client Helper
  *
- * Provides a unified interface for switching between mock and live data.
- * All API clients use this helper to fetch data.
+ * Provides a unified fetch interface for all API clients.
+ * All data comes from the live API — no mock fallback.
+ * Includes request deduplication to prevent duplicate concurrent fetches.
  */
 
-/**
- * Mock data delay in milliseconds (configurable via environment variable)
- */
-const MOCK_DELAY = parseInt(process.env.NEXT_PUBLIC_MOCK_DELAY || '500', 10)
+// In-flight GET request deduplication map
+const inflightRequests = new Map<string, Promise<any>>();
 
 /**
- * Check if mock data mode is enabled
+ * Fetch data from an API endpoint.
+ * GET requests are deduplicated — concurrent identical fetches share one network call.
+ * Throws on error — callers handle errors via try/catch.
  */
-export const isMockDataEnabled = (): boolean => {
-  const value = process.env.NEXT_PUBLIC_USE_MOCK_DATA?.toLowerCase()
-  return value === 'true' || value === '1' || value === 'yes'
-}
-
-/**
- * Generic fetch function with mock/live switch
- */
-export async function fetchWithFallback<T>(
-  mockData: T,
-  liveUrl: string,
+export async function fetchApi<T>(
+  url: string,
   options?: RequestInit
 ): Promise<T> {
-  if (isMockDataEnabled()) {
-    // Simulate network delay for realistic loading states
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY))
-    return mockData
+  const method = options?.method?.toUpperCase() || 'GET';
+
+  // Only deduplicate GET requests
+  if (method === 'GET') {
+    const existing = inflightRequests.get(url);
+    if (existing) return existing as Promise<T>;
+
+    const promise = doFetch<T>(url, options).finally(() => {
+      inflightRequests.delete(url);
+    });
+    inflightRequests.set(url, promise);
+    return promise;
   }
 
-  try {
-    const response = await fetch(liveUrl, options)
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    return await response.json()
-  } catch (error) {
-    console.error(`Failed to fetch from ${liveUrl}:`, error)
-    // Fallback to mock data if live API fails
-    return mockData
+  return doFetch<T>(url, options);
+}
+
+async function doFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    throw new Error(`API error ${response.status}: ${url}`)
   }
+  return await response.json()
 }
 
 /**
- * Generic fetch function with params
+ * Fetch data with query parameters.
  */
-export async function fetchWithParams<T>(
-  mockData: T,
-  liveUrl: string,
+export async function fetchApiWithParams<T>(
+  url: string,
   params?: Record<string, string | number>
 ): Promise<T> {
   const queryString = params
-    ? '?' + new URLSearchParams(params as Record<string, string>).toString()
+    ? '?' + new URLSearchParams(
+        Object.entries(params).reduce((acc, [k, v]) => ({ ...acc, [k]: String(v) }), {} as Record<string, string>)
+      ).toString()
     : ''
-  return fetchWithFallback(mockData, `${liveUrl}${queryString}`)
+  return fetchApi<T>(`${url}${queryString}`)
 }

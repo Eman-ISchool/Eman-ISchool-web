@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Megaphone, Newspaper, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Megaphone, Newspaper, Search } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -46,95 +46,103 @@ const contentMeta: Record<
   },
 };
 
-const contentRowsByScope: Record<ContentScope, ContentRow[]> = {
-  announcements: [
-    {
-      id: 'announcement-1',
-      title: { ar: 'تحديث مواعيد البث المباشر', en: 'Live-session schedule update' },
-      category: { ar: 'الإدارة', en: 'Administration' },
-      channel: 'All students',
-      updatedAt: '2026-03-10 08:20',
-      audience: '1,240',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'announcement-2',
-      title: { ar: 'فتح باب المراجعات النهائية', en: 'Final revisions enrollment open' },
-      category: { ar: 'أكاديمي', en: 'Academic' },
-      channel: 'Third secondary',
-      updatedAt: '2026-03-09 17:00',
-      audience: '218',
-      status: { ar: 'مجدول', en: 'Scheduled' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-    },
-    {
-      id: 'announcement-3',
-      title: { ar: 'تنبيه بخصوص الرسوم المستحقة', en: 'Outstanding fee reminder' },
-      category: { ar: 'مالية', en: 'Finance' },
-      channel: 'Guardians',
-      updatedAt: '2026-03-08 12:10',
-      audience: '94',
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-  ],
-  blogs: [
-    {
-      id: 'blog-1',
-      title: { ar: 'كيف نبني خطة مراجعة فعالة للثانوية؟', en: 'How to build an effective secondary revision plan' },
-      category: { ar: 'تعليمي', en: 'Education' },
-      channel: 'Website blog',
-      updatedAt: '2026-03-10 09:15',
-      audience: '1,880',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'blog-2',
-      title: { ar: 'لماذا يفضل أولياء الأمور التعلم المرن؟', en: 'Why guardians prefer flexible learning' },
-      category: { ar: 'تسويق', en: 'Marketing' },
-      channel: 'Landing pages',
-      updatedAt: '2026-03-07 14:40',
-      audience: '940',
-      status: { ar: 'مسودة', en: 'Draft' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-    },
-    {
-      id: 'blog-3',
-      title: { ar: 'قصة نجاح: من المراجعات إلى التفوق', en: 'Success story: from revisions to excellence' },
-      category: { ar: 'قصص نجاح', en: 'Success stories' },
-      channel: 'Newsletter',
-      updatedAt: '2026-03-05 11:00',
-      audience: '620',
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-  ],
+const contentApiByScope: Record<ContentScope, string> = {
+  announcements: '/api/announcements',
+  blogs: '/api/blogs',
 };
+
+function mapApiToContentRow(item: Record<string, unknown>): ContentRow {
+  const id = String(item.id || '');
+  const titleAr = String(item.title_ar || item.title || item.name || '');
+  const titleEn = String(item.title_en || item.title || item.name || '');
+  const catAr = String(item.category_ar || item.category || item.type || '');
+  const catEn = String(item.category_en || item.category || item.type || '');
+  const channel = String(item.channel || item.target || '-');
+  const updatedAt = String(item.updated_at || item.created_at || '-').replace('T', ' ').slice(0, 16);
+  const audience = String(item.audience || item.view_count || '0');
+  const isPublished = item.is_published === true || item.status === 'published';
+
+  return {
+    id,
+    title: { ar: titleAr, en: titleEn },
+    category: { ar: catAr, en: catEn },
+    channel,
+    updatedAt,
+    audience,
+    status: isPublished ? { ar: 'منشور', en: 'Published' } : { ar: 'مسودة', en: 'Draft' },
+    statusClassName: isPublished ? 'bg-[#edfdf3] text-[#15803d]' : 'bg-[#eef2ff] text-[#4338ca]',
+  };
+}
 
 export default function ReferenceContentWorkspace({ scope }: { scope: ContentScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = contentMeta[scope];
-  const rows = contentRowsByScope[scope];
+  const [rows, setRows] = useState<ContentRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    // For blogs, fetch all (published=false) so we can filter client-side
+    const url = scope === 'blogs'
+      ? `${contentApiByScope[scope]}?published=false`
+      : contentApiByScope[scope];
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((body) => {
+            throw new Error(body?.error || `${res.status} ${res.statusText}`);
+          }).catch((parseErr) => {
+            if (parseErr instanceof Error && parseErr.message !== `${res.status} ${res.statusText}`) {
+              throw parseErr;
+            }
+            throw new Error(`${res.status} ${res.statusText}`);
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const items = Array.isArray(data)
+          ? data
+          : data?.announcements || data?.data || data?.blogs || data?.posts || [];
+        setRows(items.map((item: Record<string, unknown>) => mapApiToContentRow(item)));
+      })
+      .catch((err: Error) => {
+        setRows([]);
+        setError(err.message || (isArabic ? 'حدث خطأ أثناء تحميل البيانات' : 'An error occurred while loading data'));
+      })
+      .finally(() => setLoading(false));
+  }, [scope, isArabic]);
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    if (!normalizedQuery) {
-      return rows;
-    }
+    return rows.filter((row) => {
+      // Text search filter
+      const matchesQuery =
+        !normalizedQuery ||
+        [row.title.ar, row.title.en, row.category.ar, row.category.en, row.channel]
+          .join(' ')
+          .toLowerCase()
+          .includes(normalizedQuery);
 
-    return rows.filter((row) =>
-      [row.title.ar, row.title.en, row.category.ar, row.category.en, row.channel]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [query, rows]);
+      // Status filter (only for blogs scope)
+      const matchesStatus =
+        scope !== 'blogs' ||
+        statusFilter === 'all' ||
+        (statusFilter === 'published' && row.status.en === 'Published') ||
+        (statusFilter === 'draft' && row.status.en === 'Draft');
+
+      return matchesQuery && matchesStatus;
+    });
+  }, [query, rows, statusFilter, scope]);
 
   const showNotice = (message: string) => {
     setNotice(message);
@@ -199,17 +207,60 @@ export default function ReferenceContentWorkspace({ scope }: { scope: ContentSco
             </div>
           ) : null}
 
-          <div className="mt-6 relative">
-            <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={isArabic ? 'ابحث بعنوان أو قناة نشر' : 'Search by title or channel'}
-              className="h-12 rounded-2xl border-slate-200 bg-white pe-11"
-            />
+          <div className="mt-6 grid gap-3 rounded-[1.6rem] bg-slate-50 p-4 md:grid-cols-[1fr_auto]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={isArabic ? 'ابحث بعنوان أو قناة نشر' : 'Search by title or channel'}
+                className="h-12 rounded-2xl border-slate-200 bg-white pe-11"
+              />
+            </div>
+            {scope === 'blogs' ? (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  ['all', isArabic ? 'الكل' : 'All'],
+                  ['published', isArabic ? 'منشور' : 'Published'],
+                  ['draft', isArabic ? 'مسودة' : 'Draft'],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setStatusFilter(value as 'all' | 'published' | 'draft')}
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                      statusFilter === value ? 'bg-slate-950 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-6 grid gap-4">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="h-36 animate-pulse rounded-[1.75rem] bg-slate-100" />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-10 text-center">
+                <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+                  <AlertTriangle className="h-8 w-8 text-red-400" />
+                  <p className="text-sm font-semibold text-red-600">
+                    {isArabic ? 'حدث خطأ أثناء تحميل البيانات' : 'An error occurred while loading data'}
+                  </p>
+                  <p className="text-xs text-red-500">{error}</p>
+                </div>
+              </div>
+            ) : filteredRows.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
+                {isArabic ? 'لا توجد بيانات حالياً.' : 'No data available.'}
+              </div>
+            ) : null}
             {filteredRows.map((row) => (
               <article key={row.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">

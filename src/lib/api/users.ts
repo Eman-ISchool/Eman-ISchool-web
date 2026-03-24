@@ -1,12 +1,12 @@
 /**
  * Users API Client
- * 
+ *
  * Provides hooks for fetching users list.
  */
 
 import { useState, useEffect } from 'react'
-import { fetchWithFallback } from './index'
-import { mockUsers, type User } from '@/lib/mock-data/users-data'
+import { fetchApi } from './index'
+import type { User } from '@/types/api'
 
 /**
  * Hook to fetch users list
@@ -17,24 +17,21 @@ export function useUsersList() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const result = await fetchWithFallback(
-          mockUsers,
-          '/api/users'
-        )
-        setData(result)
+        const result = await fetchApi<User[]>('/api/users')
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [])
 
   return { data, isLoading, error }

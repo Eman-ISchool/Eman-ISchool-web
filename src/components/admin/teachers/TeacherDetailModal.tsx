@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     X,
     User,
@@ -48,37 +48,6 @@ interface TeacherDetailModalProps {
 
 type TabType = 'overview' | 'attendance' | 'feedback' | 'documents' | 'certifications';
 
-// Mock data for demonstration
-const mockAttendanceData = [
-    { date: '2026-01-15', status: 'present', sessions: [{ time: '08:00', class: 'الصف السادس' }, { time: '10:00', class: 'الصف السابع' }] },
-    { date: '2026-01-14', status: 'present', sessions: [{ time: '09:00', class: 'الصف الخامس' }] },
-    { date: '2026-01-13', status: 'absent', sessions: [] },
-    { date: '2026-01-12', status: 'present', sessions: [{ time: '08:00', class: 'الصف السادس' }, { time: '11:00', class: 'الصف الثامن' }] },
-];
-
-const mockFeedback = {
-    parents: [
-        { id: 1, name: 'أحمد محمد', rating: 5, comment: 'معلم ممتاز ومتفاني في عمله', date: '2026-01-10' },
-        { id: 2, name: 'سارة علي', rating: 4, comment: 'تواصل جيد مع أولياء الأمور', date: '2026-01-08' },
-    ],
-    students: [
-        { id: 1, name: 'محمد أحمد', rating: 5, comment: 'شرح واضح ومفهوم', date: '2026-01-09' },
-        { id: 2, name: 'فاطمة علي', rating: 5, comment: 'الأستاذ صبور ومتعاون', date: '2026-01-07' },
-    ],
-};
-
-const mockDocuments = [
-    { id: 1, type: 'chat', title: 'محادثة مع ولي أمر الطالب محمد', date: '2026-01-15', preview: 'مناقشة تقدم الطالب...' },
-    { id: 2, type: 'material', title: 'مذكرة الرياضيات - الفصل الثاني', date: '2026-01-14', size: '2.5 MB' },
-    { id: 3, type: 'document', title: 'تقرير الأداء الشهري', date: '2026-01-10', size: '1.2 MB' },
-];
-
-const mockCertifications = [
-    { id: 1, title: 'شهادة التدريس المعتمدة', issuer: 'وزارة التربية والتعليم', date: '2025-06-15', status: 'completed' },
-    { id: 2, title: 'دورة التعليم الإلكتروني', issuer: 'أكاديمية التعليم', date: '2025-09-20', status: 'completed' },
-    { id: 3, title: 'شهادة TESOL', issuer: 'جامعة كامبريدج', date: '2026-03-01', status: 'in-progress', progress: 65 },
-];
-
 export default function TeacherDetailModal({
     isOpen,
     onClose,
@@ -87,6 +56,35 @@ export default function TeacherDetailModal({
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const [feedbackTab, setFeedbackTab] = useState<'parents' | 'students'>('parents');
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [attendanceData, setAttendanceData] = useState<any[]>([]);
+    const [feedback, setFeedback] = useState<{ parents: any[]; students: any[] }>({ parents: [], students: [] });
+    const [documents, setDocuments] = useState<any[]>([]);
+    const [certifications, setCertifications] = useState<any[]>([]);
+    const [attendanceSummary, setAttendanceSummary] = useState({ present: 0, absent: 0, totalSessions: 0 });
+
+    useEffect(() => {
+        if (!teacher?.id) return;
+        let cancelled = false;
+
+        async function fetchTeacherData() {
+            try {
+                const res = await fetch(`/api/attendance?teacher_id=${teacher!.id}`);
+                if (res.ok) {
+                    const payload = await res.json();
+                    const records = payload.records || payload.data || payload || [];
+                    if (!cancelled && Array.isArray(records)) {
+                        setAttendanceData(records);
+                        const present = records.filter((r: any) => r.status === 'present').length;
+                        const absent = records.filter((r: any) => r.status === 'absent').length;
+                        setAttendanceSummary({ present, absent, totalSessions: records.length });
+                    }
+                }
+            } catch { /* empty state on error */ }
+        }
+
+        fetchTeacherData();
+        return () => { cancelled = true; };
+    }, [teacher?.id]);
 
     if (!isOpen || !teacher) return null;
 
@@ -226,7 +224,7 @@ export default function TeacherDetailModal({
         }
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const attendance = mockAttendanceData.find((a) => a.date === dateStr);
+            const attendance = attendanceData.find((a) => a.date === dateStr);
             const isPresent = attendance?.status === 'present';
             const isAbsent = attendance?.status === 'absent';
 
@@ -251,17 +249,17 @@ export default function TeacherDetailModal({
                 <div className="grid grid-cols-3 gap-4">
                     <div className="admin-card p-4 text-center">
                         <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-gray-800">22</p>
+                        <p className="text-2xl font-bold text-gray-800">{attendanceSummary.present}</p>
                         <p className="text-sm text-gray-500">أيام حضور</p>
                     </div>
                     <div className="admin-card p-4 text-center">
                         <XCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-gray-800">3</p>
+                        <p className="text-2xl font-bold text-gray-800">{attendanceSummary.absent}</p>
                         <p className="text-sm text-gray-500">أيام غياب</p>
                     </div>
                     <div className="admin-card p-4 text-center">
                         <Clock className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-gray-800">45</p>
+                        <p className="text-2xl font-bold text-gray-800">{attendanceSummary.totalSessions}</p>
                         <p className="text-sm text-gray-500">إجمالي الحصص</p>
                     </div>
                 </div>
@@ -309,7 +307,7 @@ export default function TeacherDetailModal({
                 <div className="admin-card p-4">
                     <h3 className="font-medium text-gray-800 mb-4">سجل الحضور الأخير</h3>
                     <div className="space-y-3">
-                        {mockAttendanceData.map((record, idx) => (
+                        {attendanceData.map((record, idx) => (
                             <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                                 <div
                                     className={`w-3 h-3 rounded-full mt-1.5 ${record.status === 'present' ? 'bg-green-500' : 'bg-red-500'
@@ -378,7 +376,7 @@ export default function TeacherDetailModal({
 
             {/* Feedback List */}
             <div className="space-y-4">
-                {(feedbackTab === 'parents' ? mockFeedback.parents : mockFeedback.students).map((feedback) => (
+                {(feedbackTab === 'parents' ? feedback.parents : feedback.students).map((feedback) => (
                     <div key={feedback.id} className="admin-card p-4">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -411,7 +409,7 @@ export default function TeacherDetailModal({
 
             {/* Documents List */}
             <div className="space-y-3">
-                {mockDocuments.map((doc) => (
+                {documents.map((doc) => (
                     <div key={doc.id} className="admin-card p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div
                             className={`w-10 h-10 rounded-lg flex items-center justify-center ${doc.type === 'chat'
@@ -446,7 +444,7 @@ export default function TeacherDetailModal({
             <div>
                 <h3 className="font-medium text-gray-800 mb-4">الشهادات المكتملة</h3>
                 <div className="space-y-3">
-                    {mockCertifications
+                    {certifications
                         .filter((c) => c.status === 'completed')
                         .map((cert) => (
                             <div key={cert.id} className="admin-card p-4 flex items-center gap-4">
@@ -470,7 +468,7 @@ export default function TeacherDetailModal({
             <div>
                 <h3 className="font-medium text-gray-800 mb-4">قيد التقدم</h3>
                 <div className="space-y-3">
-                    {mockCertifications
+                    {certifications
                         .filter((c) => c.status === 'in-progress')
                         .map((cert) => (
                             <div key={cert.id} className="admin-card p-4">

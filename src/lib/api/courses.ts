@@ -1,16 +1,12 @@
 /**
  * Courses API Client
- * 
+ *
  * Provides hooks for fetching courses list and course detail.
  */
 
 import { useState, useEffect } from 'react'
-import { fetchWithFallback } from './index'
-import {
-  mockCourses,
-  mockCourseDetail,
-  type CourseDetail,
-} from '@/lib/mock-data/courses-data'
+import { fetchApi } from './index'
+import type { CourseDetail } from '@/types/api'
 
 /**
  * Hook to fetch courses list
@@ -19,30 +15,33 @@ export function useCourseList() {
   const [data, setData] = useState<CourseDetail[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const result = await fetchWithFallback(
-          mockCourses,
-          '/api/courses'
-        )
-        setData(result)
+        const result = await fetchApi<CourseDetail[]>('/api/courses')
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
-  }, [])
+    return () => { cancelled = true }
+  }, [refreshKey])
 
-  return { data, isLoading, error }
+  const refetch = () => setRefreshKey(k => k + 1)
+
+  return { data, isLoading, error, refetch }
 }
+
+/** @deprecated Use useCourseList instead */
+export const useCoursesList = useCourseList
 
 /**
  * Hook to fetch course detail
@@ -53,25 +52,21 @@ export function useCourseDetail(id: string) {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const mockData = mockCourseDetail(id) || null
-        const result = await fetchWithFallback(
-          mockData,
-          `/api/courses/${id}`
-        )
-        setData(result)
+        const result = await fetchApi<CourseDetail>(`/api/courses/${id}`)
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [id])
 
   return { data, isLoading, error }

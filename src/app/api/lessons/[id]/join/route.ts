@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
 import { withRequestId } from '@/lib/request-id';
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
@@ -16,66 +15,6 @@ function jsonWithRequestId(body: any, status: number, requestId: string) {
  */
 export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     const { id } = params;
-
-    if (process.env.TEST_BYPASS === 'true') {
-        const db = getMockDb();
-        const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-        const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-        const meetings = Array.isArray(db.lesson_meetings) ? db.lesson_meetings : [];
-        const attendance = Array.isArray(db.attendance_records) ? db.attendance_records : [];
-        const lesson = lessons.find((row: any) => row.id === id);
-
-        if (!lesson) {
-            return jsonWithRequestId({ error: 'Lesson not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-        }
-
-        if (user.role === 'teacher' && user.id === lesson.teacher_id && lesson.status === 'scheduled') {
-            lesson.status = 'live';
-        }
-
-        if (user.role === 'student') {
-            const enrollment = enrollments.find((row: any) => (
-                row.student_id === user.id &&
-                row.course_id === lesson.course_id &&
-                row.status === 'active'
-            ));
-            if (!enrollment) {
-                return jsonWithRequestId({ error: 'Not enrolled in this course', code: 'NOT_ENROLLED', requestId }, 403, requestId);
-            }
-        }
-
-        const meeting = meetings.find((row: any) => row.lesson_id === id && row.status === 'active');
-        const meetLink = meeting?.meet_url || lesson.meet_link || lesson.meetLink;
-        if (!meetLink) {
-            return jsonWithRequestId({ error: 'Meet link not available for this lesson', code: 'MEET_LINK_MISSING', requestId }, 404, requestId);
-        }
-
-        const existing = attendance.find((row: any) => row.lesson_id === id && row.student_id === user.id);
-        if (existing) {
-            existing.last_heartbeat_time = new Date().toISOString();
-            existing.status = 'present';
-        } else {
-            attendance.push({
-                id: `att-${Date.now()}`,
-                lesson_id: id,
-                student_id: user.id,
-                status: 'present',
-                join_time: new Date().toISOString(),
-                last_heartbeat_time: new Date().toISOString(),
-            });
-        }
-
-        db.attendance_records = attendance;
-        db.lessons = lessons;
-        saveMockDb(db);
-
-        return jsonWithRequestId({
-            lesson_id: lesson.id,
-            meet_link: meetLink,
-            status: lesson.status,
-            requestId
-        }, 200, requestId);
-    }
 
     const { data: lesson, error: fetchError } = await supabaseAdmin
         .from('lessons')

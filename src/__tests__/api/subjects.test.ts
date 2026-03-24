@@ -1,11 +1,18 @@
 import { POST } from '@/app/api/subjects/route';
-import { NextResponse } from 'next/server';
-import { getServerSession, getCurrentUser } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+
+jest.mock('next-auth', () => ({
+    default: jest.fn(),
+    getServerSession: jest.fn(),
+}));
 
 jest.mock('@/lib/auth', () => ({
-    getServerSession: jest.fn(),
+    authOptions: {},
     getCurrentUser: jest.fn(),
-    isTeacherOrAdmin: jest.fn().mockReturnValue(true),
+    isTeacherOrAdmin: jest.fn().mockImplementation((role: string) =>
+        role === 'teacher' || role === 'admin'
+    ),
+    isAdmin: jest.fn().mockImplementation((role: string) => role === 'admin'),
 }));
 
 jest.mock('@/lib/supabase', () => ({
@@ -21,15 +28,13 @@ jest.mock('@/lib/supabase', () => ({
 }));
 
 describe('POST /api/subjects', () => {
+    let getServerSession: jest.Mock;
+
     beforeEach(() => {
-        // Reset mocks before each test
-        (getServerSession as jest.Mock).mockResolvedValue({
-            user: { email: 'teacher@test.com' }
-        });
-        (getCurrentUser as jest.Mock).mockResolvedValue({
-            id: '123',
-            role: 'teacher'
-        });
+        jest.clearAllMocks();
+        getServerSession = require('next-auth').getServerSession as jest.Mock;
+        getServerSession.mockResolvedValue({ user: { email: 'teacher@test.com' } });
+        (getCurrentUser as jest.Mock).mockResolvedValue({ id: '123', role: 'teacher' });
     });
 
     it('creates a new subject successfully', async () => {
@@ -44,7 +49,7 @@ describe('POST /api/subjects', () => {
         const res = await POST(req);
         const data = await res.json();
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(201);
         expect(data.subject.title).toBe('Test Subject');
     });
 
@@ -60,12 +65,11 @@ describe('POST /api/subjects', () => {
         const data = await res.json();
 
         expect(res.status).toBe(400);
-        expect(data.error).toBe('عنوان المادة مطلوب');
+        expect(data.error).toBe('Subject title is required');
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-        // Mock unauthenticated session
-        (getServerSession as jest.Mock).mockResolvedValueOnce(null);
+        getServerSession.mockResolvedValueOnce(null);
 
         const req = new Request('http://localhost:3000/api/subjects', {
             method: 'POST',
@@ -83,11 +87,7 @@ describe('POST /api/subjects', () => {
     });
 
     it('returns 403 for student role', async () => {
-        // Mock student role
-        (getCurrentUser as jest.Mock).mockResolvedValueOnce({
-            id: '123',
-            role: 'student'
-        });
+        (getCurrentUser as jest.Mock).mockResolvedValueOnce({ id: '123', role: 'student' });
 
         const req = new Request('http://localhost:3000/api/subjects', {
             method: 'POST',

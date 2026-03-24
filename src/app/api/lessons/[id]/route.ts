@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isAdmin } from '@/lib/auth';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
 import { withRequestId } from '@/lib/request-id';
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
@@ -17,50 +16,6 @@ function jsonWithRequestId(body: any, status: number, requestId: string) {
  */
 export const GET = withAuth(async (req, { user, requestId }, { params }) => {
   const { id } = params;
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-    const courses = Array.isArray(db.courses) ? db.courses : [];
-    const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-    const meetings = Array.isArray(db.lesson_meetings) ? db.lesson_meetings : [];
-    const lesson = lessons.find((row: any) => row.id === id);
-
-    if (!lesson) {
-      return jsonWithRequestId({ error: 'Lesson not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-
-    let isAuthorized = isAdmin(user.role);
-    if (!isAuthorized && user.role === 'teacher') {
-      isAuthorized = lesson.teacher_id === user.id;
-    }
-    if (!isAuthorized && user.role === 'student') {
-      const enrolled = enrollments.find((row: any) => row.course_id === lesson.course_id && row.student_id === user.id && row.status === 'active');
-      isAuthorized = Boolean(enrolled);
-    }
-    if (!isAuthorized && user.role === 'supervisor') {
-      isAuthorized = true;
-    }
-    if (!isAuthorized) {
-      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
-    }
-
-    const activeMeeting = meetings.find((row: any) => row.lesson_id === lesson.id && row.status === 'active');
-    const course = courses.find((row: any) => row.id === lesson.course_id);
-    const normalizedLesson = {
-      ...lesson,
-      meet_link: activeMeeting?.meet_url || lesson.meet_link || lesson.meetLink || null,
-      course: course ? { id: course.id, title: course.title, grade_id: course.grade_id || null } : null,
-      teacher: {
-        id: lesson.teacher_id,
-        name: lesson.teacher_name || 'Test Teacher',
-        email: 'teacher@eduverse.com',
-      },
-      materials: Array.isArray(lesson.materials) ? lesson.materials : [],
-    };
-
-    return jsonWithRequestId({ lesson: normalizedLesson, requestId }, 200, requestId);
-  }
 
   // Retrieve lesson with course and teacher
   const { data: lesson, error } = await supabaseAdmin
@@ -93,8 +48,9 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
     isAuthorized = true;
   }
 
-  if (!isAuthorized && user.role === 'student' && lesson.course_id) {
-    // Check enrollment
+  // Track enrollment status for students — reused for authorization and field visibility
+  let studentIsEnrolled = false;
+  if (user.role === 'student' && lesson.course_id) {
     const { data: enrollment } = await supabaseAdmin
       .from('enrollments')
       .select('id')
@@ -102,6 +58,7 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
       .eq('student_id', user.id)
       .eq('status', 'active')
       .single();
+    studentIsEnrolled = !!enrollment;
     if (enrollment) {
       isAuthorized = true;
     }
@@ -122,27 +79,12 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
     lesson.meet_link = activeMeeting.meet_url;
   }
 
-  // Hide sensitive features from unenrolled students or parents
-  if (user.role === 'student') {
-    // Already checked enrollment above, but double check
-    let isEnrolled = false;
-    if (lesson.course_id) {
-      const { data: enrollment } = await supabaseAdmin
-        .from('enrollments')
-        .select('id')
-        .eq('course_id', lesson.course_id)
-        .eq('student_id', user.id)
-        .eq('status', 'active')
-        .single();
-      isEnrolled = !!enrollment;
-    }
-
-    if (!isEnrolled) {
-      lesson.meet_link = null;
-      lesson.meeting_title = null;
-      lesson.meeting_provider = null;
-      lesson.meeting_duration_min = null;
-    }
+  // Hide sensitive features from unenrolled students
+  if (user.role === 'student' && !studentIsEnrolled) {
+    lesson.meet_link = null;
+    lesson.meeting_title = null;
+    lesson.meeting_provider = null;
+    lesson.meeting_duration_min = null;
   }
 
   return jsonWithRequestId({ lesson, requestId }, 200, requestId);
@@ -157,22 +99,6 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
 export const PATCH = withAuth(async (req, { user, requestId }, { params }) => {
   const { id } = params;
   const body = await req.json();
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-    const index = lessons.findIndex((row: any) => row.id === id);
-    if (index < 0) {
-      return jsonWithRequestId({ error: 'Lesson not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    if (lessons[index].teacher_id !== user.id && !isAdmin(user.role) && user.role !== 'supervisor') {
-      return jsonWithRequestId({ error: 'Forbidden. You can only edit your own lessons.', code: 'FORBIDDEN', requestId }, 403, requestId);
-    }
-    lessons[index] = { ...lessons[index], ...body, updated_at: new Date().toISOString() };
-    db.lessons = lessons;
-    saveMockDb(db);
-    return jsonWithRequestId({ lesson: lessons[index], requestId }, 200, requestId);
-  }
 
   const { data: existingLesson, error: fetchError } = await supabaseAdmin
     .from('lessons')
@@ -228,21 +154,6 @@ export const PATCH = withAuth(async (req, { user, requestId }, { params }) => {
  */
 export const DELETE = withAuth(async (req, { user, requestId }, { params }) => {
   const { id } = params;
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-    const lesson = lessons.find((row: any) => row.id === id);
-    if (!lesson) {
-      return jsonWithRequestId({ error: 'Lesson not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    if (lesson.teacher_id !== user.id && !isAdmin(user.role)) {
-      return jsonWithRequestId({ error: 'Forbidden. You can only delete your own lessons.', code: 'FORBIDDEN', requestId }, 403, requestId);
-    }
-    db.lessons = lessons.filter((row: any) => row.id !== id);
-    saveMockDb(db);
-    return jsonWithRequestId({ success: true, message: 'Lesson deleted successfully', requestId }, 200, requestId);
-  }
 
   const { data: existingLesson, error: fetchError } = await supabaseAdmin
     .from('lessons')

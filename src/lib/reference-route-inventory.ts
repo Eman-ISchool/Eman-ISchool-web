@@ -181,4 +181,39 @@ export const referenceDashboardAliasRoutes: Record<string, ReferenceDashboardAli
     subtitle: { ar: 'أقرب مطابقة حالية لهذا المسار هي صفحة التقويم', en: 'The current calendar page is the closest live match for this route' },
     module: 'calendar',
   },
+  courses: {
+    title: { ar: 'المواد الدراسية', en: 'Courses' },
+    subtitle: { ar: 'إدارة المواد الدراسية والمحتوى التعليمي', en: 'Manage courses and educational content' },
+    module: 'lessons',
+  },
+  quizzes: {
+    title: { ar: 'الاختبارات', en: 'Quizzes' },
+    subtitle: { ar: 'إدارة الاختبارات القصيرة والتقييمات', en: 'Manage quizzes and assessments' },
+    module: 'quizzesExams',
+  },
+  users: {
+    title: { ar: 'المستخدمون', en: 'Users' },
+    subtitle: { ar: 'إدارة المستخدمين والطلاب والمعلمين', en: 'Manage users, students, and teachers' },
+    module: 'students',
+  },
+  messages: {
+    title: { ar: 'الرسائل', en: 'Messages' },
+    subtitle: { ar: 'إدارة الرسائل والتواصل', en: 'Manage messages and communication' },
+    module: 'content',
+  },
+  profile: {
+    title: { ar: 'الملف الشخصي', en: 'Profile' },
+    subtitle: { ar: 'عرض وتعديل الملف الشخصي', en: 'View and edit your profile' },
+    module: 'settings',
+  },
+  calendar: {
+    title: { ar: 'التقويم', en: 'Calendar' },
+    subtitle: { ar: 'عرض الجدول الزمني والمواعيد', en: 'View schedule and calendar' },
+    module: 'calendar',
+  },
+  live: {
+    title: { ar: 'البث المباشر', en: 'Live' },
+    subtitle: { ar: 'إدارة الحصص المباشرة', en: 'Manage live classes' },
+    module: 'calendar',
+  },
 };

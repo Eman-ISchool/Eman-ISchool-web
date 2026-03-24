@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { supabaseAdmin } from './supabase';
-import { decrypt, isEncrypted } from './encryption';
+import { encrypt, decrypt, isEncrypted } from './encryption';
+import { reportError } from './crash-reporter';
 
 /**
  * Google Token Management Utility
@@ -160,6 +161,7 @@ export async function refreshGoogleToken(
         };
     } catch (error: any) {
         console.error('Error refreshing Google token:', error);
+        reportError(new Error(error?.message || 'Token refresh failed'), { userId, area: 'google-token-refresh' });
         return {
             success: false,
             error: error.message || 'Token refresh failed',
@@ -167,14 +169,60 @@ export async function refreshGoogleToken(
     }
 }
 
+interface EnvTokenCache {
+    accessToken?: string;
+    expiresAt?: Date;
+}
+
+let envTokenCache: EnvTokenCache = {};
+
+async function getEnvGoogleAccessToken(): Promise<TokenRefreshResult> {
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!refreshToken || !clientId || !clientSecret) {
+        return { success: false, error: 'Google OAuth credentials not configured' };
+    }
+
+    if (envTokenCache.accessToken && envTokenCache.expiresAt && !isTokenExpired(envTokenCache.expiresAt)) {
+        return { success: true, accessToken: envTokenCache.accessToken };
+    }
+
+    try {
+        const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        if (!credentials.access_token) {
+            return { success: false, error: 'Failed to refresh token - no access token returned' };
+        }
+
+        envTokenCache = {
+            accessToken: credentials.access_token,
+            expiresAt: credentials.expiry_date ? new Date(credentials.expiry_date) : new Date(Date.now() + 3600 * 1000),
+        };
+
+        return { success: true, accessToken: credentials.access_token };
+    } catch (error: any) {
+        reportError(new Error(error?.message || 'Env token refresh failed'), { userId: 'env', area: 'google-token-refresh' });
+        return { success: false, error: error.message || 'Env token refresh failed' };
+    }
+}
+
 /**
  * Get a valid Google access token for a user
  * Automatically refreshes if expired
+ * Falls back to env GOOGLE_REFRESH_TOKEN if no per-user tokens exist
  */
 export async function getValidGoogleToken(userId: string): Promise<TokenRefreshResult> {
     const tokens = await getGoogleTokens(userId);
 
     if (!tokens) {
+        const envToken = await getEnvGoogleAccessToken();
+        if (envToken.success) {
+            return envToken;
+        }
         return {
             success: false,
             error: 'لم يتم ربط حساب Google. يرجى تسجيل الدخول باستخدام Google.',
@@ -191,13 +239,28 @@ export async function getValidGoogleToken(userId: string): Promise<TokenRefreshR
 
     // Token expired - try to refresh
     if (!tokens.refreshToken) {
+        const envToken = await getEnvGoogleAccessToken();
+        if (envToken.success) {
+            return envToken;
+        }
         return {
             success: false,
             error: 'انتهت صلاحية الجلسة. يرجى إعادة تسجيل الدخول باستخدام Google.',
         };
     }
 
-    return refreshGoogleToken(userId, tokens.refreshToken);
+    const refreshed = await refreshGoogleToken(userId, tokens.refreshToken);
+    if (refreshed.success) {
+        return refreshed;
+    }
+
+    // Last resort: try env token
+    const envToken = await getEnvGoogleAccessToken();
+    if (envToken.success) {
+        return envToken;
+    }
+
+    return refreshed;
 }
 
 /**

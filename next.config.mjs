@@ -7,6 +7,8 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 const nextConfig = {
     // output: 'export', // Enabled for Capacitor mobile builds
     distDir: process.env.NEXT_DIST_DIR || '.next',
+    compress: true,
+    poweredByHeader: false,
     typescript: {
         ignoreBuildErrors: true,
     },
@@ -29,6 +31,9 @@ const nextConfig = {
         formats: ['image/avif', 'image/webp'],
         minimumCacheTTL: 60 * 60 * 24, // 24 hours
     },
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-tabs', '@radix-ui/react-label', '@radix-ui/react-slot'],
+    },
     webpack: (config, { isServer }) => {
         // Mark pdf-parse as external to avoid ESM/worker issues in static export
         if (!isServer) {
@@ -42,6 +47,38 @@ const nextConfig = {
             config.externals = config.externals || [];
             config.externals.push('pdf-parse');
             config.externals.push('pdfjs-dist');
+
+            // Split heavy libraries into separate chunks so they're only loaded when needed
+            config.optimization = {
+                ...config.optimization,
+                splitChunks: {
+                    ...config.optimization?.splitChunks,
+                    cacheGroups: {
+                        ...config.optimization?.splitChunks?.cacheGroups,
+                        three: {
+                            test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
+                            name: 'three-vendor',
+                            chunks: 'all',
+                            priority: 30,
+                            reuseExistingChunk: true,
+                        },
+                        sanity: {
+                            test: /[\\/]node_modules[\\/](sanity|@sanity|next-sanity|@portabletext|styled-components)[\\/]/,
+                            name: 'sanity-vendor',
+                            chunks: 'all',
+                            priority: 30,
+                            reuseExistingChunk: true,
+                        },
+                        recharts: {
+                            test: /[\\/]node_modules[\\/](recharts|d3-[a-z]+|victory-vendor)[\\/]/,
+                            name: 'recharts-vendor',
+                            chunks: 'all',
+                            priority: 25,
+                            reuseExistingChunk: true,
+                        },
+                    },
+                },
+            };
         }
         return config;
     },

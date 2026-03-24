@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Radio, Search } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
@@ -19,6 +19,7 @@ type ScheduleRow = {
   attendance: string;
   status: { ar: string; en: string };
   statusClassName: string;
+  meetLink: string | null;
 };
 
 const scheduleMeta: Record<
@@ -50,113 +51,65 @@ const scheduleMeta: Record<
   },
 };
 
-const scheduleRowsByScope: Record<ScheduleScope, ScheduleRow[]> = {
-  calendar: [
-    {
-      id: 'calendar-1',
-      title: { ar: 'فيزياء أول ثانوي', en: 'First secondary physics' },
-      slot: '2026-03-10 • 08:00 - 09:00',
-      owner: 'Magda zahran',
-      room: 'Room A',
-      attendance: '24',
-      status: { ar: 'مجدول', en: 'Scheduled' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-    },
-    {
-      id: 'calendar-2',
-      title: { ar: 'مراجعة اللغة العربية', en: 'Arabic revision' },
-      slot: '2026-03-10 • 10:00 - 11:00',
-      owner: 'لادن ادريس بابكر ادريس',
-      room: 'Room B',
-      attendance: '18',
-      status: { ar: 'نشط', en: 'Live' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'calendar-3',
-      title: { ar: 'اختبار تجريبي مباشر', en: 'Mock exam live review' },
-      slot: '2026-03-11 • 20:00 - 21:30',
-      owner: 'د. رحمة خليل',
-      room: 'Studio 2',
-      attendance: '30',
-      status: { ar: 'قادم', en: 'Upcoming' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-  ],
-  live: [
-    {
-      id: 'live-1',
-      title: { ar: 'بث الفيزياء الصباحي', en: 'Morning physics stream' },
-      slot: 'Live now • 08:00 - 09:00',
-      owner: 'Magda zahran',
-      room: 'Live Room 1',
-      attendance: '24',
-      status: { ar: 'مباشر', en: 'Live' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'live-2',
-      title: { ar: 'جلسة تأسيس الإنجليزية', en: 'Foundation English live session' },
-      slot: '2026-03-10 • 16:00 - 17:00',
-      owner: 'Muzna seth',
-      room: 'Live Room 3',
-      attendance: '18',
-      status: { ar: 'قادم', en: 'Upcoming' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-    {
-      id: 'live-3',
-      title: { ar: 'مراجعة الرياضيات المسائية', en: 'Evening math revision' },
-      slot: '2026-03-10 • 19:30 - 20:30',
-      owner: 'رحاب رائد فيصل',
-      room: 'Live Room 4',
-      attendance: '12',
-      status: { ar: 'قادم', en: 'Upcoming' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-  ],
-  upcomingClasses: [
-    {
-      id: 'upcoming-1',
-      title: { ar: 'الحصة القادمة: كيمياء', en: 'Next class: chemistry' },
-      slot: '2026-03-10 • 13:00 - 14:00',
-      owner: 'د. رحمة خليل',
-      room: 'Room C',
-      attendance: '22',
-      status: { ar: 'قادم', en: 'Upcoming' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-    {
-      id: 'upcoming-2',
-      title: { ar: 'الحصة القادمة: تأسيس لغة', en: 'Next class: language foundation' },
-      slot: '2026-03-10 • 16:00 - 17:00',
-      owner: 'Muzna seth',
-      room: 'Room D',
-      attendance: '18',
-      status: { ar: 'جاهز', en: 'Ready' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'upcoming-3',
-      title: { ar: 'الحصة القادمة: مراجعات نهائية', en: 'Next class: final revisions' },
-      slot: '2026-03-11 • 18:00 - 19:30',
-      owner: 'Magda zahran',
-      room: 'Room A',
-      attendance: '30',
-      status: { ar: 'جاهز', en: 'Ready' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-  ],
-};
+function mapApiToScheduleRow(item: Record<string, unknown>): ScheduleRow {
+  const id = String(item.id || '');
+  const titleAr = String(item.title_ar || item.title || item.name || item.course_name || '');
+  const titleEn = String(item.title_en || item.title || item.name || item.course_name || '');
+  const date = String(item.scheduled_date || item.date || item.start_time || '').split('T')[0];
+  const startTime = String(item.start_time || '').split('T')[1]?.slice(0, 5) || '';
+  const endTime = String(item.end_time || '').split('T')[1]?.slice(0, 5) || '';
+  const slot = startTime ? `${date} \u2022 ${startTime} - ${endTime}` : date;
+  const owner = String(item.teacher_name || item.teacher || '-');
+  const room = String(item.room || item.location || '-');
+  const attendance = String(item.attendance_count || item.student_count || '0');
+  const status = String(item.status || 'scheduled');
+  const isLive = status === 'live' || status === 'in_progress' || status === 'active';
+  const isReady = status === 'ready' || status === 'upcoming';
+
+  const meetLink = String(item.meetLink || item.meet_link || '').trim() || null;
+
+  return {
+    id,
+    title: { ar: titleAr, en: titleEn },
+    slot,
+    owner,
+    room,
+    attendance,
+    meetLink,
+    status: isLive
+      ? { ar: 'مباشر', en: 'Live' }
+      : isReady
+        ? { ar: 'قادم', en: 'Upcoming' }
+        : { ar: 'مجدول', en: 'Scheduled' },
+    statusClassName: isLive
+      ? 'bg-[#edfdf3] text-[#15803d]'
+      : isReady
+        ? 'bg-[#fff7ed] text-[#c2410c]'
+        : 'bg-[#eef2ff] text-[#4338ca]',
+  };
+}
 
 export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = scheduleMeta[scope];
-  const rows = scheduleRowsByScope[scope];
+  const [rows, setRows] = useState<ScheduleRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ScheduleFilter>('all');
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/lessons?upcoming=true')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data?.lessons || [];
+        setRows(items.map((item: Record<string, unknown>) => mapApiToScheduleRow(item)));
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [scope]);
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -171,7 +124,7 @@ export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleS
 
       const matchesFilter =
         filter === 'all' ||
-        (filter === 'today' && row.slot.includes('2026-03-10')) ||
+        (filter === 'today' && row.slot.includes(new Date().toISOString().slice(0, 10))) ||
         (filter === 'live' && (row.status.en === 'Live' || row.status.en === 'Ready'));
 
       return matchesQuery && matchesFilter;
@@ -188,7 +141,7 @@ export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleS
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           [isArabic ? 'إجمالي الجلسات' : 'Total sessions', rows.length, meta.tone],
-          [isArabic ? 'اليوم' : 'Today', rows.filter((row) => row.slot.includes('2026-03-10')).length, 'bg-[#eef2ff] text-[#4338ca]'],
+          [isArabic ? 'اليوم' : 'Today', rows.filter((row) => row.slot.includes(new Date().toISOString().slice(0, 10))).length, 'bg-[#eef2ff] text-[#4338ca]'],
           [isArabic ? 'نشط / جاهز' : 'Live / ready', rows.filter((row) => row.status.en === 'Live' || row.status.en === 'Ready').length, 'bg-[#edfdf3] text-[#15803d]'],
           [isArabic ? 'إجمالي الحضور' : 'Attendance total', rows.reduce((total, row) => total + Number.parseInt(row.attendance, 10), 0), 'bg-[#fff7ed] text-[#c2410c]'],
         ].map(([label, value, tone]) => (
@@ -277,6 +230,17 @@ export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleS
           </div>
 
           <div className="mt-6 grid gap-4">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="h-36 animate-pulse rounded-[1.75rem] bg-slate-100" />
+                ))}
+              </div>
+            ) : filteredRows.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
+                {isArabic ? 'لا توجد جلسات حالياً.' : 'No sessions available.'}
+              </div>
+            ) : null}
             {filteredRows.map((row) => (
               <article key={row.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -297,15 +261,33 @@ export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleS
                     <span className="font-semibold text-slate-950">{row.attendance}</span>
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        showNotice(isArabic ? `تم فتح ${row.title.ar}.` : `${row.title.en} opened.`)
-                      }
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-                    >
-                      {scope === 'live' ? (isArabic ? 'الدخول' : 'Join') : isArabic ? 'التفاصيل' : 'Details'}
-                    </button>
+                    {scope === 'live' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (row.meetLink) {
+                            window.open(row.meetLink, '_blank', 'noopener,noreferrer');
+                          } else {
+                            showNotice(
+                              isArabic ? 'لا يوجد رابط اجتماع متاح' : 'No meeting link available',
+                            );
+                          }
+                        }}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                      >
+                        {isArabic ? 'الدخول' : 'Join'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.location.href = `/dashboard/lessons/${row.id}`;
+                        }}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                      >
+                        {isArabic ? 'التفاصيل' : 'Details'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() =>
@@ -341,13 +323,13 @@ export default function ReferenceScheduleWorkspace({ scope }: { scope: ScheduleS
             <h3 className="font-black text-slate-950">{isArabic ? 'جاهزية القاعات' : 'Room readiness'}</h3>
             <div className="mt-4 space-y-3">
               {[
-                ['Room A', '100%'],
-                ['Room B', '96%'],
-                [scope === 'live' ? 'Live Room 1' : 'Studio 2', '98%'],
+                [isArabic ? 'القاعة أ' : 'Room A', '—'],
+                [isArabic ? 'القاعة ب' : 'Room B', '—'],
+                [isArabic ? 'القاعة ج' : 'Room C', '—'],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between rounded-[1.2rem] bg-slate-50 px-4 py-3">
                   <span className="text-sm text-slate-500">{label}</span>
-                  <span className="font-semibold text-slate-950">{value}</span>
+                  <span className="font-semibold text-slate-400">{value}</span>
                 </div>
               ))}
             </div>

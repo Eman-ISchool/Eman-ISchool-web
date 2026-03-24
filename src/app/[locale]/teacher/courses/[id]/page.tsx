@@ -27,19 +27,12 @@ export default async function CourseDetailsPage({
     }
 
     // Check ownership first - requires course data
-    let course;
-    if (process.env.TEST_BYPASS === 'true') {
-        const { getMockDb } = await import('@/lib/mockDb');
-        const db = getMockDb();
-        course = (db.courses || []).find((c: any) => c.id === id);
-    } else {
-        const courseRes = await supabaseAdmin
-            .from('courses')
-            .select('*')
-            .eq('id', id)
-            .single();
-        course = courseRes.data;
-    }
+    const courseRes = await supabaseAdmin
+        .from('courses')
+        .select('*')
+        .eq('id', id)
+        .single();
+    const course = courseRes.data;
 
     if (!course) {
         notFound();
@@ -53,13 +46,7 @@ export default async function CourseDetailsPage({
     let subjects: any[] = [];
     let metrics = { enrolledStudents: 0, upcomingLessons: 0, materialsCount: 0, assignmentsCount: 0 };
 
-    if (process.env.TEST_BYPASS === 'true') {
-        const { getMockDb } = await import('@/lib/mockDb');
-        const db = getMockDb();
-        subjects = (db.subjects || []).filter((s: any) => s.course_id === id);
-        metrics.upcomingLessons = (db.lessons || []).filter((l: any) => l.course_id === id).length;
-        metrics.enrolledStudents = (db.enrollments || []).filter((e: any) => e.course_id === id).length;
-    } else {
+    {
         const [subjectsRes] = await Promise.all([
             supabaseAdmin
                 .from('subjects')

@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
-import { randomUUID } from 'crypto';
-import { decrypt, validateEncryptionConfig, isEncrypted } from '@/lib/encryption';
+import { generateMeetLink } from '@/lib/meet-service';
+import { isGoogleMeetUrl } from '@/lib/meet-utils';
 
 // POST - Create or get a meeting for a specific lesson
 export async function POST(
@@ -46,7 +45,7 @@ export async function POST(
         }
 
         // Check if an active meeting already exists in lesson_meetings table
-        const { data: existingMeeting, error: meetingFetchError } = await supabaseAdmin
+        const { data: existingMeeting } = await supabaseAdmin
             .from('lesson_meetings')
             .select('*')
             .eq('lesson_id', lessonId)
@@ -54,82 +53,56 @@ export async function POST(
             .single();
 
         if (existingMeeting && existingMeeting.meet_url) {
-            // Validate the existing URL structure before returning
-            if (existingMeeting.meet_url.startsWith('https://meet.google.com/')) {
+            // Validate with strict regex (xxx-xxxx-xxx pattern)
+            if (isGoogleMeetUrl(existingMeeting.meet_url)) {
                 return NextResponse.json({
                     meeting: existingMeeting,
                     message: 'Existing valid meeting returned.',
                     isNew: false
                 });
             } else {
-                // Mark existing as invalid if it doesn't match expected structure
+                // Mark existing as invalid if it doesn't pass strict validation
                 await supabaseAdmin
                     .from('lesson_meetings')
-                    .update({ status: 'invalid', validation_errors: 'URL structure check failed' })
+                    .update({ status: 'invalid', validation_errors: 'URL failed strict Meet code validation' })
                     .eq('lesson_id', lessonId);
             }
         }
 
-        // Retrieve teacher's Google Refresh Token
-        const { data: teacherData, error: teacherError } = await supabaseAdmin
-            .from('users')
-            .select('google_refresh_token')
-            .eq('id', currentUser.id)
-            .single();
-
-        let refreshToken: string | undefined = undefined;
-
-        if (teacherData?.google_refresh_token) {
-            validateEncryptionConfig();
-            try {
-                if (isEncrypted(teacherData.google_refresh_token)) {
-                    refreshToken = decrypt(teacherData.google_refresh_token);
-                } else {
-                    refreshToken = teacherData.google_refresh_token;
-                }
-            } catch (err) {
-                console.error("Failed to decrypt Google Refresh Token", err);
-            }
-        }
-
-        // Generate a new meeting using chosen provider (Calendar API)
+        // Generate a new meeting using meet-service (handles token management automatically)
         let meetResult;
         let meetingUrl = '';
         let googleEventId = '';
 
         try {
-            meetResult = await generateMeetLink({
-                summary: existingLesson.title || 'Eduverse Live Lesson',
-                description: existingLesson.description || 'Virtual Classroom Meeting',
-                startTime: existingLesson.start_date_time || new Date().toISOString(),
-                // End time default to 1 hour later if not provided
-                endTime: existingLesson.end_date_time || new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-                requestId: `e2e-meet-${lessonId}-${Date.now()}` // Pass unique request ID
-            }, refreshToken);
+            meetResult = await generateMeetLink(currentUser.id, lessonId);
             meetingUrl = meetResult.meetLink;
-            googleEventId = meetResult.google_event_id;
+            googleEventId = meetResult.googleEventId;
         } catch (error: any) {
-            const googleError = toGoogleMeetApiError(error);
-            console.error(`[MeetingCreationError] correlationId=${lessonId}`, googleError.detail);
+            console.error(`[MeetingCreationError] correlationId=${lessonId}`, error.message);
             return NextResponse.json(
                 {
-                    error: googleError.error,
-                    code: googleError.code,
-                    details: googleError.detail
+                    error: error.message || 'Google Meet creation failed',
+                    details: error.message
                 },
-                { status: googleError.status }
+                { status: 500 }
             );
         }
 
-        // Link validation guard (server-side)
-        if (!meetingUrl || !meetingUrl.startsWith('https://meet.google.com/')) {
+        // Link validation guard (server-side) with strict regex
+        if (!meetingUrl || !isGoogleMeetUrl(meetingUrl)) {
             console.error(`[MeetingValidationError] Invalid meet URL generated for lesson ${lessonId}: ${meetingUrl}`);
             return NextResponse.json({ error: 'Generated meeting URL is invalid or malformed.' }, { status: 500 });
         }
 
-        // Derive meeting code
-        const codeMatch = meetingUrl.split('meet.google.com/')[1]?.split('?')[0];
-        const meetingCode = codeMatch || null;
+        // Derive meeting code using URL parser
+        let meetingCode: string | null = null;
+        try {
+            const parsed = new URL(meetingUrl);
+            meetingCode = parsed.pathname.replace(/^\//, '').split('/')[0] || null;
+        } catch {
+            meetingCode = null;
+        }
 
         // Extract meeting to persist
         const meetingPayload = {
@@ -221,7 +194,7 @@ export async function GET(
                 .eq('id', lessonId)
                 .single();
 
-            if (!lessonError && lesson && lesson.meet_link && lesson.meet_link.startsWith('https://meet.google.com/')) {
+            if (!lessonError && lesson && lesson.meet_link && isGoogleMeetUrl(lesson.meet_link)) {
                 return NextResponse.json({
                     meeting: {
                         lesson_id: lessonId,

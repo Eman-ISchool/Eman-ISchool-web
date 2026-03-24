@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -65,10 +66,13 @@ export default async function Home() {
           {/* Hero Image */}
           <div className="relative rounded-3xl overflow-hidden border-4 border-brand-primary/10 shadow-2xl bg-gray-800 aspect-video flex items-center justify-center group cursor-pointer animate-in slide-in-from-left-10 duration-700 fade-in delay-200 hover:shadow-brand-primary/20 transition-all">
             {/* Using standard img for simplicity and direct local file access assurance */}
-            <img
+            <Image
               src="/hero-bg.png"
               alt="Eman Academy Hero"
-              className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+              className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-transparent to-transparent" />
 

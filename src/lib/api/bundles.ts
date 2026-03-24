@@ -1,16 +1,12 @@
 /**
  * Bundles API Client
- * 
+ *
  * Provides hooks for fetching bundles list and bundle detail.
  */
 
 import { useState, useEffect } from 'react'
-import { fetchWithFallback } from './index'
-import {
-  mockBundles,
-  mockBundleDetail,
-  type BundleDetail,
-} from '@/lib/mock-data/bundles-data'
+import { fetchApi } from './index'
+import type { BundleDetail } from '@/types/api'
 
 /**
  * Hook to fetch bundles list
@@ -21,24 +17,21 @@ export function useBundleList() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const result = await fetchWithFallback(
-          mockBundles,
-          '/api/bundles'
-        )
-        setData(result)
+        const result = await fetchApi<BundleDetail[]>('/api/bundles')
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [])
 
   return { data, isLoading, error }
@@ -53,25 +46,21 @@ export function useBundleDetail(id: string) {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const mockData = mockBundleDetail(id) || null
-        const result = await fetchWithFallback(
-          mockData,
-          `/api/bundles/${id}`
-        )
-        setData(result)
+        const result = await fetchApi<BundleDetail>(`/api/bundles/${id}`)
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [id])
 
   return { data, isLoading, error }

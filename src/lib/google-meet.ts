@@ -1,5 +1,169 @@
 import { google } from 'googleapis';
 
+// ─── Integration error types ──────────────────────────────────────────────────
+
+type GoogleIntegrationErrorCode =
+  | 'GOOGLE_REAUTH_REQUIRED'
+  | 'GOOGLE_CONFIG_INVALID'
+  | 'GOOGLE_TOKEN_EXCHANGE_FAILED'
+  | 'GOOGLE_PROFILE_FETCH_FAILED';
+
+interface GoogleIntegrationErrorOptions {
+  status: number;
+  requiresReconnect?: boolean;
+}
+
+export class GoogleIntegrationError extends Error {
+  code: GoogleIntegrationErrorCode;
+  status: number;
+  requiresReconnect: boolean;
+
+  constructor(
+    code: GoogleIntegrationErrorCode,
+    message: string,
+    options: GoogleIntegrationErrorOptions
+  ) {
+    super(message);
+    this.name = 'GoogleIntegrationError';
+    this.code = code;
+    this.status = options.status;
+    this.requiresReconnect = options.requiresReconnect ?? false;
+  }
+}
+
+export interface PublicGoogleError {
+  error: string;
+  code: GoogleIntegrationErrorCode;
+  requiresGoogleAuth: boolean;
+  status: number;
+}
+
+export function toPublicGoogleError(error: GoogleIntegrationError): PublicGoogleError {
+  return {
+    error: error.message,
+    code: error.code,
+    requiresGoogleAuth: error.requiresReconnect,
+    status: error.status,
+  };
+}
+
+// ─── OAuth helpers ─────────────────────────────────────────────────────────────
+
+const GOOGLE_MEET_SCOPE = 'https://www.googleapis.com/auth/meetings.space.created';
+
+export function buildGoogleConnectUrl(options: {
+  state: string;
+  appBaseUrl: string;
+}): string {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    throw new GoogleIntegrationError(
+      'GOOGLE_CONFIG_INVALID',
+      'GOOGLE_CLIENT_ID is not configured',
+      { status: 500 }
+    );
+  }
+
+  const redirectUri = `${options.appBaseUrl}/api/integrations/google/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: GOOGLE_MEET_SCOPE,
+    state: options.state,
+    access_type: 'offline',
+    prompt: 'consent',
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+export function extractMeetingCode(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'meet.google.com') return null;
+    const code = parsed.pathname.slice(1);
+    return code || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function exchangeGoogleAuthCode(
+  code: string,
+  appBaseUrl: string
+): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new GoogleIntegrationError(
+      'GOOGLE_CONFIG_INVALID',
+      'Google OAuth credentials are not configured',
+      { status: 500 }
+    );
+  }
+
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    `${appBaseUrl}/api/integrations/google/callback`
+  );
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    if (!tokens.access_token) {
+      throw new GoogleIntegrationError(
+        'GOOGLE_TOKEN_EXCHANGE_FAILED',
+        'No access token received from Google',
+        { status: 500 }
+      );
+    }
+    return {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token ?? '',
+      expires_in: tokens.expiry_date
+        ? Math.floor((tokens.expiry_date - Date.now()) / 1000)
+        : 3600,
+    };
+  } catch (err) {
+    if (err instanceof GoogleIntegrationError) throw err;
+    throw new GoogleIntegrationError(
+      'GOOGLE_TOKEN_EXCHANGE_FAILED',
+      'Failed to exchange Google auth code',
+      { status: 500 }
+    );
+  }
+}
+
+export async function fetchGoogleProfile(
+  accessToken: string
+): Promise<{ sub: string; email: string }> {
+  try {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const oauth2 = google.oauth2({ version: 'v2', auth });
+    const { data } = await oauth2.userinfo.get();
+    if (!data.id || !data.email) {
+      throw new GoogleIntegrationError(
+        'GOOGLE_PROFILE_FETCH_FAILED',
+        'Incomplete profile data from Google',
+        { status: 500 }
+      );
+    }
+    return { sub: data.id, email: data.email };
+  } catch (err) {
+    if (err instanceof GoogleIntegrationError) throw err;
+    throw new GoogleIntegrationError(
+      'GOOGLE_PROFILE_FETCH_FAILED',
+      'Failed to fetch Google profile',
+      { status: 500 }
+    );
+  }
+}
+
+// ─── Calendar / Meet link generation ──────────────────────────────────────────
+
 interface MeetEventDetails {
   summary: string;
   description: string;
@@ -187,5 +351,36 @@ export async function generateMeetLink(
       'Google Calendar API failed while creating Meet link.',
       message
     );
+  }
+}
+
+/**
+ * Get a snapshot of an active Google Meet meeting via the Meet REST API.
+ * Returns participant and status information for the given space.
+ */
+export async function getGoogleMeetingSnapshot(
+  accessToken: string,
+  spaceName: string
+): Promise<{ activeParticipants: number; participants: any[] }> {
+  try {
+    const response = await fetch(
+      `https://meet.googleapis.com/v2/${spaceName}/participants?pageSize=100`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!response.ok) {
+      return { activeParticipants: 0, participants: [] };
+    }
+
+    const data = await response.json();
+    const participants = data.participants || [];
+    return {
+      activeParticipants: participants.filter((p: any) => !p.endTime).length,
+      participants,
+    };
+  } catch {
+    return { activeParticipants: 0, participants: [] };
   }
 }

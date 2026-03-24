@@ -2,51 +2,22 @@ import { NextResponse } from 'next/server';
 import { generateMeetLink } from '@/lib/google-meet';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
-import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
-import crypto from 'crypto';
+import { supabaseAdmin } from '@/lib/supabase';
 
 /**
- * E2E RPC endpoint — uses in-memory mock store for reliable E2E testing.
- * Supabase operations are attempted first but fall back to mock on any error.
+ * E2E RPC endpoint — all operations go through Supabase.
  */
 
-// Use globalThis to persist mock store across Next.js HMR reloads
-const globalKey = '__e2e_mock_store__';
-if (!(globalThis as any)[globalKey]) {
-    (globalThis as any)[globalKey] = {
-        courses: [],
-        lessons: [],
-        enrollments: [],
-        users: [
-            { id: '00000000-0000-0000-0000-000000000001', email: 'teacher@eduverse.com', name: 'Test Teacher', role: 'teacher' },
-            { id: '00000000-0000-0000-0000-000000000002', email: 'student@eduverse.com', name: 'Test Student', role: 'student' },
-            { id: '00000000-0000-0000-0000-000000000003', email: 'admin@eduverse.com', name: 'Test Admin', role: 'admin' },
-        ],
-    };
-}
-const mockStore: {
-    courses: any[];
-    lessons: any[];
-    enrollments: any[];
-    users: any[];
-} = (globalThis as any)[globalKey];
-
-// Try Supabase first, fall back to mock on error
-// When TEST_BYPASS is enabled, always use mock store
-async function trySupabase<T>(operation: () => Promise<{ data: T | null; error: any }>): Promise<T | null> {
-    if (process.env.TEST_BYPASS === 'true') return null; // Always use mock in test mode
-    if (!isSupabaseAdminConfigured || !supabaseAdmin) return null;
-    try {
-        const { data, error } = await operation();
-        if (error) {
-            console.warn('Supabase operation failed, using mock:', error.message);
-            return null;
-        }
-        return data;
-    } catch (e: any) {
-        console.warn('Supabase exception, using mock:', e.message);
-        return null;
+// Execute a Supabase operation; throws on error.
+async function trySupabase<T>(operation: () => Promise<{ data: T | null; error: any }>): Promise<T> {
+    if (!supabaseAdmin) {
+        throw new Error('Supabase admin client is not configured');
     }
+    const { data, error } = await operation();
+    if (error) {
+        throw new Error(`Supabase operation failed: ${error.message}`);
+    }
+    return data as T;
 }
 
 export async function POST(req: Request) {
@@ -61,8 +32,7 @@ export async function POST(req: Request) {
 
         // ====== COURSES ======
         if (action === 'getCourses') {
-            // Try Supabase
-            const supabaseData = await trySupabase(async () => {
+            const data = await trySupabase(async () => {
                 let query = supabaseAdmin!.from('courses').select('*');
                 if (currentUser.role === 'teacher') {
                     query = query.eq('teacher_id', currentUser.id);
@@ -78,16 +48,7 @@ export async function POST(req: Request) {
                 }
                 return query.order('created_at', { ascending: false });
             });
-            if (supabaseData) return NextResponse.json(supabaseData);
-
-            // Mock fallback
-            if (currentUser.role === 'student') {
-                const enrolledCourseIds = mockStore.enrollments
-                    .filter(e => e.student_id === currentUser.id && e.status === 'active')
-                    .map(e => e.course_id);
-                return NextResponse.json(mockStore.courses.filter(c => enrolledCourseIds.includes(c.id)));
-            }
-            return NextResponse.json(mockStore.courses.filter(c => c.teacher_id === currentUser.id));
+            return NextResponse.json(data);
         }
 
         if (action === 'createCourse') {
@@ -100,8 +61,7 @@ export async function POST(req: Request) {
             }
             const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
-            // Try Supabase
-            const supabaseData = await trySupabase(() =>
+            const data = await trySupabase(() =>
                 supabaseAdmin!.from('courses').insert({
                     title, slug,
                     description: description || '',
@@ -109,39 +69,21 @@ export async function POST(req: Request) {
                     is_published: true,
                 }).select().single()
             );
-            if (supabaseData) return NextResponse.json(supabaseData);
-
-            // Mock fallback
-            const course = {
-                id: crypto.randomUUID(),
-                title, slug, description: description || '',
-                teacher_id: currentUser.id,
-                is_published: true,
-                created_at: new Date().toISOString(),
-            };
-            mockStore.courses.push(course);
-            return NextResponse.json(course);
+            return NextResponse.json(data);
         }
 
         // ====== LESSONS (Sessions) ======
         if (action === 'getLessons') {
             const { courseId } = payload || {};
 
-            // Try Supabase
-            const supabaseData = await trySupabase(async () => {
+            const data = await trySupabase(async () => {
                 let query = supabaseAdmin!.from('lessons').select('*')
                     .order('start_date_time', { ascending: true });
                 if (courseId) query = query.eq('course_id', courseId);
                 if (currentUser.role === 'teacher') query = query.eq('teacher_id', currentUser.id);
                 return query;
             });
-            if (supabaseData && Array.isArray(supabaseData)) return NextResponse.json(supabaseData);
-
-            // Mock fallback
-            let lessons = [...mockStore.lessons];
-            if (courseId) lessons = lessons.filter(l => l.course_id === courseId);
-            if (currentUser.role === 'teacher') lessons = lessons.filter(l => l.teacher_id === currentUser.id);
-            return NextResponse.json(lessons);
+            return NextResponse.json(data);
         }
 
         if (action === 'createLesson') {
@@ -179,8 +121,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'Generated meet link was empty' }, { status: 500 });
             }
 
-            // Try Supabase
-            const supabaseData = await trySupabase(() =>
+            const data = await trySupabase(() =>
                 supabaseAdmin!.from('lessons').insert({
                     title, description: '',
                     start_date_time: startTime.toISOString(),
@@ -192,22 +133,7 @@ export async function POST(req: Request) {
                     teacher_id: currentUser.id,
                 }).select().single()
             );
-            if (supabaseData) return NextResponse.json(supabaseData);
-
-            // Mock fallback
-            const lesson = {
-                id: crypto.randomUUID(),
-                title, course_id: courseId || null,
-                teacher_id: currentUser.id,
-                meet_link: meetLink,
-                google_event_id: googleEventId,
-                start_date_time: startTime.toISOString(),
-                end_date_time: endTime.toISOString(),
-                status: 'scheduled',
-                created_at: new Date().toISOString(),
-            };
-            mockStore.lessons.push(lesson);
-            return NextResponse.json(lesson);
+            return NextResponse.json(data);
         }
 
         // ====== ENROLLMENTS ======
@@ -220,48 +146,92 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'courseId and studentEmail are required' }, { status: 400 });
             }
 
-            // Find student in mock users
-            const mockStudent = mockStore.users.find(u => u.email === studentEmail);
-            const studentId = mockStudent?.id || '00000000-0000-0000-0000-000000000002';
-
-            // Check existing enrollment in mock
-            const existing = mockStore.enrollments.find(
-                e => e.course_id === courseId && e.student_id === studentId
+            // Find student by email in Supabase
+            const student = await trySupabase(() =>
+                supabaseAdmin!.from('users')
+                    .select('id')
+                    .eq('email', studentEmail)
+                    .single()
             );
-            if (existing) {
-                return NextResponse.json({ message: 'Already enrolled', enrollment: existing });
+
+            const studentId = (student as any).id;
+
+            // Check existing enrollment
+            const existingEnrollments = await trySupabase(() =>
+                supabaseAdmin!.from('enrollments')
+                    .select('*')
+                    .eq('course_id', courseId)
+                    .eq('student_id', studentId)
+            );
+
+            if (Array.isArray(existingEnrollments) && existingEnrollments.length > 0) {
+                return NextResponse.json({ message: 'Already enrolled', enrollment: existingEnrollments[0] });
             }
 
-            const enrollment = {
-                id: crypto.randomUUID(),
-                course_id: courseId,
-                student_id: studentId,
-                student_email: studentEmail,
-                status: 'active',
-                enrolled_at: new Date().toISOString(),
-            };
-            mockStore.enrollments.push(enrollment);
+            const enrollment = await trySupabase(() =>
+                supabaseAdmin!.from('enrollments')
+                    .insert({
+                        course_id: courseId,
+                        student_id: studentId,
+                        status: 'active',
+                    })
+                    .select()
+                    .single()
+            );
             return NextResponse.json(enrollment);
         }
 
         if (action === 'getEnrollments') {
             const { courseId } = payload || {};
-            let enrollments = mockStore.enrollments.filter(e => e.status === 'active');
-            if (courseId) enrollments = enrollments.filter(e => e.course_id === courseId);
-            if (currentUser.role === 'student') {
-                enrollments = enrollments.filter(e => e.student_id === currentUser.id);
-            }
-            return NextResponse.json(enrollments);
+            const data = await trySupabase(async () => {
+                let query = supabaseAdmin!.from('enrollments')
+                    .select('*')
+                    .eq('status', 'active');
+                if (courseId) query = query.eq('course_id', courseId);
+                if (currentUser.role === 'student') query = query.eq('student_id', currentUser.id);
+                return query;
+            });
+            return NextResponse.json(data);
         }
 
         // ====== LEGACY SUPPORT ======
-        if (action === 'getGrades') return NextResponse.json([]);
-        if (action === 'createGrade') return NextResponse.json({ id: `grade-${Date.now()}`, name: payload.name });
-        if (action === 'getClasses') return NextResponse.json([]);
-        if (action === 'createClass') return NextResponse.json({ id: `class-${Date.now()}`, name: payload.name });
-        if (action === 'getSubjects') return NextResponse.json([]);
-        if (action === 'createSubject') return NextResponse.json({ id: `subject-${Date.now()}`, title: payload.title });
-        if (action === 'getSessions') return NextResponse.json(mockStore.lessons.map(l => ({ id: l.id, title: l.title, meetLink: l.meet_link, google_event_id: l.google_event_id })));
+        if (action === 'getGrades') {
+            const data = await trySupabase(() => supabaseAdmin!.from('grades').select('*'));
+            return NextResponse.json(data);
+        }
+        if (action === 'createGrade') {
+            const data = await trySupabase(() =>
+                supabaseAdmin!.from('grades').insert({ name: payload.name }).select().single()
+            );
+            return NextResponse.json(data);
+        }
+        if (action === 'getClasses') {
+            const data = await trySupabase(() => supabaseAdmin!.from('classes').select('*'));
+            return NextResponse.json(data);
+        }
+        if (action === 'createClass') {
+            const data = await trySupabase(() =>
+                supabaseAdmin!.from('classes').insert({ name: payload.name }).select().single()
+            );
+            return NextResponse.json(data);
+        }
+        if (action === 'getSubjects') {
+            const data = await trySupabase(() => supabaseAdmin!.from('subjects').select('*'));
+            return NextResponse.json(data);
+        }
+        if (action === 'createSubject') {
+            const data = await trySupabase(() =>
+                supabaseAdmin!.from('subjects').insert({ title: payload.title }).select().single()
+            );
+            return NextResponse.json(data);
+        }
+        if (action === 'getSessions') {
+            const data = await trySupabase(() =>
+                supabaseAdmin!.from('lessons').select('id, title, meet_link, google_event_id')
+                    .eq('teacher_id', currentUser.id)
+            );
+            return NextResponse.json(data);
+        }
         if (action === 'createSession') {
             const { title, meetLink: manualMeetLink } = payload;
             const startTime = new Date();
@@ -284,9 +254,18 @@ export async function POST(req: Request) {
                 }
             }
             if (!meetLink) return NextResponse.json({ error: 'Empty meet link' }, { status: 500 });
-            const ses = { id: crypto.randomUUID(), title, meetLink, meet_link: meetLink, google_event_id: googleEventId, teacher_id: currentUser.id };
-            mockStore.lessons.push(ses);
-            return NextResponse.json(ses);
+            const data = await trySupabase(() =>
+                supabaseAdmin!.from('lessons').insert({
+                    title, description: '',
+                    start_date_time: startTime.toISOString(),
+                    end_date_time: endTime.toISOString(),
+                    meet_link: meetLink,
+                    google_event_id: googleEventId || null,
+                    status: 'scheduled',
+                    teacher_id: currentUser.id,
+                }).select().single()
+            );
+            return NextResponse.json(data);
         }
 
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

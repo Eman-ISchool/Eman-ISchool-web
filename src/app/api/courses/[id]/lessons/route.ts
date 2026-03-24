@@ -3,8 +3,6 @@ import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
 import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
-
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
 }
@@ -16,54 +14,6 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
   const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 50);
   const offset = (page - 1) * limit;
   const status = searchParams.get('status');
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const courses = Array.isArray(db.courses) ? db.courses : [];
-    const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-    const course = courses.find((row: any) => row.id === courseId);
-
-    if (!course) {
-      return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    if (user.role === 'teacher' && course.teacher_id !== user.id) {
-      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
-    }
-    if (user.role === 'student') {
-      const enrollment = enrollments.find((row: any) => row.course_id === courseId && row.student_id === user.id && row.status === 'active');
-      if (!enrollment) {
-        return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
-      }
-    }
-
-    let rows = lessons.filter((row: any) => row.course_id === courseId);
-    if (status) {
-      rows = rows.filter((row: any) => row.status === status);
-    }
-    rows = rows.sort((a: any, b: any) => String(a.start_date_time || '').localeCompare(String(b.start_date_time || '')));
-    const total = rows.length;
-
-    return jsonWithRequestId({
-      lessons: rows.slice(offset, offset + limit).map((row: any) => ({
-        id: row.id,
-        title: row.title,
-        description: row.description || '',
-        start_date_time: row.start_date_time,
-        end_date_time: row.end_date_time,
-        status: row.status || 'scheduled',
-        meet_link: row.meet_link || row.meetLink || null,
-        teacher_id: row.teacher_id || course.teacher_id || null,
-      })),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-      },
-      requestId,
-    }, 200, requestId);
-  }
 
   const { data: course, error: courseError } = await supabaseAdmin
     .from('courses')
@@ -152,76 +102,6 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     );
   }
 
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    if (!Array.isArray(db.lessons)) {
-      db.lessons = [];
-    }
-    const courses = Array.isArray(db.courses) ? db.courses : [];
-    const course = courses.find((row: any) => row.id === courseId);
-    if (!course) {
-      return jsonWithRequestId({ error: 'Course not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    if (user.role === 'teacher' && course.teacher_id !== user.id) {
-      return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
-    }
-
-    const allowManualMeet = process.env.TEST_BYPASS === 'true' || process.env.ALLOW_MANUAL_MEET_LINK === 'true';
-    const normalizedProvidedMeetLink = providedMeetLink.startsWith('https://meet.google.com/') ? providedMeetLink : '';
-    let meetResult;
-    if (normalizedProvidedMeetLink && allowManualMeet) {
-      meetResult = { meetLink: normalizedProvidedMeetLink, google_event_id: '' };
-    } else {
-      try {
-        meetResult = await generateMeetLink({
-          summary: title,
-          description: description || 'Eduverse live lesson',
-          startTime: startDateTime,
-          endTime: endDateTime,
-          requestId,
-        });
-      } catch (error: any) {
-        const googleError = toGoogleMeetApiError(error);
-        return jsonWithRequestId(
-          { error: googleError.error, code: googleError.code, detail: googleError.detail, requestId },
-          googleError.status,
-          requestId
-        );
-      }
-    }
-
-    const lesson = {
-      id: `lesson-${Date.now()}`,
-      title,
-      description: description || null,
-      course_id: courseId,
-      teacher_id: course.teacher_id || user.id,
-      start_date_time: startDateTime,
-      end_date_time: endDateTime,
-      status: 'scheduled',
-      meet_link: meetResult.meetLink,
-      meetLink: meetResult.meetLink,
-      google_event_id: meetResult.google_event_id,
-      created_at: new Date().toISOString(),
-    };
-
-    db.lessons.push(lesson);
-    if (!Array.isArray(db.lesson_meetings)) {
-      db.lesson_meetings = [];
-    }
-    db.lesson_meetings = db.lesson_meetings.filter((row: any) => row.lesson_id !== lesson.id);
-    db.lesson_meetings.push({
-      lesson_id: lesson.id,
-      provider: 'google_calendar',
-      meet_url: meetResult.meetLink,
-      event_id: meetResult.google_event_id,
-      created_by_teacher_id: user.id,
-      status: 'active',
-    });
-    saveMockDb(db);
-    return jsonWithRequestId({ lesson, requestId }, 201, requestId);
-  }
-
   const { data: course, error: courseError } = await supabaseAdmin
     .from('courses')
     .select('id, teacher_id')
@@ -236,7 +116,7 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
   }
 
-  const allowManualMeet = process.env.TEST_BYPASS === 'true' || process.env.ALLOW_MANUAL_MEET_LINK === 'true';
+  const allowManualMeet = process.env.ALLOW_MANUAL_MEET_LINK === 'true';
   const normalizedProvidedMeetLink = providedMeetLink.startsWith('https://meet.google.com/') ? providedMeetLink : '';
   let meetResult;
   if (normalizedProvidedMeetLink && allowManualMeet) {

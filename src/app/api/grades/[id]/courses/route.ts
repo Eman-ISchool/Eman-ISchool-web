@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
 import { resolveGradeByRef } from '@/lib/grades';
-import { getMockDb } from '@/lib/mockDb';
+
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
@@ -25,57 +25,6 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
   const offset = (page - 1) * limit;
   const search = searchParams.get('search')?.trim() || '';
   const status = searchParams.get('status');
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const courses = Array.isArray(db.courses) ? db.courses : [];
-    const lessons = Array.isArray(db.lessons) ? db.lessons : [];
-    const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-    const nowIso = new Date().toISOString();
-
-    let rows = courses.filter((course: any) => course.grade_id === gradeRef.id);
-    if (user.role === 'teacher') {
-      rows = rows.filter((course: any) => course.teacher_id === user.id);
-    }
-    if (status === 'published') {
-      rows = rows.filter((course: any) => course.is_published === true);
-    } else if (status === 'draft') {
-      rows = rows.filter((course: any) => !course.is_published);
-    }
-    if (search) {
-      const needle = search.toLowerCase();
-      rows = rows.filter((course: any) => String(course.title || '').toLowerCase().includes(needle));
-    }
-
-    const mapped = rows.map((course: any) => {
-      const nextLesson = lessons
-        .filter((lesson: any) => lesson.course_id === course.id && String(lesson.start_date_time || '') > nowIso)
-        .sort((a: any, b: any) => String(a.start_date_time).localeCompare(String(b.start_date_time)))[0];
-      const studentsCount = enrollments.filter((enrollment: any) => enrollment.course_id === course.id && enrollment.status === 'active').length;
-      return {
-        id: course.id,
-        title: course.title || '',
-        is_published: Boolean(course.is_published),
-        teacher_id: course.teacher_id || null,
-        teacher_name: course.teacher?.name || 'Test Teacher',
-        students_count: studentsCount,
-        next_session_time: nextLesson?.start_date_time || null,
-      };
-    });
-
-    const total = mapped.length;
-    const paged = mapped.slice(offset, offset + limit);
-    return jsonWithRequestId({
-      courses: paged,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-      },
-      requestId,
-    }, 200, requestId);
-  }
 
   let countQuery = supabaseAdmin
     .from('courses')

@@ -112,13 +112,16 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
-    if (!session || session.user?.role !== 'admin') {
+    if (!session || (session.user as any)?.role?.toLowerCase() !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status');
+        const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+        const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '50', 10), 1), 100);
+        const offset = (page - 1) * limit;
 
         let query = supabaseAdmin
             .from('enrollment_applications')
@@ -126,17 +129,21 @@ export async function GET(req: Request) {
                 *,
                 users!enrollment_applications_user_id_fkey(name, email),
                 grades(name)
-            `)
-            .order('created_at', { ascending: false });
+            `, { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (status) {
             query = query.eq('status', status as any);
         }
 
-        const { data: applications, error } = await query;
+        const { data: applications, error, count } = await query;
         if (error) throw error;
 
-        return NextResponse.json({ applications });
+        return NextResponse.json({
+            applications,
+            meta: { page, limit, total: count || 0, totalPages: Math.max(1, Math.ceil((count || 0) / limit)) },
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

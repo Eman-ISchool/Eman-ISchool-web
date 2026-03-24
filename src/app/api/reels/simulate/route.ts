@@ -1,11 +1,10 @@
 /**
  * Reels Simulation API
- * Generates mock reels for testing without Nanobana service
+ * Generates sample reels for testing without Nanobana service
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateMockReels, getAllMockReels } from '@/lib/mock-reels-generator';
 
 /**
  * POST /api/reels/simulate
@@ -60,24 +59,41 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Generate mock reels
-        const mockReels = generateMockReels(count);
+        // Build sample reels to insert
+        const sampleContent = [
+            { subject: 'Mathematics', grade_level: 'Grade 8', title_en: 'Introduction to Algebra', title_ar: '\u0645\u0642\u062f\u0645\u0629 \u0641\u064a \u0627\u0644\u062c\u0628\u0631', description_en: 'Learn the basics of algebraic expressions and equations', description_ar: '\u062a\u0639\u0644\u0645 \u0623\u0633\u0627\u0633\u064a\u0627\u062a \u0627\u0644\u062a\u0639\u0628\u064a\u0631\u0627\u062a \u0648\u0627\u0644\u0645\u0639\u0627\u062f\u0644\u0627\u062a \u0627\u0644\u062c\u0628\u0631\u064a\u0629' },
+            { subject: 'Science', grade_level: 'Grade 6', title_en: 'The Water Cycle', title_ar: '\u062f\u0648\u0631\u0629 \u0627\u0644\u0645\u0627\u0621', description_en: 'Understanding how water moves through our environment', description_ar: '\u0641\u0647\u0645 \u0643\u064a\u0641\u064a\u0629 \u062a\u062d\u0631\u0643 \u0627\u0644\u0645\u0627\u0621 \u0641\u064a \u0628\u064a\u0626\u062a\u0646\u0627' },
+            { subject: 'English', grade_level: 'Grade 7', title_en: 'Present Perfect Tense', title_ar: '\u0632\u0645\u0646 \u0627\u0644\u0645\u0636\u0627\u0631\u0639 \u0627\u0644\u062a\u0627\u0645', description_en: 'Master the present perfect tense with examples', description_ar: '\u0625\u062a\u0642\u0627\u0646 \u0632\u0645\u0646 \u0627\u0644\u0645\u0636\u0627\u0631\u0639 \u0627\u0644\u062a\u0627\u0645 \u0645\u0639 \u0627\u0644\u0623\u0645\u062b\u0644\u0629' },
+            { subject: 'Biology', grade_level: 'Grade 9', title_en: 'Photosynthesis Explained', title_ar: '\u0634\u0631\u062d \u0639\u0645\u0644\u064a\u0629 \u0627\u0644\u062a\u0645\u062b\u064a\u0644 \u0627\u0644\u0636\u0648\u0626\u064a', description_en: 'How plants convert sunlight into energy', description_ar: '\u0643\u064a\u0641 \u062a\u062d\u0648\u0644 \u0627\u0644\u0646\u0628\u0627\u062a\u0627\u062a \u0636\u0648\u0621 \u0627\u0644\u0634\u0645\u0633 \u0625\u0644\u0649 \u0637\u0627\u0642\u0629' },
+            { subject: 'Physics', grade_level: 'Grade 10', title_en: "Newton's Laws of Motion", title_ar: '\u0642\u0648\u0627\u0646\u064a\u0646 \u0646\u064a\u0648\u062a\u0646 \u0644\u0644\u062d\u0631\u0643\u0629', description_en: 'Understanding the three fundamental laws of motion', description_ar: '\u0641\u0647\u0645 \u0627\u0644\u0642\u0648\u0627\u0646\u064a\u0646 \u0627\u0644\u062b\u0644\u0627\u062b\u0629 \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629 \u0644\u0644\u062d\u0631\u0643\u0629' },
+        ];
+        const sampleVideos = [
+            { url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', thumbnail: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg', duration: 90 },
+            { url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', thumbnail: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg', duration: 75 },
+            { url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', thumbnail: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg', duration: 60 },
+            { url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', thumbnail: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg', duration: 85 },
+            { url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', thumbnail: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg', duration: 70 },
+        ];
 
-        // Transform to database format
-        const reelsToInsert = mockReels.map(reel => ({
-            title_en: reel.title_en,
-            title_ar: reel.title_ar,
-            description_en: reel.description_en,
-            description_ar: reel.description_ar,
-            video_url: reel.video_url,
-            thumbnail_url: reel.thumbnail_url,
-            duration_seconds: reel.duration_seconds,
-            subject: reel.subject,
-            grade_level: reel.grade_level,
-            teacher_id: selectedTeacherId,
-            status: 'approved',
-            is_published: true,
-        }));
+        const reelsToInsert = [];
+        for (let i = 0; i < Math.min(count, sampleContent.length); i++) {
+            const content = sampleContent[i];
+            const video = sampleVideos[i % sampleVideos.length];
+            reelsToInsert.push({
+                title_en: content.title_en,
+                title_ar: content.title_ar,
+                description_en: content.description_en,
+                description_ar: content.description_ar,
+                video_url: video.url,
+                thumbnail_url: video.thumbnail,
+                duration_seconds: video.duration,
+                subject: content.subject,
+                grade_level: content.grade_level,
+                teacher_id: selectedTeacherId,
+                status: 'approved',
+                is_published: true,
+            });
+        }
 
         // Insert into database
         const { data: insertedReels, error: insertError } = await (supabaseAdmin
@@ -109,16 +125,34 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/reels/simulate
- * Get available mock reel templates
+ * Get all simulated reels from the database
  */
 export async function GET(request: NextRequest) {
     try {
-        const mockReels = getAllMockReels();
+        if (!supabaseAdmin) {
+            return NextResponse.json(
+                { error: 'Database not configured' },
+                { status: 500 }
+            );
+        }
+
+        const { data: reels, error } = await supabaseAdmin
+            .from('reels')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching reels:', error);
+            return NextResponse.json(
+                { error: 'Failed to fetch reels', details: error.message },
+                { status: 500 }
+            );
+        }
 
         return NextResponse.json({
             success: true,
-            count: mockReels.length,
-            data: mockReels,
+            count: reels?.length || 0,
+            data: reels,
         });
     } catch (error: any) {
         console.error('Error in GET /api/reels/simulate:', error);

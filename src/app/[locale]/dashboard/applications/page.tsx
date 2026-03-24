@@ -6,7 +6,7 @@ import { Search, Eye, Download, Printer, Filter } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-import { ReferenceTable, ReferenceTableHeader, ReferenceTableBody, ReferenceTableRow, ReferenceTableHead, ReferenceTableCell } from '@/components/admin/ReferenceTable';
+import { Table as ReferenceTable, TableHeader as ReferenceTableHeader, TableBody as ReferenceTableBody, TableRow as ReferenceTableRow, TableHead as ReferenceTableHead, TableCell as ReferenceTableCell } from '@/components/admin/ReferenceTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,6 @@ import {
   getApplicationStatusMeta,
 } from '@/lib/dashboard-applications';
 import { withLocalePrefix } from '@/lib/locale-path';
-import { getReferenceMockApplications } from '@/lib/reference-dashboard-data';
 
 const PAGE_SIZE = 10;
 
@@ -27,7 +26,6 @@ export default function DashboardApplicationsPage() {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [grade, setGrade] = useState('all');
@@ -50,12 +48,9 @@ export default function DashboardApplicationsPage() {
 
         if (active) {
           setApplications(payload.applications || []);
-          setUsingFallback(false);
         }
       } catch (fetchError) {
         if (active) {
-          setApplications(getReferenceMockApplications());
-          setUsingFallback(true);
           setError(
             fetchError instanceof Error
               ? fetchError.message
@@ -129,12 +124,6 @@ export default function DashboardApplicationsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    {usingFallback ? (
-                      <div className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-1.5 text-sm text-amber-700">
-                        <span>{isArabic ? 'بيانات استعراضية' : 'Preview data'}</span>
-                      </div>
-                    ) : null}
-
                     <Button variant="outline" className="h-10 px-4 flex items-center gap-2">
                       <Filter className="h-4 w-4" />
                       <span className="hidden sm:inline">{isArabic ? 'تصفية' : 'Filter'}</span>
@@ -159,7 +148,7 @@ export default function DashboardApplicationsPage() {
                     </div>
                   ))}
                 </div>
-              ) : error && !usingFallback ? (
+              ) : error ? (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700 text-center">
                   <p className="text-lg font-bold mb-2">{isArabic ? 'تعذر تحميل الطلبات' : 'Unable to load applications'}</p>
                   <p className="text-sm mb-4">{error}</p>
@@ -169,7 +158,7 @@ export default function DashboardApplicationsPage() {
                 </div>
               ) : !currentPageItems.length ? (
                 <EmptyState
-                  icon={Search}
+                  icon={<Search className="h-6 w-6 text-slate-400" />}
                   title={isArabic ? 'لا توجد نتائج' : 'No results found'}
                   description={isArabic ? 'عدّل مصطلحات البحث الخاصة بك.' : 'Adjust your search terms.'}
                 />

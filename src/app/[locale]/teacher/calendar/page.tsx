@@ -58,7 +58,7 @@ export default function TeacherCalendarPage() {
             subject: 'رياضيات',
             startDateTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
             endDateTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
+            meetLink: '',
             status: 'scheduled',
             studentsCount: 25,
         },
@@ -104,7 +104,7 @@ export default function TeacherCalendarPage() {
                             subject: 'Mathematics',
                             startDateTime: activeStart.toISOString(),
                             endDateTime: activeEnd.toISOString(),
-                            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
+                            meetLink: '',
                             status: 'live',
                             studentsCount: 28
                         };
@@ -120,7 +120,7 @@ export default function TeacherCalendarPage() {
                             subject: 'Science',
                             startDateTime: soonStart.toISOString(),
                             endDateTime: soonEnd.toISOString(),
-                            meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
+                            meetLink: '',
                             status: 'scheduled',
                             studentsCount: 24
                         };
@@ -135,7 +135,7 @@ export default function TeacherCalendarPage() {
                         subject: ['Physics', 'Chemistry', 'English', 'Arabic'][i % 4],
                         startDateTime: date.toISOString(),
                         endDateTime: end.toISOString(),
-                        meetLink: 'https://meet.google.com/lookup/eduverse-e2e-test',
+                        meetLink: '',
                         status: 'scheduled',
                         studentsCount: 15 + Math.floor(Math.random() * 15)
                     };

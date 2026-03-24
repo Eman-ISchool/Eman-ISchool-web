@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
 import { resolveGradeByRef } from '@/lib/grades';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
+
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
@@ -19,36 +19,6 @@ export const GET = withAuth(async (_req, { user, requestId }, { params }) => {
 
   if (user.role === 'teacher' && gradeRefRecord.supervisor_id && gradeRefRecord.supervisor_id !== user.id) {
     return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
-  }
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const grades = Array.isArray(db.grades) ? db.grades : [];
-    const grade = grades.find((item: any) => item.id === gradeRefRecord.id);
-    if (!grade) {
-      return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    return jsonWithRequestId({
-      grade: {
-        id: grade.id,
-        name: grade.name || grade.name_en || 'Grade',
-        name_en: grade.name_en || null,
-        slug: grade.slug || null,
-        sort_order: grade.sort_order || 0,
-        is_active: grade.is_active !== false,
-        supervisor_id: grade.supervisor_id || gradeRefRecord.supervisor_id,
-        description: grade.description || null,
-        image_url: grade.image_url || null,
-        created_at: grade.created_at || null,
-        updated_at: grade.updated_at || null,
-        supervisor: grade.supervisor || {
-          id: grade.supervisor_id || gradeRefRecord.supervisor_id,
-          name: 'Test Teacher',
-          email: 'teacher@eduverse.com',
-        },
-      },
-      requestId,
-    }, 200, requestId);
   }
 
   const { data: grade, error } = await supabaseAdmin
@@ -102,30 +72,6 @@ export const PATCH = withAuth(async (req, { user, requestId }, { params }) => {
     return jsonWithRequestId({ error: 'No fields to update', code: 'VALIDATION_ERROR', requestId }, 400, requestId);
   }
 
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const grades = Array.isArray(db.grades) ? db.grades : [];
-    const index = grades.findIndex((item: any) => item.id === gradeRefRecord.id);
-    if (index < 0) {
-      return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-    }
-    const current = grades[index];
-    const next = {
-      ...current,
-      ...updateData,
-      updated_at: new Date().toISOString(),
-      supervisor: {
-        id: updateData.supervisor_id || current.supervisor_id || user.id,
-        name: current?.supervisor?.name || 'Test Teacher',
-        email: current?.supervisor?.email || 'teacher@eduverse.com',
-      },
-    };
-    grades[index] = next;
-    db.grades = grades;
-    saveMockDb(db);
-    return jsonWithRequestId({ grade: next, requestId }, 200, requestId);
-  }
-
   const { data: grade, error } = await supabaseAdmin
     .from('grades')
     .update(updateData)
@@ -148,14 +94,6 @@ export const DELETE = withAuth(async (_req, { requestId }, { params }) => {
   const gradeRefRecord = await resolveGradeByRef(gradeRef);
   if (!gradeRefRecord) {
     return jsonWithRequestId({ error: 'Grade not found', code: 'NOT_FOUND', requestId }, 404, requestId);
-  }
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const grades = Array.isArray(db.grades) ? db.grades : [];
-    db.grades = grades.filter((item: any) => item.id !== gradeRefRecord.id);
-    saveMockDb(db);
-    return jsonWithRequestId({ success: true, requestId }, 200, requestId);
   }
 
   const { error } = await supabaseAdmin.from('grades').delete().eq('id', gradeRefRecord.id);

@@ -1,17 +1,12 @@
 /**
  * Dashboard API Client
- * 
+ *
  * Provides hooks for fetching dashboard metrics and charts.
  */
 
 import { useState, useEffect } from 'react'
-import { fetchWithParams, fetchWithFallback } from './index'
-import {
-  mockDashboardMetrics,
-  mockDashboardCharts,
-  type DashboardMetrics,
-  type DashboardChart,
-} from '@/lib/mock-data/dashboard-data'
+import { fetchApi, fetchApiWithParams } from './index'
+import type { DashboardMetrics, DashboardChart } from '@/types/api'
 
 /**
  * Hook to fetch dashboard metrics
@@ -22,29 +17,28 @@ export function useDashboardMetrics(startDate?: Date, endDate?: Date) {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
         const params: Record<string, string> = {}
         if (startDate) params.startDate = startDate.toISOString()
         if (endDate) params.endDate = endDate.toISOString()
 
-        const result = await fetchWithParams(
-          mockDashboardMetrics,
+        const result = await fetchApiWithParams<DashboardMetrics>(
           '/api/dashboard/metrics',
           params
         )
-        setData(result)
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [startDate, endDate])
 
   return { data, isLoading, error }
@@ -59,24 +53,21 @@ export function useDashboardCharts() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const result = await fetchWithFallback(
-          mockDashboardCharts,
-          '/api/dashboard/charts'
-        )
-        setData(result)
+        const result = await fetchApi<DashboardChart[]>('/api/dashboard/charts')
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [])
 
   return { data, isLoading, error }

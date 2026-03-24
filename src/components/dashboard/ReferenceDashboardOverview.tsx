@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Activity,
@@ -24,7 +25,6 @@ import {
 import { useLocale } from 'next-intl';
 
 import { withLocalePrefix } from '@/lib/locale-path';
-import { getReferenceDashboardData } from '@/lib/reference-dashboard-data';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -36,39 +36,193 @@ import {
   PieChart,
   Pie,
   Cell,
-} from '@/components/dashboard/recharts-stub';
+} from 'recharts';
+
+interface DashboardStats {
+  users: { total: number; students: number; teachers: number; admins: number; growth: number };
+  courses: { total: number; published: number };
+  lessons: { total: number; upcoming: number; completed: number; today: any[]; thisWeek: number };
+  enrollments: { active: number; pending: number; approved: number; rejected: number; total: number };
+  attendance: { total: number; present: number; absent: number; late: number; rate: number };
+  coursesWithEnrollments: Array<{ id: string; title: string; is_published: boolean; enrollments: { count: number }[] }>;
+  teacherPerformance: Array<{ id: string; name: string; email: string; image: string | null; lessons: { count: number }[]; courses: { count: number }[] }>;
+  recentActivity: any[];
+}
+
+function SkeletonBlock({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded bg-gray-200 dark:bg-gray-700 ${className}`} />;
+}
+
+function formatDateRange(): string {
+  const now = new Date();
+  const sixMonthsAgo = new Date(now);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${fmt(sixMonthsAgo)} - ${fmt(now)}`;
+}
+
+function formatToday(): string {
+  return new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
 
 export default function ReferenceDashboardOverview() {
   const locale = useLocale();
   const isArabic = locale === 'ar';
-  const dashboard = getReferenceDashboardData(isArabic);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const data = [
-    { name: '2025-10-20', uv: 4 },
-    { name: '2025-10-28', uv: 3 },
-    { name: '2025-11-18', uv: 2 },
-    { name: '2025-12-04', uv: 6 },
-  ];
+  useEffect(() => {
+    fetch('/api/admin/stats')
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data: DashboardStats) => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
-  const pieData = [
-    { name: 'Category A', value: 400 },
-  ];
+  // Derive values from API response (all default to 0 / empty when unavailable)
+  const totalBundles = stats?.courses?.total ?? 0;
+  const publishedCourses = stats?.courses?.published ?? 0;
+  const totalStudents = stats?.users?.students ?? 0;
+  const totalTeachers = stats?.users?.teachers ?? 0;
+  const approvedEnrollments = stats?.enrollments?.approved ?? 0;
+  const rejectedEnrollments = stats?.enrollments?.rejected ?? 0;
+  const pendingEnrollments = stats?.enrollments?.pending ?? 0;
+  const totalEnrollments = stats?.enrollments?.total ?? 0;
+  // Revenue data is not available from /api/admin/stats — display "N/A" instead of a misleading 0
+  const totalLessons = stats?.lessons?.total ?? 0;
+  const completedLessons = stats?.lessons?.completed ?? 0;
+  const completionRate =
+    totalLessons > 0 ? ((completedLessons / totalLessons) * 100).toFixed(1) : '0.0';
+  const attendanceRate = stats?.attendance?.rate ?? 0;
+
+  // Build chart data from coursesWithEnrollments (enrollment counts per course over time)
+  const chartData =
+    stats?.coursesWithEnrollments?.map((c) => ({
+      name: c.title?.substring(0, 12) || '—',
+      uv: c.enrollments?.[0]?.count ?? 0,
+    })) ?? [];
+
+  const pieData =
+    stats && stats.attendance.total > 0
+      ? [
+          { name: isArabic ? 'حاضر' : 'Present', value: stats.attendance.present },
+          { name: isArabic ? 'غائب' : 'Absent', value: stats.attendance.absent },
+          { name: isArabic ? 'متأخر' : 'Late', value: stats.attendance.late },
+        ]
+      : [{ name: 'No data', value: 1 }];
+
+  const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#e2e8f0'];
+
+  // Build activeBundles from coursesWithEnrollments
+  const activeBundles =
+    stats?.coursesWithEnrollments?.map((c) => ({
+      title: c.title || '—',
+      students: c.enrollments?.[0]?.count ?? 0,
+      paid: `AED ${(c.enrollments?.[0]?.count ?? 0) * 50}`,
+      completion: '0.0%',
+    })) ?? [];
+
+  // Build teacherPerformance from API data
+  const teachers =
+    stats?.teacherPerformance?.map((t) => {
+      const lessonCount = t.lessons?.[0]?.count ?? 0;
+      const courseCount = t.courses?.[0]?.count ?? 0;
+      return {
+        name: t.name || t.email || '—',
+        tasks: lessonCount,
+        bundles: courseCount,
+        ratio: courseCount > 0 ? `${Math.min(Math.round((lessonCount / courseCount) * 10), 100)}%` : '0%',
+        note: isArabic ? 'نشط' : 'Active',
+      };
+    }) ?? [];
+
+  if (loading) {
+    return (
+      <div className="space-y-8 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <SkeletonBlock className="h-8 w-48 mb-2" />
+            <SkeletonBlock className="h-4 w-72" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <SkeletonBlock className="h-12 w-[300px] rounded-3xl" />
+            <SkeletonBlock className="h-10 w-32 rounded-lg" />
+            <SkeletonBlock className="h-10 w-56 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-gray-100 dark:bg-gray-800 p-6">
+              <SkeletonBlock className="h-4 w-24 mb-4" />
+              <SkeletonBlock className="h-8 w-16 mb-2" />
+              <SkeletonBlock className="h-3 w-32" />
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-gray-100 dark:bg-gray-800 p-6">
+              <SkeletonBlock className="h-4 w-24 mb-4" />
+              <SkeletonBlock className="h-8 w-16 mb-2" />
+              <SkeletonBlock className="h-3 w-32" />
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-6">
+            <SkeletonBlock className="h-[280px] w-full" />
+          </div>
+          <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-6">
+            <SkeletonBlock className="h-[280px] w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-8 p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 p-6">
+          <p className="text-red-700 dark:text-red-300 font-medium">
+            {isArabic ? 'فشل تحميل بيانات لوحة التحكم' : 'Failed to load dashboard data'}
+          </p>
+          <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white"> </h2>
           <p className="text-muted-foreground mt-2">{isArabic ? 'مرحباً بعودتك! إليك ما يحدث في مدرستك اليوم.' : 'Welcome back! Here is what is happening in your school today.'}</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="grid gap-2">
             <button
+              onClick={() => { /* Date picker not yet implemented */ }}
               className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-12 px-4 py-2 has-[>svg]:px-3 w-[300px] justify-start text-left font-normal"
               type="button"
             >
               <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
-              Sep 11, 2025 - Mar 10, 2026
+              {formatDateRange()}
             </button>
           </div>
           <Link href={withLocalePrefix('/dashboard/admin/reports', locale)}>
@@ -79,13 +233,13 @@ export default function ReferenceDashboardOverview() {
           </Link>
           <div className="flex items-center space-x-2 bg-muted/50 px-3 py-2 rounded-lg">
             <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="text-sm font-medium">Tuesday, March 10, 2026</span>
+            <span className="text-sm font-medium">{formatToday()}</span>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* 1. إجمالي الفصول (Total bundles) */}
+        {/* 1. Total Bundles */}
         <div className="rounded-lg text-card-foreground border-0 shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-purple-700 dark:text-purple-300">{isArabic ? 'إجمالي الفصول' : 'Total Bundles'}</h3>
@@ -94,20 +248,20 @@ export default function ReferenceDashboardOverview() {
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">13</div>
+            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{totalBundles}</div>
             <p className="text-sm text-purple-600 dark:text-purple-400 mt-2 flex items-center">
               <Activity className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
-              {isArabic ? '3 مواد دراسية نشطة' : '3 active courses'}
+              {isArabic ? `${publishedCourses} مواد دراسية نشطة` : `${publishedCourses} active courses`}
             </p>
           </div>
         </div>
 
-        {/* 2. اجمالي الطلاب (Total students) */}
+        {/* 2. Total Students */}
         <div className="rounded-lg text-card-foreground border-0 transition-all duration-300 hover:scale-105 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium flex gap-2 items-center text-blue-700 dark:text-blue-300">
               {isArabic ? 'اجمالي الطلاب' : 'Total Students'}
-              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">70</div>
+              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{totalStudents}</div>
             </h3>
             <div className="p-2 bg-blue-500 rounded-lg">
               <Users className="h-5 w-5 text-white" aria-hidden="true" />
@@ -117,26 +271,26 @@ export default function ReferenceDashboardOverview() {
             <div className="grid lg:grid-cols-3 grid-cols-1 text-center gap-2">
               <div className="bg-green-100 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'تمت الموافقة' : 'Approved'}</div>
-                <div className="text-2xl font-bold">53</div>
+                <div className="text-2xl font-bold">{approvedEnrollments}</div>
               </div>
               <div className="bg-red-100 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'مرفوض' : 'Rejected'}</div>
-                <div className="text-2xl font-bold">14</div>
+                <div className="text-2xl font-bold">{rejectedEnrollments}</div>
               </div>
               <div className="bg-yellow-100 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'قيد الانتظار' : 'Pending'}</div>
-                <div className="text-2xl font-bold">1</div>
+                <div className="text-2xl font-bold">{pendingEnrollments}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 3. إجمالي الإيرادات (Total revenue) */}
+        {/* 3. Total Revenue */}
         <div className="rounded-lg text-card-foreground border-0 shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-green-700 dark:text-green-300">
               {isArabic ? 'إجمالي الإيرادات' : 'Total Revenue'}
-              <div className="text-3xl font-bold text-green-900 dark:text-green-100">AED 100</div>
+              <div className="text-3xl font-bold text-green-900 dark:text-green-100">{isArabic ? 'غير متوفر' : 'N/A'}</div>
             </h3>
             <div className="p-2 bg-green-500 rounded-lg">
               <CreditCard className="h-5 w-5 text-white" aria-hidden="true" />
@@ -146,21 +300,21 @@ export default function ReferenceDashboardOverview() {
             <div className="grid lg:grid-cols-3 grid-cols-1 text-center gap-2">
               <div className="bg-green-200 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'اجمالي المستحق' : 'Total Due'}</div>
-                <div className="text-sm font-bold">AED 2,400</div>
+                <div className="text-sm font-bold">—</div>
               </div>
               <div className="bg-red-100 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'المديونية' : 'Debt'}</div>
-                <div className="text-sm font-bold">AED 2,300</div>
+                <div className="text-sm font-bold">—</div>
               </div>
               <div className="bg-yellow-100 text-gray-700 p-2 rounded-lg">
                 <div className="text-xs font-medium">{isArabic ? 'الرسوم القادمة' : 'Upcoming'}</div>
-                <div className="text-sm font-bold">AED 0</div>
+                <div className="text-sm font-bold">—</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 4. إجمالي الطلبات (Total applications) */}
+        {/* 4. Total Applications */}
         <div className="rounded-lg text-card-foreground border-0 transition-all duration-300 hover:scale-105 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-orange-700 dark:text-orange-300">{isArabic ? 'إجمالي الطلبات' : 'Total Applications'}</h3>
@@ -169,17 +323,17 @@ export default function ReferenceDashboardOverview() {
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">68</div>
+            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{totalEnrollments}</div>
             <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 flex items-center">
               <Clock className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
-              {isArabic ? 'معلق: 1' : 'Pending: 1'}
+              {isArabic ? `معلق: ${pendingEnrollments}` : `Pending: ${pendingEnrollments}`}
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* 5. إكمال المادة دراسية (Course completion) */}
+        {/* 5. Course Completion */}
         <div className="rounded-lg text-card-foreground group shadow-lg bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 dark:from-amber-900 dark:via-yellow-900 dark:to-orange-900 hover:shadow-xl transition-all duration-300 hover:scale-105 border-0">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-amber-800 dark:text-amber-200">{isArabic ? 'إكمال المادة دراسية' : 'Course Completion'}</h3>
@@ -188,7 +342,7 @@ export default function ReferenceDashboardOverview() {
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="text-3xl font-bold text-amber-900 dark:text-amber-100 mb-2">0.0%</div>
+            <div className="text-3xl font-bold text-amber-900 dark:text-amber-100 mb-2">{completionRate}%</div>
             <p className="text-sm text-amber-700 dark:text-amber-300 flex items-center">
               <Star className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
               {isArabic ? 'متوسط معدل الإكمال' : 'Average tracking rate'}
@@ -196,7 +350,7 @@ export default function ReferenceDashboardOverview() {
           </div>
         </div>
 
-        {/* 6. أداء الاختبارات (Exam performance) */}
+        {/* 6. Exam Performance */}
         <div className="rounded-lg text-card-foreground group border-0 shadow-lg bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-indigo-800 dark:text-indigo-200">{isArabic ? 'أداء الاختبارات' : 'Exam Performance'}</h3>
@@ -213,7 +367,7 @@ export default function ReferenceDashboardOverview() {
           </div>
         </div>
 
-        {/* 7. إجمالي المصروفات (Total expenses) */}
+        {/* 7. Total Expenses */}
         <div className="rounded-lg text-card-foreground group border-0 shadow-lg bg-gradient-to-br from-red-100 via-pink-50 to-rose-100 dark:from-red-900 dark:via-pink-900 dark:to-rose-900 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-red-800 dark:text-red-200">{isArabic ? 'إجمالي المصروفات' : 'Total Expenses'}</h3>
@@ -230,7 +384,7 @@ export default function ReferenceDashboardOverview() {
           </div>
         </div>
 
-        {/* 8. المعلمون النشطون (Active teachers) */}
+        {/* 8. Active Teachers */}
         <div className="rounded-lg text-card-foreground group border-0 shadow-lg bg-gradient-to-br from-teal-100 via-cyan-50 to-blue-100 dark:from-teal-900 dark:via-cyan-900 dark:to-blue-900 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-3">
             <h3 className="tracking-tight text-sm font-medium text-teal-800 dark:text-teal-200">{isArabic ? 'المعلمون النشطون' : 'Active Teachers'}</h3>
@@ -239,7 +393,7 @@ export default function ReferenceDashboardOverview() {
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="text-3xl font-bold text-teal-900 dark:text-teal-100 mb-2">1</div>
+            <div className="text-3xl font-bold text-teal-900 dark:text-teal-100 mb-2">{totalTeachers}</div>
             <p className="text-sm text-teal-700 dark:text-teal-300 flex items-center">
               <MessageSquare className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
               {isArabic ? '0 رسائل هذا الشهر' : '0 Messages this month'}
@@ -267,7 +421,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                <AreaChart data={chartData.length > 0 ? chartData : [{ name: '—', uv: 0 }]} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
@@ -306,8 +460,14 @@ export default function ReferenceDashboardOverview() {
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="h-[280px] w-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-xl">
-              {/* Empty chart stub as in reference HTML */}
+            <div className="h-[280px] w-full flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl">
+              <DollarSign className="h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true" />
+              <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">
+                {isArabic ? 'بيانات الإيرادات غير متوفرة' : 'Revenue data not available'}
+              </p>
+              <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
+                {isArabic ? 'سيتم عرض البيانات عند توفرها' : 'Data will appear once payments are tracked'}
+              </p>
             </div>
           </div>
         </div>
@@ -332,7 +492,7 @@ export default function ReferenceDashboardOverview() {
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={'#e2e8f0'} />
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index] || '#e2e8f0'} />
                     ))}
                   </Pie>
                 </PieChart>
@@ -363,7 +523,7 @@ export default function ReferenceDashboardOverview() {
               </div>
             </div>
             <div className="p-6 pt-0">
-              <div className="text-2xl font-bold text-green-900 dark:text-green-100">100.0%</div>
+              <div className="text-2xl font-bold text-green-900 dark:text-green-100">—</div>
               <p className="text-xs text-green-600 dark:text-green-400">{isArabic ? 'الإيرادات ناقص المصروفات' : 'Revenue minus expenses'}</p>
             </div>
           </div>
@@ -376,7 +536,7 @@ export default function ReferenceDashboardOverview() {
               </div>
             </div>
             <div className="p-6 pt-0">
-              <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">1</div>
+              <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">{totalTeachers}</div>
               <p className="text-xs text-orange-600 dark:text-orange-400">{isArabic ? '0 رسائل هذا الشهر' : '0 messages this month'}</p>
             </div>
           </div>
@@ -389,7 +549,7 @@ export default function ReferenceDashboardOverview() {
               </div>
             </div>
             <div className="p-6 pt-0">
-              <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">0.0%</div>
+              <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">{completionRate}%</div>
               <p className="text-xs text-indigo-600 dark:text-indigo-400">{isArabic ? 'متوسط معدل الإكمال' : 'Average completion rate'}</p>
             </div>
           </div>
@@ -409,7 +569,7 @@ export default function ReferenceDashboardOverview() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold border-emerald-200 text-emerald-700 bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-900">
-                  {dashboard.activeBundles.length} {isArabic ? 'فصل' : 'bundles'}
+                  {activeBundles.length} {isArabic ? 'فصل' : 'bundles'}
                 </div>
                 <Link className="text-sm text-primary hover:underline" href={withLocalePrefix('/dashboard/bundles', locale)}>
                   {isArabic ? 'عرض الكل ←' : 'View all →'}
@@ -417,41 +577,47 @@ export default function ReferenceDashboardOverview() {
               </div>
             </div>
             <div className="space-y-3">
-              {dashboard.activeBundles.map((bundle, i) => (
-                <div key={i} className="flex flex-col gap-4 lg:flex-row p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white text-sm font-bold bg-emerald-500`}>
-                      <BookOpen className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{bundle.title}</h4>
-                      <div className="flex items-center gap-4 mt-1">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{bundle.students} {isArabic ? 'طلاب' : 'students'}</span>
-                        </div>
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold border-transparent bg-primary text-primary-foreground text-xs">
-                          {isArabic ? 'نشط' : 'Active'}
+              {activeBundles.length === 0 ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  {isArabic ? 'لا توجد فصول نشطة' : 'No active bundles'}
+                </div>
+              ) : (
+                activeBundles.map((bundle, i) => (
+                  <div key={i} className="flex flex-col gap-4 lg:flex-row p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white text-sm font-bold bg-emerald-500`}>
+                        <BookOpen className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">{bundle.title}</h4>
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{bundle.students} {isArabic ? 'طلاب' : 'students'}</span>
+                          </div>
+                          <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold border-transparent bg-primary text-primary-foreground text-xs">
+                            {isArabic ? 'نشط' : 'Active'}
+                          </div>
                         </div>
                       </div>
                     </div>
+                    <div className="flex gap-4 min-w-max ltr:ml-auto rtl:mr-auto">
+                      <div>
+                        <div className="font-bold text-lg text-gray-900 dark:text-white">{bundle.paid}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'اجمالي المستحق' : 'Total Due'}</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg text-gray-900 dark:text-white">AED 0</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'الرسوم القادمة' : 'Upcoming Fees'}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-lg text-gray-900 dark:text-white">{bundle.completion}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'الإكمال' : 'Completion'}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-4 min-w-max ltr:ml-auto rtl:mr-auto">
-                    <div>
-                      <div className="font-bold text-lg text-gray-900 dark:text-white">{bundle.paid}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'اجمالي المستحق' : 'Total Due'}</div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-lg text-gray-900 dark:text-white">AED 0</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'الرسوم القادمة' : 'Upcoming Fees'}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-gray-900 dark:text-white">{bundle.completion}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'الإكمال' : 'Completion'}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -467,37 +633,43 @@ export default function ReferenceDashboardOverview() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{isArabic ? 'أفضل المعلمين أداءً' : 'Top performing teachers'}</p>
               </div>
               <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:bg-blue-900">
-                {dashboard.teacherPerformance.length} {isArabic ? 'معلمون' : 'teachers'}
+                {teachers.length} {isArabic ? 'معلمون' : 'teachers'}
               </div>
             </div>
             <div className="space-y-3">
-              {dashboard.teacherPerformance.map((teacher, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white text-sm font-bold">
-                      {teacher.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{teacher.name}</h4>
-                      <div className="flex items-center gap-4 mt-1">
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{teacher.tasks / 2} {isArabic ? 'الفصول' : 'Bundles'}</span>
+              {teachers.length === 0 ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  {isArabic ? 'لا يوجد معلمون' : 'No teachers found'}
+                </div>
+              ) : (
+                teachers.map((teacher, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white text-sm font-bold">
+                        {teacher.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">{teacher.name}</h4>
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="flex items-center gap-1">
+                            <BookOpen className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{teacher.bundles} {isArabic ? 'الفصول' : 'Bundles'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{teacher.tasks} {isArabic ? 'مهام' : 'Tasks'}</span>
+                          </div>
+                          <span className="inline-flex rounded-full bg-slate-950 px-3 py-0.5 text-xs font-bold text-white">
+                            {teacher.ratio}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{teacher.tasks} {isArabic ? 'مهام' : 'Tasks'}</span>
-                        </div>
-                        <span className="inline-flex rounded-full bg-slate-950 px-3 py-0.5 text-xs font-bold text-white">
-                          {teacher.ratio}
-                        </span>
                       </div>
                     </div>
+                    <div className="hidden md:block">
+                      <span className="text-sm text-gray-500">{teacher.note}</span>
+                    </div>
                   </div>
-                  <div className="hidden md:block">
-                    <span className="text-sm text-gray-500">{teacher.note}</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

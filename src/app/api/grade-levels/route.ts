@@ -6,12 +6,6 @@ export async function GET(request: Request) {
   const requestId = generateRequestId();
 
   try {
-    if (process.env.TEST_BYPASS === 'true') {
-      const { getMockDb } = require('@/lib/mockDb');
-      const grades = getMockDb().grades || [];
-      return NextResponse.json({ grades, total: grades.length, requestId }, { status: 200 });
-    }
-
     // Fetch all active grades ordered by sort_order
     const { data: grades, error } = await supabaseAdmin
       .from('grades')

@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "jest",
+    "test:e2e": "playwright test",
     "lint": "eslint",
     "seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed.ts",
     "cap:sync": "npx cap sync",

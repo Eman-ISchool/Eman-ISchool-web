@@ -65,13 +65,18 @@ export default function DashboardCatchAllPage({
   const isArabic = locale === 'ar';
 
   const customPage =
+    // --- Analytics ---
     slugKey === 'reports' ? (
       <ReferenceReportsWorkspace />
-    ) : slugKey === 'announcements' ? (
+    ) : // --- Content ---
+    slugKey === 'announcements' ? (
       <ReferenceContentWorkspace scope="announcements" />
     ) : slugKey === 'blogs' ? (
       <ReferenceContentWorkspace scope="blogs" />
-    ) : slugKey === 'payments' ? (
+    ) : slugKey === 'cms' ? (
+      <ReferenceContentWorkspace scope="blogs" />
+    ) : // --- Finance ---
+    slugKey === 'payments' ? (
       <ReferenceFinanceWorkspace scope="payments" />
     ) : slugKey === 'banks' ? (
       <ReferenceFinanceWorkspace scope="banks" />
@@ -85,24 +90,41 @@ export default function DashboardCatchAllPage({
       <ReferenceFinanceWorkspace scope="salaries" />
     ) : slugKey === 'payslips' ? (
       <ReferenceFinanceWorkspace scope="payslips" />
+    ) : // --- Catalog ---
+    slugKey === 'courses' ? (
+      <ReferenceCatalogWorkspace scope="courses" />
     ) : slugKey === 'bundles' ? (
       <ReferenceCatalogWorkspace scope="bundles" />
+    ) : slugKey === 'categories' ? (
+      <ReferenceCatalogWorkspace scope="categories" />
     ) : slugKey === 'teacher/courses' ? (
       <ReferenceCatalogWorkspace scope="teacherCourses" />
-    ) : slugKey === 'teacher/students' ? (
-      <ReferencePeopleWorkspace scope="teacherStudents" />
+    ) : // --- Assessments ---
+    slugKey === 'quizzes' ? (
+      <ReferenceAssessmentWorkspace scope="quizzes" />
     ) : slugKey === 'exams' ? (
       <ReferenceAssessmentWorkspace scope="exams" />
-    ) : slugKey === 'lookups' ? (
+    ) : // --- People ---
+    slugKey === 'users' ? (
+      <ReferencePeopleWorkspace scope="students" />
+    ) : slugKey === 'teacher/students' ? (
+      <ReferencePeopleWorkspace scope="teacherStudents" />
+    ) : // --- Settings ---
+    slugKey === 'lookups' ? (
       <ReferenceSettingsWorkspace scope="lookups" />
     ) : slugKey === 'backup' ? (
       <ReferenceSettingsWorkspace scope="backup" />
     ) : slugKey === 'translations' ? (
       <ReferenceSettingsWorkspace scope="translations" />
-    ) : slugKey === 'categories' ? (
-      <ReferenceCatalogWorkspace scope="categories" />
-    ) : slugKey === 'upcoming-classes' ? (
+    ) : slugKey === 'system-settings' ? (
+      <ReferenceSettingsWorkspace scope="lookups" />
+    ) : // --- Schedule ---
+    slugKey === 'upcoming-classes' ? (
       <ReferenceScheduleWorkspace scope="upcomingClasses" />
+    ) : slugKey === 'calendar' ? (
+      <ReferenceScheduleWorkspace scope="calendar" />
+    ) : slugKey === 'live' ? (
+      <ReferenceScheduleWorkspace scope="live" />
     ) : null;
 
   const Page = moduleComponentMap[config.module];

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,6 +32,7 @@ import {
   UploadCloud,
   Users,
   Video,
+  Loader2,
 } from 'lucide-react';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
@@ -47,27 +48,179 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  bundleDetails,
-  bundleFees,
-  bundleRows,
-  bundleSchedule,
-  bundleStudents,
-  bundleSubjects,
-  categoryRows,
-  courseDetails,
-  courseListItems,
-  lessonDetails,
-  type BundleFeeItem,
-  type BundleScheduleItem,
-  type BundleSubject,
-  type CourseAssignmentItem,
-  type CourseExamItem,
-  type CourseLessonItem,
-  type CourseLiveSessionItem,
-  type LessonReferenceMaterial,
-} from '@/lib/dashboard-reference-fixtures';
 import { withLocalePrefix } from '@/lib/locale-path';
+
+interface CourseListItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  teacher: string;
+  badge?: string;
+}
+
+interface CourseLessonItem {
+  id: string;
+  title: string;
+  date: string;
+  description: string;
+  status: 'published' | 'draft';
+}
+
+interface CourseAssignmentItem {
+  id: string;
+  title: string;
+  dueDate: string;
+  description: string;
+  submissions: number;
+}
+
+interface CourseExamItem {
+  id: string;
+  title: string;
+  dueDate: string;
+  attempts: number;
+  status: string;
+}
+
+interface CourseLiveSessionItem {
+  id: string;
+  day: number;
+  time: string;
+  title: string;
+  teacher: string;
+}
+
+interface CourseDetailFixture {
+  id: string;
+  title: string;
+  teacher: string;
+  details: string;
+  meetingLink: string;
+  lessons: CourseLessonItem[];
+  assignments: CourseAssignmentItem[];
+  exams: CourseExamItem[];
+  liveSessions: CourseLiveSessionItem[];
+}
+
+interface CategoryRow {
+  id: string;
+  name: string;
+  description: string;
+  courses: string;
+  bundles: string;
+  createdAt: string;
+}
+
+interface BundleRow {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  teacher: string;
+  students: number;
+  status: string;
+  createdAt: string;
+}
+
+interface BundleSubject {
+  id: string;
+  name: string;
+  teacher: string;
+  liveLink: string;
+}
+
+interface BundleScheduleItem {
+  id: string;
+  day: string;
+  time: string;
+  subject: string;
+}
+
+interface BundleFeeItem {
+  id: string;
+  title: string;
+  amount: string;
+  dueDate: string;
+}
+
+interface BundleStudentItem {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  joinedAt: string;
+  acceptedAt: string;
+}
+
+interface BundleDetailFixture {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  teacher: string;
+  startDate: string;
+  endDate: string;
+  acceptingRequests: boolean;
+  active: boolean;
+}
+
+interface LessonReferenceMaterial {
+  id: string;
+  title: string;
+  type: string;
+}
+
+interface LessonReferenceAttendance {
+  id: string;
+  studentName: string;
+  status: 'حاضر' | 'غائب' | 'متأخر';
+}
+
+interface LessonDetailFixture {
+  id: string;
+  courseId: string;
+  title: string;
+  content: string;
+  videoLink: string;
+  materials: LessonReferenceMaterial[];
+  attendance: LessonReferenceAttendance[];
+}
+
+function LoadingSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="animate-pulse rounded-[1.2rem] border border-slate-200 bg-white p-4">
+          <div className="flex items-center justify-between">
+            <div className="h-4 w-20 rounded bg-slate-200" />
+            <div className="space-y-2 text-right">
+              <div className="h-5 w-40 rounded bg-slate-200" />
+              <div className="h-3 w-28 rounded bg-slate-200" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-red-200 bg-red-50 p-8 text-center">
+      <p className="text-sm font-semibold text-red-600">{message}</p>
+      <p className="mt-2 text-xs text-red-400">يرجى المحاولة مرة أخرى لاحقاً</p>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-10 text-center">
+      <p className="text-sm text-slate-500">{message}</p>
+    </div>
+  );
+}
 
 function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -288,7 +441,7 @@ function UploadPanel() {
 
 const CALENDAR_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-function CalendarMonthView() {
+function CalendarMonthView({ liveSessions = [] }: { liveSessions?: CourseLiveSessionItem[] }) {
   const columns = ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun'];
   const [activeView, setActiveView] = useState<string>('الشهر');
   const [monthOffset, setMonthOffset] = useState(0); // 0 = March 2026
@@ -300,11 +453,11 @@ function CalendarMonthView() {
 
   const events = useMemo(
     () =>
-      courseDetails['1'].liveSessions.reduce((acc, session) => {
+      liveSessions.reduce((acc, session) => {
         acc[session.day] = [...(acc[session.day] || []), session];
         return acc;
       }, {} as Record<number, CourseLiveSessionItem[]>),
-    [],
+    [liveSessions],
   );
 
   const weeks = [
@@ -411,8 +564,20 @@ function CourseInfoTab({
   onDetailsChange: (value: string) => void;
   meetingLink: string;
   onMeetingLinkChange: (value: string) => void;
-  onCreateMeeting?: () => void;
+  onCreateMeeting?: () => void | Promise<void>;
 }) {
+  const [meetLoading, setMeetLoading] = useState(false);
+
+  const handleMeetClick = async () => {
+    if (!onCreateMeeting) return;
+    setMeetLoading(true);
+    try {
+      await onCreateMeeting();
+    } finally {
+      setMeetLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
@@ -473,10 +638,19 @@ function CourseInfoTab({
 
           <div className="space-y-4 text-right">
             <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
-            <Button onClick={onCreateMeeting} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
-              <Video className="ml-2 h-4 w-4" />
-              إنشاء اجتماع
+            <Button onClick={handleMeetClick} disabled={meetLoading} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
+              {meetLoading ? (
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Video className="ml-2 h-4 w-4" />
+              )}
+              {meetLoading ? 'جاري الإنشاء...' : meetingLink ? 'فتح الاجتماع' : 'إنشاء اجتماع'}
             </Button>
+            {meetingLink && (
+              <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="block text-sm text-blue-600 hover:underline font-mono" dir="ltr">
+                {meetingLink}
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -494,18 +668,24 @@ function ListSectionCard({
 }: {
   title: string;
   subtitle: string;
-  actionLabel: string;
+  actionLabel?: string;
   children: React.ReactNode;
-  icon: typeof Plus;
+  icon?: typeof Plus;
   onAction?: () => void;
 }) {
   return (
     <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-        <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
-          <Icon className="ml-2 h-4 w-4" />
-          {actionLabel}
-        </Button>
+        {Icon && actionLabel ? (
+          <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
+            <Icon className="ml-2 h-4 w-4" />
+            {actionLabel}
+          </Button>
+        ) : actionLabel ? (
+          <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
+            {actionLabel}
+          </Button>
+        ) : <div />}
 
         <div className="text-right">
           <h2 className="text-2xl font-black text-slate-950">{title}</h2>
@@ -565,12 +745,52 @@ function CourseListCard({
 export function ReferenceCoursesCatalogPage() {
   const locale = useLocale();
   const [query, setQuery] = useState('');
-  const [items, setItems] = useState(courseListItems);
+  const [items, setItems] = useState<CourseListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCourses() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/courses');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const courses = json.courses || json.data || json || [];
+        const mapped: CourseListItem[] = (Array.isArray(courses) ? courses : []).map((c: any) => ({
+          id: c.id,
+          title: c.title || '-',
+          subtitle: c.description || c.subject?.title || '-',
+          teacher: c.teacher_name || c.teacher?.name || '-',
+        }));
+        setItems(mapped);
+      } catch (err) {
+        if (!cancelled) setError('فشل في تحميل المواد الدراسية');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchCourses();
+    return () => { cancelled = true; };
+  }, []);
+
   const filtered = items.filter((item) => [item.title, item.subtitle, item.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
 
-  const handleDelete = useCallback((id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
+  const handleDelete = useCallback(async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذه المادة؟')) return;
+    try {
+      const res = await fetch(`/api/courses?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'فشل في حذف المادة الدراسية');
+      setTimeout(() => setError(null), 4000);
     }
   }, []);
 
@@ -592,11 +812,13 @@ export function ReferenceCoursesCatalogPage() {
           <SearchField placeholder="بحث عن المواد..." value={query} onChange={setQuery} />
         </TopBar>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((course) => (
-            <CourseListCard key={course.id} {...course} onDelete={() => handleDelete(course.id)} />
-          ))}
-        </div>
+        {loading ? <LoadingSkeleton rows={4} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد مواد دراسية بعد." /> : (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((course) => (
+              <CourseListCard key={course.id} {...course} onDelete={() => handleDelete(course.id)} />
+            ))}
+          </div>
+        )}
       </div>
     </ReferenceDashboardShell>
   );
@@ -605,24 +827,67 @@ export function ReferenceCoursesCatalogPage() {
 export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   const locale = useLocale();
   const router = useRouter();
-  const fixture = courseId ? courseDetails[courseId] : undefined;
-  const [title, setTitle] = useState(fixture?.title || '');
-  const [teacher, setTeacher] = useState(fixture?.teacher || 'ابراهيم محمد');
-  const [details, setDetails] = useState(fixture?.details || '');
-  const [meetingLink, setMeetingLink] = useState(fixture?.meetingLink || '');
-  const [lessons, setLessons] = useState<CourseLessonItem[]>(fixture?.lessons || []);
-  const [assignments, setAssignments] = useState<CourseAssignmentItem[]>(fixture?.assignments || []);
-  const [exams, setExams] = useState<CourseExamItem[]>(fixture?.exams || []);
-  const [courseFeeRows, setCourseFeeRows] = useState<Array<{ id: string; plan: string; price: string; duration: string; status: string }>>([
-    { id: '1', plan: 'شهري', price: '100 ر.س', duration: 'شهر واحد', status: 'نشط' },
-    { id: '2', plan: 'فصلي', price: '270 ر.س', duration: '3 أشهر', status: 'نشط' },
-    { id: '3', plan: 'سنوي', price: '900 ر.س', duration: '12 شهراً', status: 'نشط' },
-  ]);
+  const [courseData, setCourseData] = useState<CourseDetailFixture | null>(null);
+  const [courseLoading, setCourseLoading] = useState(!!courseId);
+  const [courseError, setCourseError] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [teacher, setTeacher] = useState('ابراهيم محمد');
+  const [details, setDetails] = useState('');
+  const [meetingLink, setMeetingLink] = useState('');
+  const [lessons, setLessons] = useState<CourseLessonItem[]>([]);
+  const [assignments, setAssignments] = useState<CourseAssignmentItem[]>([]);
+  const [exams, setExams] = useState<CourseExamItem[]>([]);
+  const [courseFeeRows, setCourseFeeRows] = useState<Array<{ id: string; plan: string; price: string; duration: string; status: string }>>([]);
+
+  useEffect(() => {
+    if (!courseId) return;
+    let cancelled = false;
+    async function fetchCourseDetail() {
+      setCourseLoading(true);
+      setCourseError(null);
+      try {
+        // No single-course GET endpoint exists; fetch list with max limit and find by ID
+        const res = await fetch(`/api/courses?limit=50`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const courses = json.courses || [];
+        const course = courses.find((c: any) => String(c.id) === String(courseId));
+        if (course) {
+          setTitle(course.title || '');
+          setTeacher(course.teacher_name || course.teacher?.name || 'ابراهيم محمد');
+          setDetails(course.description || '');
+          setMeetingLink(course.meet_link || '');
+          setCourseData({
+            id: course.id,
+            title: course.title || '',
+            teacher: course.teacher_name || course.teacher?.name || '',
+            details: course.description || '',
+            meetingLink: course.meet_link || '',
+            lessons: [],
+            assignments: [],
+            exams: [],
+            liveSessions: [],
+          });
+        } else {
+          if (!cancelled) setCourseError('لم يتم العثور على المادة الدراسية');
+        }
+      } catch (err) {
+        if (!cancelled) setCourseError('فشل في تحميل بيانات المادة الدراسية');
+      } finally {
+        if (!cancelled) setCourseLoading(false);
+      }
+    }
+    fetchCourseDetail();
+    return () => { cancelled = true; };
+  }, [courseId]);
   const [showAddFee, setShowAddFee] = useState(false);
   const [newFeePlan, setNewFeePlan] = useState('');
   const [newFeePrice, setNewFeePrice] = useState('');
   const [newFeeDuration, setNewFeeDuration] = useState('');
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [addSection, setAddSection] = useState<'lesson' | 'assignment' | 'exam' | 'live' | null>(null);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemContent, setNewItemContent] = useState('');
@@ -645,7 +910,36 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
     setTimeout(() => setSavedMsg(null), 2500);
   }, []);
 
-  const handleSave = useCallback(() => showSaved(), [showSaved]);
+  const handleSave = useCallback(async () => {
+    if (!courseId) {
+      showSaved('لا يمكن الحفظ بدون معرّف المادة');
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/courses', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: courseId,
+          title,
+          description: details,
+          instructor_name: teacher,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      showSaved('تم حفظ التغييرات بنجاح');
+    } catch (err: any) {
+      setSaveError(err.message || 'فشل في حفظ التغييرات');
+      setTimeout(() => setSaveError(null), 4000);
+    } finally {
+      setSaving(false);
+    }
+  }, [courseId, title, details, teacher, showSaved]);
 
   const resetModal = useCallback(() => {
     setAddSection(null);
@@ -678,17 +972,36 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
     resetModal();
   }, [addSection, newItemTitle, newItemContent, newItemVideoUrl, newItemPublish, newItemDueDate, newItemDescription, newItemTime, newLessonDate, newExamGroup, newExamDuration, newExamPassingScore, newExamMaxScore, newExamStatus, resetModal]);
 
+  if (courseLoading) {
+    return (
+      <ReferenceDashboardShell>
+        <LoadingSkeleton rows={3} />
+      </ReferenceDashboardShell>
+    );
+  }
+
+  if (courseError) {
+    return (
+      <ReferenceDashboardShell>
+        <ErrorState message={courseError} />
+      </ReferenceDashboardShell>
+    );
+  }
+
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
         {savedMsg ? (
           <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div>
         ) : null}
+        {saveError ? (
+          <div className="rounded-[1rem] bg-red-50 px-5 py-3 text-right text-sm font-semibold text-red-700">{saveError}</div>
+        ) : null}
 
         <div className="flex items-center justify-between">
-          <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
-            <Save className="ml-2 h-4 w-4" />
-            {courseId ? 'حفظ' : 'حفظ المادة'}
+          <Button onClick={handleSave} disabled={saving} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
+            {saving ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Save className="ml-2 h-4 w-4" />}
+            {saving ? 'جاري الحفظ...' : courseId ? 'حفظ' : 'حفظ المادة'}
           </Button>
 
           <div className="flex items-center gap-3">
@@ -696,7 +1009,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
               رجوع
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <h1 className="text-[2.2rem] font-black text-slate-950">{fixture?.title || 'إنشاء مادة دراسية'}</h1>
+            <h1 className="text-[2.2rem] font-black text-slate-950">{courseData?.title || title || 'إنشاء مادة دراسية'}</h1>
           </div>
         </div>
 
@@ -730,11 +1043,32 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
               onDetailsChange={setDetails}
               meetingLink={meetingLink}
               onMeetingLinkChange={setMeetingLink}
-              onCreateMeeting={() => {
+              onCreateMeeting={async () => {
                 if (meetingLink) {
                   window.open(meetingLink, '_blank');
-                } else {
-                  showSaved('يرجى إدخال رابط الاجتماع أولاً');
+                  return;
+                }
+
+                // Generate a meet link via API — no client-side fallback (fake links cause invalid meeting codes)
+                try {
+                  const res = await fetch('/api/meetings/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      courseId: courseId || 'new',
+                      title: title || 'Eduverse Meeting',
+                      description: details || '',
+                    }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.meetLink) {
+                    setMeetingLink(data.meetLink);
+                    showSaved('تم إنشاء رابط الاجتماع بنجاح');
+                    return;
+                  }
+                  showSaved(data.error || 'فشل إنشاء رابط الاجتماع');
+                } catch {
+                  showSaved('فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
                 }
               }}
             />
@@ -884,7 +1218,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 </div>
               </div>
 
-              <CalendarMonthView />
+              <CalendarMonthView liveSessions={courseData?.liveSessions || []} />
             </div>
           </TabsContent>
 
@@ -1262,35 +1596,80 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 }
 
 export function ReferenceCategoriesPage() {
-  const [rows, setRows] = useState(categoryRows);
+  const [rows, setRows] = useState<CategoryRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [editRow, setEditRow] = useState<typeof categoryRows[0] | null>(null);
+  const [editRow, setEditRow] = useState<CategoryRow | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCategories() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/admin/categories');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        const mapped: CategoryRow[] = (Array.isArray(data) ? data : []).map((item: any) => ({
+          id: item.id || '-',
+          name: item.name || item.name_ar || '-',
+          description: item.description || 'لا يوجد وصف',
+          courses: '—',
+          bundles: '—',
+          createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-EG') : '-',
+        }));
+        setRows(mapped);
+      } catch (err) {
+        if (!cancelled) setError('فشل في تحميل الفئات');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchCategories();
+    return () => { cancelled = true; };
+  }, []);
+
   const filtered = rows.filter((row) => [row.name, row.description].join(' ').toLowerCase().includes(query.toLowerCase()));
 
-  const handleCreate = () => {
-    if (!name.trim()) {
-      return;
-    }
+  const [creating, setCreating] = useState(false);
 
-    setRows((current) => [
-      {
-        id: `#${current.length + 1}`,
-        name: name.trim(),
-        description: description.trim() || 'لا يوجد وصف',
-        courses: '—',
-        bundles: '—',
-        createdAt: new Date().toISOString(),
-      },
-      ...current,
-    ]);
-    setName('');
-    setDescription('');
-    setShowCreateModal(false);
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setCreating(true);
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), name_ar: name.trim(), description: description.trim() }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setRows((current) => [
+        {
+          id: data.id || '-',
+          name: data.name || name.trim(),
+          description: data.description || description.trim() || 'لا يوجد وصف',
+          courses: '—',
+          bundles: '—',
+          createdAt: data.created_at ? new Date(data.created_at).toLocaleDateString('ar-EG') : '-',
+        },
+        ...current,
+      ]);
+      setName('');
+      setDescription('');
+      setShowCreateModal(false);
+    } catch (err) {
+      console.error('Failed to create category:', err);
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -1302,6 +1681,7 @@ export function ReferenceCategoriesPage() {
           <SearchField placeholder="بحث عن الفئات..." value={query} onChange={setQuery} />
         </TopBar>
 
+        {loading ? <LoadingSkeleton rows={3} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد فئات بعد." /> : (
         <ReferenceTable>
           <ReferenceTableHeader>
             <ReferenceTableRow>
@@ -1336,6 +1716,7 @@ export function ReferenceCategoriesPage() {
             ))}
           </ReferenceTableBody>
         </ReferenceTable>
+        )}
 
         {showCreateModal ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -1413,7 +1794,43 @@ export function ReferenceBundlesPage() {
   const locale = useLocale();
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const filtered = bundleRows.filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+  const [bundleRowsData, setBundleRowsData] = useState<BundleRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchBundles() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/admin/bundles');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const data = json.data || json || [];
+        const mapped: BundleRow[] = (Array.isArray(data) ? data : []).map((item: any, idx: number) => ({
+          id: `#${idx + 1}`,
+          name: item.name || '-',
+          description: item.description || '-',
+          category: item.category || '-',
+          teacher: item.teacher_name || item.teacher || '-',
+          students: item.students_count ?? 0,
+          status: item.status === 'active' ? 'نشط' : (item.status || 'نشط'),
+          createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-SA') : '-',
+        }));
+        setBundleRowsData(mapped);
+      } catch (err) {
+        if (!cancelled) setError('فشل في تحميل الفصول');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchBundles();
+    return () => { cancelled = true; };
+  }, []);
+
+  const filtered = bundleRowsData.filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
 
   return (
     <ReferenceDashboardShell>
@@ -1431,6 +1848,7 @@ export function ReferenceBundlesPage() {
           <SearchField placeholder="بحث عن الفصول..." value={query} onChange={setQuery} />
         </TopBar>
 
+        {loading ? <LoadingSkeleton rows={3} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد فصول بعد." /> : (
         <ReferenceTable>
           <ReferenceTableHeader>
             <ReferenceTableRow>
@@ -1474,6 +1892,7 @@ export function ReferenceBundlesPage() {
             ))}
           </ReferenceTableBody>
         </ReferenceTable>
+        )}
       </div>
     </ReferenceDashboardShell>
   );
@@ -1481,24 +1900,70 @@ export function ReferenceBundlesPage() {
 
 export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
   const locale = useLocale();
-  const fixture = bundleId ? bundleDetails[bundleId] : undefined;
-  const [name, setName] = useState(fixture?.name || '');
-  const [description, setDescription] = useState(fixture?.description || '');
-  const [category, setCategory] = useState(fixture?.category || '');
-  const [teacher, setTeacher] = useState(fixture?.teacher || '');
-  const [startDate, setStartDate] = useState(fixture?.startDate || '');
-  const [endDate, setEndDate] = useState(fixture?.endDate || '');
-  const [acceptingRequests, setAcceptingRequests] = useState(fixture?.acceptingRequests ?? true);
-  const [active, setActive] = useState(fixture?.active ?? true);
+  const [bundleData, setBundleData] = useState<BundleDetailFixture | null>(null);
+  const [bundleLoading, setBundleLoading] = useState(!!bundleId);
+  const [bundleError, setBundleError] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [teacher, setTeacher] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [acceptingRequests, setAcceptingRequests] = useState(true);
+  const [active, setActive] = useState(true);
   const [studentQuery, setStudentQuery] = useState('');
   const [studentFilter, setStudentFilter] = useState<'الكل' | 'نشط' | 'قيد المراجعة'>('الكل');
-  const [subjects, setSubjects] = useState<BundleSubject[]>(bundleSubjects);
-  const [schedule, setSchedule] = useState<BundleScheduleItem[]>(bundleSchedule);
-  const [fees, setFees] = useState<BundleFeeItem[]>(bundleFees);
-  const [students, setStudents] = useState(bundleStudents);
+  const [subjects, setSubjects] = useState<BundleSubject[]>([]);
+  const [schedule, setSchedule] = useState<BundleScheduleItem[]>([]);
+  const [fees, setFees] = useState<BundleFeeItem[]>([]);
+  const [students, setStudents] = useState<BundleStudentItem[]>([]);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [addSection, setAddSection] = useState<'subject' | 'schedule' | 'fee' | 'student' | null>(null);
   const [newItemName, setNewItemName] = useState('');
+
+  useEffect(() => {
+    if (!bundleId) return;
+    let cancelled = false;
+    async function fetchBundleDetail() {
+      setBundleLoading(true);
+      setBundleError(null);
+      try {
+        const res = await fetch('/api/admin/bundles');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const data = json.data || json || [];
+        const bundle = (Array.isArray(data) ? data : []).find((b: any) => String(b.id) === String(bundleId));
+        if (bundle) {
+          setName(bundle.name || '');
+          setDescription(bundle.description || '');
+          setCategory(bundle.category || '');
+          setTeacher(bundle.teacher_name || bundle.teacher || '');
+          setStartDate(bundle.start_date || '');
+          setEndDate(bundle.end_date || '');
+          setAcceptingRequests(bundle.accepting_requests ?? true);
+          setActive(bundle.status === 'active');
+          setBundleData({
+            id: bundle.id,
+            name: bundle.name || '',
+            description: bundle.description || '',
+            category: bundle.category || '',
+            teacher: bundle.teacher_name || bundle.teacher || '',
+            startDate: bundle.start_date || '',
+            endDate: bundle.end_date || '',
+            acceptingRequests: bundle.accepting_requests ?? true,
+            active: bundle.status === 'active',
+          });
+        }
+      } catch (err) {
+        if (!cancelled) setBundleError('فشل في تحميل بيانات الفصل');
+      } finally {
+        if (!cancelled) setBundleLoading(false);
+      }
+    }
+    fetchBundleDetail();
+    return () => { cancelled = true; };
+  }, [bundleId]);
 
   const toggleClass = 'relative inline-flex h-6 w-11 items-center rounded-full transition';
 
@@ -1549,7 +2014,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
               رجوع
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <SectionHeading title={fixture?.name || 'إنشاء فصل'} subtitle="" />
+            <SectionHeading title={bundleData?.name || name || 'إنشاء فصل'} subtitle="" />
           </div>
         </div>
 
@@ -1820,15 +2285,71 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
 
 export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
   const locale = useLocale();
-  const fixture = lessonDetails[lessonId];
-  const [title, setTitle] = useState(fixture?.title || '');
-  const [content, setContent] = useState(fixture?.content || '');
-  const [videoLink, setVideoLink] = useState(fixture?.videoLink || '');
-  const [materials, setMaterials] = useState<LessonReferenceMaterial[]>(fixture?.materials || []);
-  const [attendance, setAttendance] = useState(fixture?.attendance || []);
+  const [lessonData, setLessonData] = useState<LessonDetailFixture | null>(null);
+  const [lessonLoading, setLessonLoading] = useState(true);
+  const [lessonError, setLessonError] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [videoLink, setVideoLink] = useState('');
+  const [materials, setMaterials] = useState<LessonReferenceMaterial[]>([]);
+  const [attendance, setAttendance] = useState<LessonReferenceAttendance[]>([]);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [addMaterialOpen, setAddMaterialOpen] = useState(false);
   const [newMaterialTitle, setNewMaterialTitle] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLessonDetail() {
+      setLessonLoading(true);
+      setLessonError(null);
+      try {
+        // Fetch lesson materials
+        const matRes = await fetch(`/api/lessons/${lessonId}/materials`);
+        let mats: LessonReferenceMaterial[] = [];
+        if (matRes.ok) {
+          const matData = await matRes.json();
+          mats = (Array.isArray(matData) ? matData : matData.materials || []).map((m: any) => ({
+            id: m.id || Date.now().toString(),
+            title: m.title || m.name || '-',
+            type: m.type || m.file_type || 'ملف',
+          }));
+        }
+
+        // Fetch lesson attendance
+        const attRes = await fetch(`/api/lessons/${lessonId}/attendance`);
+        let att: LessonReferenceAttendance[] = [];
+        if (attRes.ok) {
+          const attData = await attRes.json();
+          att = (Array.isArray(attData) ? attData : attData.attendance || []).map((a: any) => ({
+            id: a.id || Date.now().toString(),
+            studentName: a.student_name || a.student?.name || '-',
+            status: a.status === 'present' ? 'حاضر' : a.status === 'absent' ? 'غائب' : a.status === 'late' ? 'متأخر' : (a.status || 'حاضر'),
+          }));
+        }
+
+        if (cancelled) return;
+
+        const ld: LessonDetailFixture = {
+          id: lessonId,
+          courseId: '',
+          title: '',
+          content: '',
+          videoLink: '',
+          materials: mats,
+          attendance: att,
+        };
+        setLessonData(ld);
+        setMaterials(mats);
+        setAttendance(att);
+      } catch (err) {
+        if (!cancelled) setLessonError('فشل في تحميل بيانات الدرس');
+      } finally {
+        if (!cancelled) setLessonLoading(false);
+      }
+    }
+    fetchLessonDetail();
+    return () => { cancelled = true; };
+  }, [lessonId]);
 
   const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
     setSavedMsg(msg);
@@ -1852,12 +2373,18 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
     }));
   }, []);
 
-  if (!fixture) {
+  if (lessonLoading) {
     return (
       <ReferenceDashboardShell>
-        <div className="rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-          الدرس غير موجود.
-        </div>
+        <LoadingSkeleton rows={3} />
+      </ReferenceDashboardShell>
+    );
+  }
+
+  if (lessonError) {
+    return (
+      <ReferenceDashboardShell>
+        <ErrorState message={lessonError} />
       </ReferenceDashboardShell>
     );
   }
@@ -1876,11 +2403,11 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
           </Button>
 
           <div className="flex items-center gap-3">
-            <Link href={withLocalePrefix(`/dashboard/courses/${fixture.courseId}`, locale)} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+            <Link href={withLocalePrefix(`/dashboard/courses/${lessonData?.courseId || ''}`, locale)} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
               رجوع
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <h1 className="text-[2.2rem] font-black text-slate-950">{fixture.title}</h1>
+            <h1 className="text-[2.2rem] font-black text-slate-950">{title || lessonData?.title || 'درس'}</h1>
           </div>
         </div>
 

@@ -31,11 +31,12 @@ export async function GET(req: Request) {
                 assessment_submissions(count)
             `)
             .eq('teacher_id', teacherId)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(100);
 
         if (error) {
             console.error('Error fetching assessments:', error);
-            return NextResponse.json([]);
+            return NextResponse.json({ error: 'Failed to fetch assessments' }, { status: 500 });
         }
 
         return NextResponse.json(assessments || []);

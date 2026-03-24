@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { BookOpen, Calendar, User, RefreshCw } from 'lucide-react';
 import { CourseStatusTabs, CourseStatusFilter } from '@/components/courses/CourseStatusTabs';
@@ -40,7 +41,7 @@ export default function StudentCoursesPage() {
   const { data: session } = useSession();
   const t = useTranslations('student.courses');
   const user = session?.user as any;
-  const locale = 'ar'; // TODO: Get from context
+  const locale = useLocale();
 
   const [coursesState, setCoursesState] = useState<DataState<Enrollment[]>>(createIdleState());
   const [filter, setFilter] = useState<CourseStatusFilter>('all');

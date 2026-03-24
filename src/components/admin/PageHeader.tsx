@@ -1,121 +1,143 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, Plus, FileText } from 'lucide-react';
-import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
-    title: string;
-    subtitle?: string;
-    breadcrumbs?: Array<{ label: string; href?: string }>;
-    primaryAction?: {
-        label: string;
-        icon?: ReactNode;
-        onClick: () => void;
-        variant?: 'primary' | 'secondary';
-    };
-    secondaryActions?: Array<{
-        label: string;
-        icon?: ReactNode;
-        onClick: () => void;
-    }>;
-    backHref?: string;
-    className?: string;
+  title: string;
+  subtitle?: string;
+  breadcrumbs?: Array<{ label: string; href?: string }>;
+  primaryAction?: {
+    label: string;
+    icon?: ReactNode;
+    onClick: () => void;
+  };
+  secondaryActions?: Array<{
+    label: string;
+    icon?: ReactNode;
+    onClick: () => void;
+  }>;
+  backHref?: string;
+  backLabel?: string;
 }
 
-export default function PageHeader({
-    title,
-    subtitle,
-    breadcrumbs,
-    primaryAction,
-    secondaryActions = [],
-    backHref,
-    className = '',
+export function PageHeader({
+  title,
+  subtitle,
+  breadcrumbs,
+  primaryAction,
+  secondaryActions,
+  backHref,
+  backLabel,
 }: PageHeaderProps) {
-    const locale = useLocale();
-    const isRTL = locale === 'ar';
-    const BackIcon = isRTL ? ChevronRight : ChevronLeft;
+  const t = useTranslations();
+  const isRTL = t('dir') === 'rtl';
 
-    return (
-        <div className={`mb-6 ${className}`}>
-            {/* Breadcrumbs */}
-            {breadcrumbs && breadcrumbs.length > 0 && (
-                <nav className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    {breadcrumbs.map((crumb, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            {index > 0 && (
-                                <ChevronLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
-                            )}
-                            {crumb.href ? (
-                                <Link
-                                    href={crumb.href}
-                                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
-                                >
-                                    {crumb.label}
-                                </Link>
-                            ) : (
-                                <span className="text-gray-900 dark:text-white font-medium">
-                                    {crumb.label}
-                                </span>
-                            )}
-                        </div>
-                    ))}
-                </nav>
+  return (
+    <header className="mb-6">
+      <div className="flex items-center justify-between">
+        {/* Breadcrumbs */}
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <nav className="flex items-center text-sm text-gray-500" aria-label="Breadcrumb">
+            <ol className="flex items-center gap-2">
+              {breadcrumbs.map((crumb, index) => (
+                <li key={index} className="flex items-center gap-1">
+                  {crumb.href ? (
+                    <a
+                      href={crumb.href}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      {crumb.label}
+                    </a>
+                  ) : (
+                    <span className="text-gray-700">{crumb.label}</span>
+                  )}
+                  {index < breadcrumbs.length - 1 && (
+                    <ChevronRight className="h-4 w-4 text-gray-400" />
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        {/* Back Button */}
+        {backHref && (
+          <a
+            href={backHref}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <span>{backLabel || t('common.back')}</span>
+          </a>
+        )}
+
+        {/* Title and Subtitle */}
+        <div className="flex-1 items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+            {subtitle && (
+              <p className="text-sm text-gray-600">{subtitle}</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            {primaryAction && (
+              <button
+                onClick={primaryAction.onClick}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium"
+              >
+                {primaryAction.icon && (
+                  <span className="flex items-center">{primaryAction.icon}</span>
+                )}
+                <span>{primaryAction.label}</span>
+              </button>
             )}
 
-            {/* Header Content */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                {/* Title Section */}
-                <div className="flex items-center gap-4">
-                    {backHref && (
-                        <Link
-                            href={backHref}
-                            className="rounded-lg border border-gray-300 p-2 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                            aria-label="رجوع"
-                        >
-                            <BackIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                        </Link>
-                    )}
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {title}
-                        </h1>
-                        {subtitle && (
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                {subtitle}
-                            </p>
-                        )}
-                    </div>
-                </div>
+            {secondaryActions && secondaryActions.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    secondaryActions[0].onClick();
+                  }}
+                  className="flex items-center gap-2 text-sm text-gray-700 bg-white border border-gray-200 px-3 py-2 rounded-full hover:bg-gray-50 transition-colors"
+                >
+                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                  <span>{t('common.actions')}</span>
+                </button>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                    {secondaryActions.map((action, index) => (
+                {/* Dropdown Menu */}
+                {secondaryActions.length > 1 && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="py-1">
+                      {secondaryActions.map((action, index) => (
                         <button
-                            key={index}
-                            onClick={action.onClick}
-                            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                          key={index}
+                          onClick={() => action.onClick()}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors"
                         >
-                            {action.icon}
-                            <span>{action.label}</span>
+                          {action.icon && (
+                            <span className="flex items-center gap-2">
+                              {action.icon}
+                            </span>
+                          )}
+                          <span>{action.label}</span>
                         </button>
-                    ))}
-                    {primaryAction && (
-                        <button
-                            onClick={primaryAction.onClick}
-                            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
-                                primaryAction.variant === 'secondary'
-                                    ? 'bg-gray-600 hover:bg-gray-700'
-                                    : 'bg-blue-600 hover:bg-blue-700'
-                            }`}
-                        >
-                            {primaryAction.icon || <Plus className="h-4 w-4" />}
-                            <span>{primaryAction.label}</span>
-                        </button>
-                    )}
-                </div>
-            </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-    );
+      </div>
+    </header>
+  );
 }
+
+export default PageHeader;

@@ -1,5 +1,4 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import { getMockDb } from '@/lib/mockDb';
 
 export interface GradeRef {
   id: string;
@@ -15,25 +14,6 @@ export async function resolveGradeByRef(gradeRef: string): Promise<GradeRef | nu
   const normalizedRef = String(gradeRef || '').trim();
   if (!normalizedRef) {
     return null;
-  }
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const grades = Array.isArray(db.grades) ? db.grades : [];
-    const byId = grades.find((grade: any) => grade.id === normalizedRef);
-    const bySlug = grades.find((grade: any) => grade.slug === normalizedRef);
-    const matched = byId || bySlug;
-
-    if (!matched) {
-      return null;
-    }
-
-    return {
-      id: matched.id,
-      name: matched.name || matched.name_en || 'Grade',
-      slug: matched.slug || null,
-      supervisor_id: matched.supervisor_id || '00000000-0000-0000-0000-000000000001',
-    };
   }
 
   const { data: slugData, error: slugError } = await supabaseAdmin

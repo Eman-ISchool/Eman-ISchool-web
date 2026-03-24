@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
 import { resolveGradeByRef } from '@/lib/grades';
-import { getMockDb } from '@/lib/mockDb';
+
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
@@ -27,38 +27,6 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get('start_date');
   const endDate = searchParams.get('end_date');
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const courses = (Array.isArray(db.courses) ? db.courses : []).filter((course: any) => (
-      course.grade_id === gradeRef.id && (user.role !== 'teacher' || course.teacher_id === user.id)
-    ));
-    const courseIds = courses.map((course: any) => course.id);
-    let lessons = (Array.isArray(db.lessons) ? db.lessons : []).filter((lesson: any) => courseIds.includes(lesson.course_id));
-    if (startDate) {
-      lessons = lessons.filter((lesson: any) => String(lesson.start_date_time || '') >= startDate);
-    }
-    if (endDate) {
-      lessons = lessons.filter((lesson: any) => String(lesson.start_date_time || '') <= endDate);
-    }
-    const events = lessons
-      .slice(0, 200)
-      .map((lesson: any) => ({
-        sessionId: lesson.id,
-        courseId: lesson.course_id,
-        title: lesson.title,
-        start: lesson.start_date_time,
-        end: lesson.end_date_time,
-        teacher: lesson.teacher_name || 'Test Teacher',
-      }));
-
-    return jsonWithRequestId({
-      phase: 'Phase 8',
-      contract: 'events[] = { sessionId, courseId, title, start, end, teacher }',
-      events,
-      requestId,
-    }, 200, requestId);
-  }
 
   let coursesQuery = supabaseAdmin.from('courses').select('id').eq('grade_id', gradeRef.id);
   if (user.role === 'teacher') {

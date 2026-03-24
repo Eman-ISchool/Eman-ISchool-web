@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { BookOpen, CalendarDays, LayoutGrid, Search, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BookOpen, CalendarDays, LayoutGrid, Pencil, Search, Trash2, Users, X } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -56,157 +56,180 @@ const catalogMeta: Record<
   },
 };
 
-const catalogRowsByScope: Record<CatalogScope, CatalogCard[]> = {
-  courses: [
-    {
-      id: 'course-1',
-      title: { ar: 'كورس المعلم الإلكتروني', en: 'Teacher e-course' },
-      subtitle: { ar: 'الأول الثانوي', en: 'First secondary' },
-      teacher: 'Magda zahran',
-      students: 70,
-      lessons: 12,
-      fee: 'AED 150',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'course-2',
-      title: { ar: 'تأسيس اللغة الإنجليزية', en: 'English foundation' },
-      subtitle: { ar: 'الصف السادس', en: 'Sixth grade' },
-      teacher: 'Muzna seth',
-      students: 18,
-      lessons: 8,
-      fee: 'AED 100',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'course-3',
-      title: { ar: 'مراجعات الرياضيات', en: 'Math revisions' },
-      subtitle: { ar: 'الثالث الثانوي', en: 'Third secondary' },
-      teacher: 'رحاب رائد فيصل',
-      students: 12,
-      lessons: 6,
-      fee: 'AED 180',
-      status: { ar: 'مسودة', en: 'Draft' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-    },
-  ],
-  bundles: [
-    {
-      id: 'bundle-1',
-      title: { ar: 'فصل الفيزياء المسائي', en: 'Evening physics bundle' },
-      subtitle: { ar: 'المستوى المتقدم', en: 'Advanced level' },
-      teacher: 'د. رحمة خليل',
-      students: 24,
-      lessons: 14,
-      fee: 'AED 1650',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'bundle-2',
-      title: { ar: 'فصل العربية المكثف', en: 'Arabic intensive bundle' },
-      subtitle: { ar: 'المرحلة المتوسطة', en: 'Middle stage' },
-      teacher: 'لادن ادريس بابكر ادريس',
-      students: 16,
-      lessons: 10,
-      fee: 'AED 750',
-      status: { ar: 'قيد التجهيز', en: 'Preparing' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-    {
-      id: 'bundle-3',
-      title: { ar: 'فصل المراجعات النهائية', en: 'Final revision bundle' },
-      subtitle: { ar: 'اختبارات تجريبية', en: 'Mock exams' },
-      teacher: 'Magda zahran',
-      students: 30,
-      lessons: 5,
-      fee: 'AED 950',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-  ],
-  teacherCourses: [
-    {
-      id: 'teacher-1',
-      title: { ar: 'مسار فيزياء أول ثانوي', en: 'First secondary physics track' },
-      subtitle: { ar: 'مجموعة A', en: 'Group A' },
-      teacher: 'Magda zahran',
-      students: 22,
-      lessons: 12,
-      fee: 'AED 150',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'teacher-2',
-      title: { ar: 'مسار الإنجليزية التأسيسي', en: 'Foundation English track' },
-      subtitle: { ar: 'مجموعة B', en: 'Group B' },
-      teacher: 'Muzna seth',
-      students: 18,
-      lessons: 9,
-      fee: 'AED 100',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'teacher-3',
-      title: { ar: 'مسار المراجعات السريعة', en: 'Fast revision track' },
-      subtitle: { ar: 'مجموعة C', en: 'Group C' },
-      teacher: 'رحاب رائد فيصل',
-      students: 10,
-      lessons: 4,
-      fee: 'AED 180',
-      status: { ar: 'قيد المراجعة', en: 'Under review' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-    },
-  ],
-  categories: [
-    {
-      id: 'category-1',
-      title: { ar: 'المرحلة الثانوية', en: 'Secondary stage' },
-      subtitle: { ar: '12 دورة و4 فصول', en: '12 courses and 4 bundles' },
-      teacher: 'فريق الأكاديميات',
-      students: 12,
-      lessons: 4,
-      fee: '8 قواعد',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-    {
-      id: 'category-2',
-      title: { ar: 'المرحلة الابتدائية', en: 'Primary stage' },
-      subtitle: { ar: '6 دورات و3 فصول', en: '6 courses and 3 bundles' },
-      teacher: 'فريق التأسيس',
-      students: 6,
-      lessons: 3,
-      fee: '5 قواعد',
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-    },
-    {
-      id: 'category-3',
-      title: { ar: 'المراجعات النهائية', en: 'Final revisions' },
-      subtitle: { ar: '3 دورات و2 فصل', en: '3 courses and 2 bundles' },
-      teacher: 'فريق الامتحانات',
-      students: 3,
-      lessons: 2,
-      fee: '2 قاعدة',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-    },
-  ],
+const apiEndpointByScope: Record<CatalogScope, string> = {
+  courses: '/api/courses',
+  bundles: '/api/admin/bundles',
+  teacherCourses: '/api/courses',
+  categories: '/api/admin/categories',
 };
+
+function mapApiToCatalogCard(item: Record<string, unknown>, scope: CatalogScope): CatalogCard {
+  const id = String(item.id || '');
+  const nameAr = String(item.name_ar || item.name || item.title || '');
+  const nameEn = String(item.name_en || item.name || item.title || '');
+  const descAr = String(item.description_ar || item.grade_name || item.description || '');
+  const descEn = String(item.description_en || item.grade_name || item.description || '');
+  const teacher = String(item.teacher_name || item.teacher || '');
+  const students = Number(item.student_count || item.students || item.enrollment_count || 0);
+  const lessons = Number(item.lesson_count || item.lessons || 0);
+  const fee = item.fee ? `AED ${item.fee}` : item.price ? `AED ${item.price}` : '-';
+  const isPublished = item.is_published === true || item.status === 'published' || item.status === 'active';
+
+  if (scope === 'categories') {
+    return {
+      id,
+      title: { ar: nameAr, en: nameEn },
+      subtitle: { ar: descAr, en: descEn },
+      teacher: '-',
+      students,
+      lessons,
+      fee: '-',
+      status: isPublished ? { ar: 'نشط', en: 'Active' } : { ar: 'مراجعة', en: 'Review' },
+      statusClassName: isPublished ? 'bg-[#edfdf3] text-[#15803d]' : 'bg-[#fff7ed] text-[#c2410c]',
+    };
+  }
+
+  return {
+    id,
+    title: { ar: nameAr, en: nameEn },
+    subtitle: { ar: descAr, en: descEn },
+    teacher,
+    students,
+    lessons,
+    fee: String(fee),
+    status: isPublished ? { ar: 'منشور', en: 'Published' } : { ar: 'مسودة', en: 'Draft' },
+    statusClassName: isPublished ? 'bg-[#edfdf3] text-[#15803d]' : 'bg-[#eef2ff] text-[#4338ca]',
+  };
+}
 
 export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = catalogMeta[scope];
-  const rows = catalogRowsByScope[scope];
+  const [rows, setRows] = useState<CatalogCard[]>([]);
+  const [rawCategories, setRawCategories] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'live' | 'draft'>('all');
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
+
+  // Category CRUD state
+  const [catFormOpen, setCatFormOpen] = useState(false);
+  const [catEditId, setCatEditId] = useState<string | null>(null);
+  const [catFormName, setCatFormName] = useState('');
+  const [catFormNameEn, setCatFormNameEn] = useState('');
+  const [catFormDesc, setCatFormDesc] = useState('');
+  const [catSubmitting, setCatSubmitting] = useState(false);
+  const [catDeleteConfirm, setCatDeleteConfirm] = useState<string | null>(null);
+  const [catDeleting, setCatDeleting] = useState(false);
+
+  const showNoticeTyped = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    setNotice(message);
+    setNoticeType(type);
+    window.setTimeout(() => setNotice(null), 3000);
+  }, []);
+
+  const fetchRows = useCallback(() => {
+    setLoading(true);
+    fetch(apiEndpointByScope[scope])
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data?.courses || data?.bundles || data?.categories || [];
+        if (scope === 'categories') setRawCategories(items);
+        setRows(items.map((item: Record<string, unknown>) => mapApiToCatalogCard(item, scope)));
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [scope]);
+
+  useEffect(() => {
+    fetchRows();
+  }, [fetchRows]);
+
+  // Category CRUD handlers
+  const openCatCreateForm = useCallback(() => {
+    setCatEditId(null);
+    setCatFormName('');
+    setCatFormNameEn('');
+    setCatFormDesc('');
+    setCatFormOpen(true);
+  }, []);
+
+  const openCatEditForm = useCallback((id: string) => {
+    const raw = rawCategories.find((c) => String(c.id) === id);
+    setCatEditId(id);
+    setCatFormName(String(raw?.name_ar || raw?.name || ''));
+    setCatFormNameEn(String(raw?.name_en || ''));
+    setCatFormDesc(String(raw?.description || ''));
+    setCatFormOpen(true);
+  }, [rawCategories]);
+
+  const closeCatForm = useCallback(() => {
+    setCatFormOpen(false);
+    setCatEditId(null);
+    setCatFormName('');
+    setCatFormNameEn('');
+    setCatFormDesc('');
+  }, []);
+
+  const submitCatForm = useCallback(async () => {
+    if (!catFormName.trim()) {
+      showNoticeTyped(isArabic ? 'اسم التصنيف مطلوب.' : 'Category name is required.', 'error');
+      return;
+    }
+    setCatSubmitting(true);
+    try {
+      const isEdit = catEditId !== null;
+      const endpoint = '/api/admin/categories';
+      const payload: Record<string, string> = isEdit
+        ? { id: catEditId, name_ar: catFormName.trim(), name_en: catFormNameEn.trim() || catFormName.trim() }
+        : { name_ar: catFormName.trim(), name_en: catFormNameEn.trim() || catFormName.trim() };
+      if (catFormDesc.trim()) payload.description = catFormDesc.trim();
+
+      const res = await fetch(endpoint, {
+        method: isEdit ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        showNoticeTyped(result?.error || (isArabic ? 'حدث خطأ أثناء الحفظ.' : 'An error occurred while saving.'), 'error');
+        return;
+      }
+      showNoticeTyped(
+        isEdit
+          ? (isArabic ? 'تم تحديث التصنيف بنجاح.' : 'Category updated successfully.')
+          : (isArabic ? 'تم إنشاء التصنيف بنجاح.' : 'Category created successfully.'),
+        'success',
+      );
+      closeCatForm();
+      fetchRows();
+    } catch {
+      showNoticeTyped(isArabic ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.', 'error');
+    } finally {
+      setCatSubmitting(false);
+    }
+  }, [catEditId, catFormName, catFormNameEn, catFormDesc, isArabic, showNoticeTyped, closeCatForm, fetchRows]);
+
+  const confirmDeleteCat = useCallback(async (id: string) => {
+    setCatDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/categories?id=${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (!res.ok) {
+        showNoticeTyped(result?.error || (isArabic ? 'فشل حذف التصنيف.' : 'Failed to delete category.'), 'error');
+        return;
+      }
+      showNoticeTyped(isArabic ? 'تم حذف التصنيف بنجاح.' : 'Category deleted successfully.', 'success');
+      setCatDeleteConfirm(null);
+      fetchRows();
+    } catch {
+      showNoticeTyped(isArabic ? 'خطأ في الاتصال بالخادم.' : 'Server connection error.', 'error');
+    } finally {
+      setCatDeleting(false);
+    }
+  }, [isArabic, showNoticeTyped, fetchRows]);
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -230,6 +253,7 @@ export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogSco
 
   const showNotice = (message: string) => {
     setNotice(message);
+    setNoticeType('success');
     window.setTimeout(() => setNotice(null), 2500);
   };
 
@@ -300,9 +324,11 @@ export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogSco
                 type="button"
                 className="rounded-full bg-[#4f7cff] hover:bg-[#416ce4]"
                 onClick={() =>
-                  showNotice(
-                    isArabic ? `تم فتح نموذج ${meta.createLabel.ar}.` : `${meta.createLabel.en} form opened.`,
-                  )
+                  scope === 'categories'
+                    ? openCatCreateForm()
+                    : showNotice(
+                        isArabic ? `تم فتح نموذج ${meta.createLabel.ar}.` : `${meta.createLabel.en} form opened.`,
+                      )
                 }
               >
                 {meta.createLabel[isArabic ? 'ar' : 'en']}
@@ -311,8 +337,114 @@ export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogSco
           </div>
 
           {notice ? (
-            <div className="mt-4 rounded-[1.3rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div className={`mt-4 rounded-[1.3rem] border px-4 py-3 text-sm ${
+              noticeType === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            }`}>
               {notice}
+            </div>
+          ) : null}
+
+          {/* Category Create/Edit Form */}
+          {scope === 'categories' && catFormOpen ? (
+            <div className="mt-4 rounded-[1.75rem] border border-blue-200 bg-blue-50/50 p-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900">
+                  {catEditId
+                    ? (isArabic ? 'تعديل التصنيف' : 'Edit category')
+                    : (isArabic ? 'إنشاء تصنيف جديد' : 'Create new category')}
+                </h3>
+                <button type="button" onClick={closeCatForm} className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    {isArabic ? 'الاسم (عربي) *' : 'Name (Arabic) *'}
+                  </label>
+                  <Input
+                    value={catFormName}
+                    onChange={(e) => setCatFormName(e.target.value)}
+                    placeholder={isArabic ? 'مثال: الصف الأول' : 'e.g. Grade 1'}
+                    className="h-11 rounded-xl border-slate-200 bg-white"
+                    dir="rtl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    {isArabic ? 'الاسم (إنجليزي)' : 'Name (English)'}
+                  </label>
+                  <Input
+                    value={catFormNameEn}
+                    onChange={(e) => setCatFormNameEn(e.target.value)}
+                    placeholder={isArabic ? 'مثال: Grade 1' : 'e.g. Grade 1'}
+                    className="h-11 rounded-xl border-slate-200 bg-white"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                  {isArabic ? 'الوصف (اختياري)' : 'Description (optional)'}
+                </label>
+                <Input
+                  value={catFormDesc}
+                  onChange={(e) => setCatFormDesc(e.target.value)}
+                  placeholder={isArabic ? 'وصف قصير للتصنيف' : 'Short description'}
+                  className="h-11 rounded-xl border-slate-200 bg-white"
+                />
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  type="button"
+                  className="rounded-full bg-[#4f7cff] hover:bg-[#416ce4]"
+                  disabled={catSubmitting}
+                  onClick={submitCatForm}
+                >
+                  {catSubmitting
+                    ? (isArabic ? 'جارٍ الحفظ...' : 'Saving...')
+                    : catEditId
+                      ? (isArabic ? 'حفظ التعديلات' : 'Save changes')
+                      : (isArabic ? 'إنشاء التصنيف' : 'Create category')}
+                </Button>
+                <Button type="button" variant="outline" className="rounded-full border-slate-300" onClick={closeCatForm}>
+                  {isArabic ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Category Delete Confirmation */}
+          {scope === 'categories' && catDeleteConfirm ? (
+            <div className="mt-4 rounded-[1.75rem] border border-red-200 bg-red-50/50 p-5">
+              <h3 className="text-lg font-bold text-red-800">
+                {isArabic ? 'تأكيد الحذف' : 'Confirm deletion'}
+              </h3>
+              <p className="mt-2 text-sm text-red-700">
+                {isArabic
+                  ? 'هل أنت متأكد من حذف هذا التصنيف؟ لا يمكن التراجع عن هذا الإجراء.'
+                  : 'Are you sure you want to delete this category? This action cannot be undone.'}
+              </p>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  type="button"
+                  className="rounded-full bg-red-600 hover:bg-red-700"
+                  disabled={catDeleting}
+                  onClick={() => confirmDeleteCat(catDeleteConfirm)}
+                >
+                  {catDeleting ? (isArabic ? 'جارٍ الحذف...' : 'Deleting...') : (isArabic ? 'نعم، حذف' : 'Yes, delete')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full border-slate-300"
+                  onClick={() => setCatDeleteConfirm(null)}
+                >
+                  {isArabic ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
             </div>
           ) : null}
 
@@ -348,6 +480,17 @@ export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogSco
           </div>
 
           <div className="mt-6 grid gap-4">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="h-48 animate-pulse rounded-[1.75rem] bg-slate-100" />
+                ))}
+              </div>
+            ) : filteredRows.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
+                {isArabic ? 'لا توجد بيانات حالياً.' : 'No data available.'}
+              </div>
+            ) : null}
             {filteredRows.map((row) => (
               <article key={row.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -383,29 +526,54 @@ export default function ReferenceCatalogWorkspace({ scope }: { scope: CatalogSco
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-full border-slate-300"
-                    onClick={() =>
-                      showNotice(
-                        isArabic ? `تم فتح عرض ${row.title.ar}.` : `${row.title.en} preview opened.`,
-                      )
-                    }
-                  >
-                    {isArabic ? 'معاينة' : 'Preview'}
-                  </Button>
-                  <Button
-                    type="button"
-                    className="rounded-full bg-slate-950 hover:bg-slate-800"
-                    onClick={() =>
-                      showNotice(
-                        isArabic ? `تم فتح إعدادات ${row.title.ar}.` : `${row.title.en} settings opened.`,
-                      )
-                    }
-                  >
-                    {isArabic ? 'الإعدادات' : 'Settings'}
-                  </Button>
+                  {scope === 'categories' ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full border-slate-300"
+                        onClick={() => openCatEditForm(row.id)}
+                      >
+                        <Pencil className="me-1.5 h-3.5 w-3.5" />
+                        {isArabic ? 'تعديل' : 'Edit'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => setCatDeleteConfirm(row.id)}
+                      >
+                        <Trash2 className="me-1.5 h-3.5 w-3.5" />
+                        {isArabic ? 'حذف' : 'Delete'}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full border-slate-300"
+                        onClick={() =>
+                          showNotice(
+                            isArabic ? `تم فتح عرض ${row.title.ar}.` : `${row.title.en} preview opened.`,
+                          )
+                        }
+                      >
+                        {isArabic ? 'معاينة' : 'Preview'}
+                      </Button>
+                      <Button
+                        type="button"
+                        className="rounded-full bg-slate-950 hover:bg-slate-800"
+                        onClick={() =>
+                          showNotice(
+                            isArabic ? `تم فتح إعدادات ${row.title.ar}.` : `${row.title.en} settings opened.`,
+                          )
+                        }
+                      >
+                        {isArabic ? 'الإعدادات' : 'Settings'}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </article>
             ))}

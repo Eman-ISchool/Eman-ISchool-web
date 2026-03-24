@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { BookOpen, Calendar, User, ArrowLeft } from 'lucide-react';
-import { getMockDb } from '@/lib/mockDb';
 
 export default async function StudentCourseDetailPage({
     params: { locale, id }
@@ -27,28 +26,8 @@ export default async function StudentCourseDetailPage({
     let course: any = null;
     let enrollment: any = null;
     let lessons: any[] = [];
-    if (process.env.TEST_BYPASS === 'true') {
-        const db = getMockDb();
-        const courses = Array.isArray(db.courses) ? db.courses : [];
-        const enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-        const allLessons = Array.isArray(db.lessons) ? db.lessons : [];
-        const grades = Array.isArray(db.grades) ? db.grades : [];
 
-        course = courses.find((candidate: any) => candidate.id === id) || null;
-        if (course) {
-            course.grades = grades.find((candidate: any) => candidate.id === course.grade_id) || null;
-            course.teachers = course.teacher || { name: 'Test Teacher', email: 'teacher@eduverse.com' };
-        }
-        enrollment = enrollments.find((candidate: any) =>
-            candidate.student_id === user.id &&
-            candidate.course_id === id &&
-            candidate.status === 'active'
-        ) || null;
-        lessons = allLessons
-            .filter((candidate: any) => candidate.course_id === id)
-            .sort((a: any, b: any) => String(a.start_date_time).localeCompare(String(b.start_date_time)));
-    } else {
-        // Fetch course details
+    {
         const { data: dbCourse, error: courseError } = await supabaseAdmin
             .from('courses')
             .select(`

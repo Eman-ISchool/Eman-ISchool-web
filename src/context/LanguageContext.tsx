@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import { useLocale } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 
 type Language = 'ar' | 'en';
 type Direction = 'rtl' | 'ltr';
@@ -12,7 +14,7 @@ interface LanguageContextType {
     t: (key: string) => string;
 }
 
-const translations = {
+const translations: Record<Language, Record<string, string>> = {
     ar: {
         // Navigation
         'nav.home': 'الرئيسية',
@@ -31,12 +33,8 @@ const translations = {
         'nav.calendar': 'الجدول',
         'nav.chat': 'المحادثات',
         'nav.profile': 'الملف الشخصي',
-
-        // Header
         'header.search': 'بحث...',
         'header.greeting': 'مساء الخير',
-
-        // Home
         'home.announcements': 'الإعلانات',
         'home.viewAll': 'عرض الكل',
         'home.upcomingLessons': 'الدروس القادمة',
@@ -49,21 +47,15 @@ const translations = {
         'home.noLessons': 'لا توجد دروس قادمة',
         'home.viewCalendar': 'عرض النتيجة',
         'home.searchPlaceholder': 'ابحث عن الدروس، الواجبات...',
-
-        // Calendar
         'calendar.title': 'الجدول الدراسي',
         'calendar.today': 'اليوم',
         'calendar.month': 'شهر',
         'calendar.week': 'أسبوع',
         'calendar.upcoming': 'القادم',
-
-        // Chat
         'chat.title': 'الرسائل',
         'chat.search': 'بحث في المحادثات...',
         'chat.typeMessage': 'اكتب رسالة...',
         'chat.noMessages': 'لا توجد محادثات',
-
-        // Profile
         'profile.update': 'تحديث الملف الشخصي',
         'profile.language': 'اللغة',
         'profile.fees': 'دفع الرسوم',
@@ -72,8 +64,6 @@ const translations = {
         'profile.exams': 'الامتحانات والنتائج',
         'profile.settings': 'الإعدادات',
         'profile.logout': 'تسجيل الخروج',
-
-        // Reels
         'nav.reels': 'المقاطع',
         'reels.title': 'مقاطع تعليمية ذكية',
         'reels.subtitle': 'تعلم سريع في أقل من دقيقتين',
@@ -101,7 +91,6 @@ const translations = {
         'reels.duration': 'المدة',
     },
     en: {
-        // Navigation
         'nav.home': 'Home',
         'nav.about': 'About Us',
         'nav.curriculum': 'Curriculum',
@@ -115,16 +104,11 @@ const translations = {
         'nav.login': 'Register Now',
         'nav.dashboard': 'Dashboard',
         'nav.logout': 'Logout',
-
         'nav.calendar': 'Calendar',
         'nav.chat': 'Chat',
         'nav.profile': 'Profile',
-
-        // Header
         'header.search': 'Search...',
         'header.greeting': 'Good Evening',
-
-        // Home
         'home.announcements': 'Announcements',
         'home.viewAll': 'View All',
         'home.upcomingLessons': 'Upcoming Lessons',
@@ -137,21 +121,15 @@ const translations = {
         'home.noLessons': 'No upcoming lessons scheduled',
         'home.viewCalendar': 'View Calendar',
         'home.searchPlaceholder': 'Search lessons, assignments...',
-
-        // Calendar
         'calendar.title': 'Calendar',
         'calendar.today': 'Today',
         'calendar.month': 'Month',
         'calendar.week': 'Week',
         'calendar.upcoming': 'Upcoming',
-
-        // Chat
         'chat.title': 'Messages',
         'chat.search': 'Search conversations...',
         'chat.typeMessage': 'Type a message...',
         'chat.noMessages': 'No conversations found',
-
-        // Profile
         'profile.update': 'Update Profile',
         'profile.language': 'Language',
         'profile.fees': 'Pay Fees',
@@ -160,8 +138,6 @@ const translations = {
         'profile.exams': 'Exams & Results',
         'profile.settings': 'Settings',
         'profile.logout': 'Logout',
-
-        // Reels
         'nav.reels': 'Reels',
         'reels.title': 'AI Learning Reels',
         'reels.subtitle': 'Bite-sized lessons under 2 minutes',
@@ -192,48 +168,37 @@ const translations = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const LANGUAGE_STORAGE_KEY = 'eduverse-language';
-
+/**
+ * LanguageProvider that derives language from next-intl's useLocale().
+ * No duplicate state — single source of truth is the URL locale.
+ */
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    // Default to Arabic (RTL)
-    const [language, setLanguage] = useState<Language>('ar');
-    const [direction, setDirection] = useState<Direction>('rtl');
-    const [isInitialized, setIsInitialized] = useState(false);
+    const locale = useLocale() as Language;
+    const router = useRouter();
+    const pathname = usePathname();
 
-    // Load saved language preference on mount
-    useEffect(() => {
-        const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language | null;
-        if (savedLanguage && (savedLanguage === 'ar' || savedLanguage === 'en')) {
-            setLanguage(savedLanguage);
-            setDirection(savedLanguage === 'ar' ? 'rtl' : 'ltr');
-        }
-        setIsInitialized(true);
-    }, []);
+    const language: Language = locale === 'en' ? 'en' : 'ar';
+    const direction: Direction = language === 'ar' ? 'rtl' : 'ltr';
 
-    // Update HTML attributes and save to localStorage when language changes
-    useEffect(() => {
-        document.documentElement.lang = language;
-        document.documentElement.dir = direction;
-        // Only save to localStorage after initial load to avoid overwriting saved preference
-        if (isInitialized) {
-            localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-        }
-    }, [language, direction, isInitialized]);
+    const toggleLanguage = useCallback(() => {
+        const nextLocale = language === 'ar' ? 'en' : 'ar';
+        const switchedPath = pathname.replace(/^\/(ar|en)(?=\/|$)/, `/${nextLocale}`);
+        router.push(switchedPath || `/${nextLocale}`);
+    }, [language, pathname, router]);
 
-    const toggleLanguage = () => {
-        setLanguage(prev => {
-            const newLang = prev === 'ar' ? 'en' : 'ar';
-            setDirection(newLang === 'ar' ? 'rtl' : 'ltr');
-            return newLang;
-        });
-    };
+    const t = useCallback((key: string): string => {
+        return translations[language]?.[key] || key;
+    }, [language]);
 
-    const t = (key: string) => {
-        return (translations[language] as any)[key] || key;
-    };
+    const value = useMemo(() => ({
+        language,
+        direction,
+        toggleLanguage,
+        t,
+    }), [language, direction, toggleLanguage, t]);
 
     return (
-        <LanguageContext.Provider value={{ language, direction, toggleLanguage, t }}>
+        <LanguageContext.Provider value={value}>
             {children}
         </LanguageContext.Provider>
     );

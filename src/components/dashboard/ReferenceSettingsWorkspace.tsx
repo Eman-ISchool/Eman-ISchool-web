@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Database, Languages, RefreshCw, Save, Search, ShieldCheck } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Construction, Database, Languages, RefreshCw, Save, Search, ShieldCheck } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -51,94 +51,49 @@ const settingsMeta: Record<
   },
 };
 
-const itemsByScope: Record<SettingsScope, SettingsItem[]> = {
-  lookups: [
-    {
-      id: 'lookup-1',
-      title: { ar: 'مستويات الصفوف', en: 'Grade levels' },
-      description: { ar: 'القيم المستخدمة في التسجيل ونماذج العرض.', en: 'Values used in enrollment and listing forms.' },
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      meta: '18 قيمة',
-    },
-    {
-      id: 'lookup-2',
-      title: { ar: 'قنوات الدفع', en: 'Payment channels' },
-      description: { ar: 'الخيارات المتاحة في عمليات التحصيل.', en: 'Collection options available to finance workflows.' },
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      meta: '6 قنوات',
-    },
-    {
-      id: 'lookup-3',
-      title: { ar: 'أنواع الحضور', en: 'Attendance types' },
-      description: { ar: 'القيم القياسية للحضور والتأخير والغياب.', en: 'Standard values for present, late, and absent states.' },
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      meta: '4 حالات',
-    },
-  ],
-  backup: [
-    {
-      id: 'backup-1',
-      title: { ar: 'نسخة يومية تلقائية', en: 'Daily automated backup' },
-      description: { ar: 'قواعد البيانات والملفات العامة كل 24 ساعة.', en: 'Database and public files every 24 hours.' },
-      status: { ar: 'سليم', en: 'Healthy' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      meta: 'آخر تشغيل 2026-03-10 02:00',
-    },
-    {
-      id: 'backup-2',
-      title: { ar: 'نقطة استعادة قبل النشر', en: 'Pre-release restore point' },
-      description: { ar: 'نسخة قبل تغييرات المحتوى الرئيسية.', en: 'Restore point before major content releases.' },
-      status: { ar: 'محفوظ', en: 'Stored' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      meta: 'آخر تشغيل 2026-03-08 18:30',
-    },
-    {
-      id: 'backup-3',
-      title: { ar: 'نسخة مرتبات شهرية', en: 'Monthly payroll backup' },
-      description: { ar: 'نسخة شهرية لأرشيف الرواتب والقسائم.', en: 'Monthly payroll and payslip archive backup.' },
-      status: { ar: 'بحاجة متابعة', en: 'Needs follow-up' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      meta: 'آخر تشغيل 2026-02-28 21:00',
-    },
-  ],
-  translations: [
-    {
-      id: 'translation-1',
-      title: { ar: 'حزمة العربية', en: 'Arabic pack' },
-      description: { ar: 'النسخة الأساسية لجميع واجهات الإدارة.', en: 'Primary pack for all admin experiences.' },
-      status: { ar: 'مفعل', en: 'Enabled' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      meta: '100% مكتمل',
-    },
-    {
-      id: 'translation-2',
-      title: { ar: 'حزمة الإنجليزية', en: 'English pack' },
-      description: { ar: 'مراجعة العناوين والمسارات المشتركة.', en: 'Reviewing shared route and heading labels.' },
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      meta: '84% مكتمل',
-    },
-    {
-      id: 'translation-3',
-      title: { ar: 'حزمة الفرنسية', en: 'French pack' },
-      description: { ar: 'مسار ترجمة مبدئي لأسطح التسجيل فقط.', en: 'Initial translation path for registration surfaces only.' },
-      status: { ar: 'مسودة', en: 'Draft' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      meta: '41% مكتمل',
-    },
-  ],
-};
-
 export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = settingsMeta[scope];
-  const items = itemsByScope[scope];
+  const [items, setItems] = useState<SettingsItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (scope === 'lookups') {
+      // Fetch grade levels as lookup/reference data
+      setLoading(true);
+      fetch('/api/grade-levels')
+        .then((res) => (res.ok ? res.json() : { grades: [] }))
+        .then((data) => {
+          const grades = Array.isArray(data?.grades) ? data.grades : [];
+          setItems(
+            grades.map((g: Record<string, unknown>) => ({
+              id: String(g.id || ''),
+              title: { ar: String(g.name || ''), en: String(g.name_en || g.name || '') },
+              description: {
+                ar: `المرحلة الدراسية — الترتيب: ${g.sort_order ?? '-'}`,
+                en: `Grade level — Sort order: ${g.sort_order ?? '-'}`,
+              },
+              status: g.is_active
+                ? { ar: 'مفعّل', en: 'Enabled' }
+                : { ar: 'معطّل', en: 'Disabled' },
+              statusClassName: g.is_active
+                ? 'bg-[#edfdf3] text-[#15803d]'
+                : 'bg-[#fff7ed] text-[#c2410c]',
+              meta: `slug: ${g.slug || '-'}`,
+            })),
+          );
+        })
+        .catch(() => setItems([]))
+        .finally(() => setLoading(false));
+    } else {
+      // 'backup' and 'translations' — not yet implemented
+      setItems([]);
+      setLoading(false);
+    }
+  }, [scope]);
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -167,7 +122,7 @@ export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsS
           [isArabic ? 'إجمالي الوحدات' : 'Total units', items.length, meta.tone],
           [isArabic ? 'جاهزة' : 'Ready', items.filter((item) => item.status.en === 'Published' || item.status.en === 'Enabled' || item.status.en === 'Healthy').length, 'bg-[#edfdf3] text-[#15803d]'],
           [isArabic ? 'تحتاج متابعة' : 'Needs follow-up', items.filter((item) => item.status.en === 'Review' || item.status.en === 'Needs follow-up').length, 'bg-[#fff7ed] text-[#c2410c]'],
-          [isArabic ? 'آخر مزامنة' : 'Last sync', '2026-03-10', 'bg-[#eef2ff] text-[#4338ca]'],
+          [isArabic ? 'آخر مزامنة' : 'Last sync', new Date().toISOString().slice(0, 10), 'bg-[#eef2ff] text-[#4338ca]'],
         ].map(([label, value, tone]) => (
           <article key={String(label)} className={`rounded-[1.75rem] p-5 shadow-sm ${tone}`}>
             <p className="text-sm font-semibold">{label}</p>
@@ -242,6 +197,33 @@ export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsS
 
         <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_280px]">
           <div className="grid gap-4">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="h-40 animate-pulse rounded-[1.75rem] bg-slate-100" />
+                ))}
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-slate-200 p-10 text-center">
+                {scope === 'lookups' ? (
+                  <p className="text-sm text-slate-400">
+                    {isArabic ? 'لا توجد بيانات مرجعية حالياً.' : 'No lookup data available.'}
+                  </p>
+                ) : (
+                  <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+                    <Construction className="h-10 w-10 text-amber-400" />
+                    <p className="text-base font-bold text-slate-700">
+                      {isArabic ? 'هذا القسم قيد التطوير' : 'This section is under development'}
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {isArabic
+                        ? 'لا توجد بيانات حالياً. سيتم إضافة هذه الميزة قريباً'
+                        : 'No data currently available. This feature will be added soon'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : null}
             {filteredItems.map((item) => (
               <article key={item.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">

@@ -164,11 +164,12 @@ export function useSourceUpload(): UseSourceUploadReturn {
     });
   }, []);
 
-  // Extract source ID from upload URL
+  // Extract source ID from the TUS upload URL
   const extractSourceIdFromUpload = (url: string): string => {
-    // This is a placeholder - in production, the API would return the source ID
-    // For now, we'll return a mock ID
-    return 'mock-source-id';
+    if (!url) return '';
+    // TUS uploads typically append the resource ID to the endpoint URL
+    const parts = url.split('/');
+    return parts[parts.length - 1] || '';
   };
 
   return {

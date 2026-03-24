@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck, RefreshCw } from 'lucide-react';
@@ -68,7 +68,7 @@ export default function StudentHomePage() {
         await new Promise(resolve => setTimeout(resolve, 2000));
     };
 
-    const greeting = () => {
+    const greeting = useCallback(() => {
         const hour = new Date().getHours();
         if (isRTL) {
             if (hour < 12) return 'صباح الخير';
@@ -78,7 +78,7 @@ export default function StudentHomePage() {
         if (hour < 12) return 'Good morning';
         if (hour < 17) return 'Good afternoon';
         return 'Good evening';
-    };
+    }, [isRTL]);
 
     const mockAnnouncement = {
         id: '1',
@@ -90,7 +90,7 @@ export default function StudentHomePage() {
         createdAt: new Date().toISOString(),
     };
 
-    const mockLessons = isRTL ? [
+    const mockLessons = useMemo(() => isRTL ? [
         {
             id: '1',
             title: 'مقدمة في الجبر',
@@ -132,9 +132,9 @@ export default function StudentHomePage() {
             status: 'scheduled' as const,
             teacher: { name: 'Ms. Sarah Johnson' },
         },
-    ];
+    ], [isRTL]);
 
-    const mockAssignments = isRTL ? [
+    const mockAssignments = useMemo(() => isRTL ? [
         {
             id: '1',
             type: 'assignment' as const,
@@ -170,17 +170,17 @@ export default function StudentHomePage() {
             dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
             submissionStatus: 'pending' as const,
         },
-    ];
+    ], [isRTL]);
 
-    const mockTeachers = isRTL ? [
+    const mockTeachers = useMemo(() => isRTL ? [
         { id: '1', name: 'د. أحمد حسن', subjects: ['رياضيات', 'فيزياء'] },
         { id: '2', name: 'أ. سارة جونسون', subjects: ['لغة إنجليزية', 'أدب'] },
     ] : [
         { id: '1', name: 'Dr. Ahmed Hassan', subjects: ['Mathematics', 'Physics'] },
         { id: '2', name: 'Ms. Sarah Johnson', subjects: ['English', 'Literature'] },
-    ];
+    ], [isRTL]);
 
-    const mockSubjects = isRTL ? [
+    const mockSubjects = useMemo(() => isRTL ? [
         { id: '1', name: 'رياضيات' },
         { id: '2', name: 'علوم' },
         { id: '3', name: 'لغة إنجليزية' },
@@ -190,7 +190,7 @@ export default function StudentHomePage() {
         { id: '2', name: 'Science' },
         { id: '3', name: 'English' },
         { id: '4', name: 'Arabic' },
-    ];
+    ], [isRTL]);
 
     const nextLesson = mockLessons[0];
     const minutesUntilNext = nextLesson

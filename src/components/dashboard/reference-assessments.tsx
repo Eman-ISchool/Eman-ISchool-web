@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import {
   Copy,
@@ -28,8 +29,72 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { examGroupRows, quizItems, quizManageQuestions } from '@/lib/dashboard-reference-fixtures';
 import { withLocalePrefix } from '@/lib/locale-path';
+
+interface ExamGroupRow {
+  id: string;
+  name: string;
+  description: string;
+  schedule: string;
+  quizzes: number;
+  status: string;
+  createdAt: string;
+}
+
+interface QuizItem {
+  id: number;
+  title: string;
+  subject: string;
+  lesson: string;
+  dueDate: string;
+  dueTime?: string;
+  questions: number;
+  maxAttempts: number;
+  passingRate: string;
+  duration?: string;
+  status: string;
+}
+
+interface QuizManageQuestion {
+  id: number;
+  title: string;
+  fileType: string;
+}
+
+function LoadingSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="animate-pulse rounded-[1.2rem] border border-slate-200 bg-white p-4">
+          <div className="flex items-center justify-between">
+            <div className="h-4 w-20 rounded bg-slate-200" />
+            <div className="space-y-2 text-right">
+              <div className="h-5 w-40 rounded bg-slate-200" />
+              <div className="h-3 w-28 rounded bg-slate-200" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-red-200 bg-red-50 p-8 text-center">
+      <p className="text-sm font-semibold text-red-600">{message}</p>
+      <p className="mt-2 text-xs text-red-400">يرجى المحاولة مرة أخرى لاحقاً</p>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-10 text-center">
+      <p className="text-sm text-slate-500">{message}</p>
+    </div>
+  );
+}
 
 function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -79,10 +144,11 @@ function OutlineButton({ children, href }: { children: React.ReactNode; href?: s
   return href ? <Link href={href} className={className}>{children}</Link> : <button type="button" className={className}>{children}</button>;
 }
 
-function ActionIcon({ icon: Icon, tone = 'default' }: { icon: typeof Eye; tone?: 'default' | 'danger' }) {
+function ActionIcon({ icon: Icon, tone = 'default', onClick }: { icon: typeof Eye; tone?: 'default' | 'danger'; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition ${
         tone === 'danger'
           ? 'border-red-100 bg-red-50 text-red-500 hover:bg-red-100'
@@ -106,17 +172,87 @@ function StatusChip({ label, tone = 'default' }: { label: string; tone?: 'defaul
 
 export function ReferenceExamsPage() {
   const [query, setQuery] = useState('');
+  const [rows, setRows] = useState<ExamGroupRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
+  const fetchExamGroups = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/assessments');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const items: ExamGroupRow[] = (Array.isArray(data) ? data : []).map((item: any, idx: number) => ({
+        id: item.id ? String(item.id) : `#${idx + 1}`,
+        name: item.title || item.name || '-',
+        description: item.description || '-',
+        schedule: item.schedule || '-',
+        quizzes: item.questions_count ?? item.assessment_submissions?.[0]?.count ?? 0,
+        status: item.status === 'active' ? 'نشط' : item.status === 'draft' ? 'مسودة' : (item.status || 'نشط'),
+        createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-SA') : '-',
+      }));
+      setRows(items);
+    } catch (err) {
+      setError('فشل في تحميل مجموعات الاختبارات');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExamGroups();
+  }, [fetchExamGroups]);
+
   const [name, setName] = useState('مثال: اختبارات منتصف الفصل');
   const [description, setDescription] = useState('');
   const [schedule, setSchedule] = useState('مثال: ربيع 2024');
   const [active, setActive] = useState(true);
-  const filtered = examGroupRows.filter((row) => [row.id, row.name].join(' ').toLowerCase().includes(query.toLowerCase()));
+  const filtered = rows.filter((row) => [row.id, row.name].join(' ').toLowerCase().includes(query.toLowerCase()));
+
+  const handleCreate = async () => {
+    if (!name.trim() || name.startsWith('مثال:')) return;
+    setCreating(true);
+    try {
+      const res = await fetch('/api/assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: name.trim(),
+          description: description.trim() || null,
+          schedule: schedule.trim() || null,
+          status: active ? 'active' : 'draft',
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      setName('مثال: اختبارات منتصف الفصل');
+      setDescription('');
+      setSchedule('مثال: ربيع 2024');
+      setShowModal(false);
+      await fetchExamGroups();
+    } catch (err: any) {
+      setError(err.message || 'فشل في إنشاء مجموعة الاختبارات');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
         <SectionHeading title="مجموعات الاختبارات" subtitle="إدارة مجموعات الاختبارات والجداول الزمنية" />
+        {error && !loading ? (
+          <div className="flex items-center justify-between rounded-[1rem] bg-red-50 px-5 py-3">
+            <button type="button" onClick={() => setError(null)} className="text-sm font-bold text-red-400 hover:text-red-600">x</button>
+            <span className="text-sm font-semibold text-red-600">{error}</span>
+          </div>
+        ) : null}
 
         <div className="flex flex-col-reverse gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex-1">
@@ -128,9 +264,10 @@ export function ReferenceExamsPage() {
           </PillButton>
         </div>
 
+        {loading ? <LoadingSkeleton rows={3} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد مجموعات اختبارات بعد." /> : (
         <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between text-right">
-            <span className="text-sm text-slate-400">1</span>
+            <span className="text-sm text-slate-400">{filtered.length}</span>
             <h2 className="text-2xl font-black text-slate-950">لا يوجد فصل</h2>
           </div>
 
@@ -149,29 +286,60 @@ export function ReferenceExamsPage() {
             </ReferenceTableHeader>
             <ReferenceTableBody>
               {filtered.map((row) => (
-                <ReferenceTableRow key={row.id}>
-                  <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
-                  <ReferenceTableCell className="font-semibold">{row.name}</ReferenceTableCell>
-                  <ReferenceTableCell className="text-slate-400">{row.description}</ReferenceTableCell>
-                  <ReferenceTableCell className="text-slate-400">{row.schedule}</ReferenceTableCell>
-                  <ReferenceTableCell className="font-semibold">{row.quizzes}</ReferenceTableCell>
-                  <ReferenceTableCell>
-                    <StatusChip label={row.status} tone="success" />
-                  </ReferenceTableCell>
-                  <ReferenceTableCell>{row.createdAt}</ReferenceTableCell>
-                  <ReferenceTableCell>
-                    <button
-                      type="button"
-                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                    >
-                      فتح القائمة
-                    </button>
-                  </ReferenceTableCell>
-                </ReferenceTableRow>
+                <React.Fragment key={row.id}>
+                  <ReferenceTableRow>
+                    <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
+                    <ReferenceTableCell className="font-semibold">{row.name}</ReferenceTableCell>
+                    <ReferenceTableCell className="text-slate-400">{row.description}</ReferenceTableCell>
+                    <ReferenceTableCell className="text-slate-400">{row.schedule}</ReferenceTableCell>
+                    <ReferenceTableCell className="font-semibold">{row.quizzes}</ReferenceTableCell>
+                    <ReferenceTableCell>
+                      <StatusChip label={row.status} tone="success" />
+                    </ReferenceTableCell>
+                    <ReferenceTableCell>{row.createdAt}</ReferenceTableCell>
+                    <ReferenceTableCell>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedRowId(expandedRowId === row.id ? null : row.id)}
+                        className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                      >
+                        {expandedRowId === row.id ? 'إغلاق' : 'فتح القائمة'}
+                      </button>
+                    </ReferenceTableCell>
+                  </ReferenceTableRow>
+                  {expandedRowId === row.id ? (
+                    <ReferenceTableRow>
+                      <ReferenceTableCell colSpan={8}>
+                        <div className="rounded-[1rem] border border-slate-100 bg-slate-50 p-5 text-right">
+                          <h4 className="text-lg font-black text-slate-900">{row.name}</h4>
+                          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                              <span className="text-xs font-semibold text-slate-400">الوصف</span>
+                              <p className="mt-1 text-sm text-slate-700">{row.description}</p>
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-slate-400">الجدول الزمني</span>
+                              <p className="mt-1 text-sm text-slate-700">{row.schedule}</p>
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-slate-400">عدد الاختبارات</span>
+                              <p className="mt-1 text-sm font-bold text-slate-700">{row.quizzes}</p>
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-slate-400">تاريخ الإنشاء</span>
+                              <p className="mt-1 text-sm text-slate-700">{row.createdAt}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </ReferenceTableCell>
+                    </ReferenceTableRow>
+                  ) : null}
+                </React.Fragment>
               ))}
             </ReferenceTableBody>
           </ReferenceTable>
         </div>
+        )}
 
         {showModal ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -208,8 +376,10 @@ export function ReferenceExamsPage() {
               </div>
 
               <div className="mt-6 flex justify-start gap-3">
-                <button type="button" className="rounded-full bg-[#a1a1a1] px-6 py-3 text-sm font-bold text-white">إنشاء</button>
-                <button type="button" onClick={() => setShowModal(false)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                <button type="button" onClick={handleCreate} disabled={creating} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
+                  {creating ? 'جارٍ الإنشاء...' : 'إنشاء'}
+                </button>
+                <button type="button" onClick={() => setShowModal(false)} disabled={creating} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 disabled:opacity-50">
                   إلغاء
                 </button>
               </div>
@@ -223,47 +393,146 @@ export function ReferenceExamsPage() {
 
 export function ReferenceQuizzesPage() {
   const locale = useLocale();
-  const [items, setItems] = useState(quizItems);
+  const [items, setItems] = useState<QuizItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'cards' | 'table'>('cards');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
+
+  const fetchQuizzes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/quizzes');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const data = json.data || json || [];
+      const mapped: QuizItem[] = (Array.isArray(data) ? data : []).map((item: any) => ({
+        id: item.id ?? Date.now(),
+        title: item.title || '-',
+        subject: item.subject_name || item.subject || '-',
+        lesson: item.lesson_name || item.class_name || '-',
+        dueDate: item.due_date ? new Date(item.due_date).toLocaleDateString('en-US') : (item.created_at ? new Date(item.created_at).toLocaleDateString('en-US') : '-'),
+        dueTime: item.due_time || '',
+        questions: item.questions_count ?? item.total_marks ?? 0,
+        maxAttempts: item.max_attempts ?? 3,
+        passingRate: item.passing_rate ? `${item.passing_rate}%` : '50%',
+        duration: item.duration_minutes ? `${item.duration_minutes} دقيقة` : undefined,
+        status: item.status === 'active' ? 'نشط' : item.status === 'draft' ? 'مسودة' : item.status === 'required' ? 'مطلوب' : (item.status || 'مسودة'),
+      }));
+      setItems(mapped);
+    } catch (err) {
+      setError('فشل في تحميل الاختبارات');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQuizzes();
+  }, [fetchQuizzes]);
+
+  const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(null), 2500);
+  }, []);
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [lesson, setLesson] = useState('');
   const [dueDate, setDueDate] = useState('');
   const filtered = items.filter((item) => [item.title, item.subject, item.lesson].join(' ').toLowerCase().includes(query.toLowerCase()));
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!title.trim()) {
       return;
     }
+    setCreating(true);
+    try {
+      const res = await fetch('/api/admin/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          subject_name: subject.trim() || null,
+          class_name: lesson.trim() || null,
+          due_date: dueDate.trim() || null,
+          status: 'draft',
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      setTitle('');
+      setSubject('');
+      setLesson('');
+      setDueDate('');
+      setShowCreateModal(false);
+      showSaved('تم إنشاء الاختبار بنجاح');
+      await fetchQuizzes();
+    } catch (err: any) {
+      setError(err.message || 'فشل في إنشاء الاختبار');
+    } finally {
+      setCreating(false);
+    }
+  };
 
-    setItems((current) => [
-      {
-        id: current.length + 10,
-        title: title.trim(),
-        subject: subject.trim() || 'المعلم الإلكتروني',
-        lesson: lesson.trim() || 'درس جديد',
-        dueDate: dueDate.trim() || '11/01/2025',
-        dueTime: 'PM 06:00',
-        questions: 0,
-        maxAttempts: 3,
-        passingRate: '50%',
-        status: 'مسودة',
-      },
-      ...current,
-    ]);
-    setTitle('');
-    setSubject('');
-    setLesson('');
-    setDueDate('');
-    setShowCreateModal(false);
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا الاختبار؟')) return;
+    setDeleting(id);
+    try {
+      const res = await fetch(`/api/admin/quizzes?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      setItems((prev) => prev.filter((q) => q.id !== id));
+      showSaved('تم حذف الاختبار');
+    } catch (err: any) {
+      setError(err.message || 'فشل في حذف الاختبار');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDuplicate = async (item: QuizItem) => {
+    try {
+      const res = await fetch('/api/admin/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `${item.title} (نسخة)`,
+          subject_name: item.subject !== '-' ? item.subject : null,
+          class_name: item.lesson !== '-' ? item.lesson : null,
+          status: 'draft',
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      showSaved('تم نسخ الاختبار');
+      await fetchQuizzes();
+    } catch (err: any) {
+      setError(err.message || 'فشل في نسخ الاختبار');
+    }
   };
 
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
         <SectionHeading title="الاختبارات" subtitle="إدارة وإنشاء الاختبارات لمواد الدراسة الخاصة بك" />
+        {savedMsg ? <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div> : null}
+        {error && !loading ? (
+          <div className="flex items-center justify-between rounded-[1rem] bg-red-50 px-5 py-3">
+            <button type="button" onClick={() => setError(null)} className="text-sm font-bold text-red-400 hover:text-red-600">x</button>
+            <span className="text-sm font-semibold text-red-600">{error}</span>
+          </div>
+        ) : null}
 
         <div className="flex flex-col-reverse gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-center">
@@ -286,7 +555,7 @@ export function ReferenceQuizzesPage() {
           </PillButton>
         </div>
 
-        {view === 'cards' ? (
+        {loading ? <LoadingSkeleton rows={4} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد اختبارات بعد." /> : view === 'cards' ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((item) => (
               <div key={item.id} className="rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm">
@@ -329,7 +598,7 @@ export function ReferenceQuizzesPage() {
 
                 <div className="mt-5 space-y-3">
                   <OutlineButton href={withLocalePrefix(`/dashboard/quizzes/${item.id}/manage`, locale)}>إدارة</OutlineButton>
-                  <OutlineButton>عرض النتائج <FileText className="h-4 w-4" /></OutlineButton>
+                  <OutlineButton href={withLocalePrefix(`/dashboard/quizzes/${item.id}/manage`, locale)}>عرض النتائج <FileText className="h-4 w-4" /></OutlineButton>
                 </div>
               </div>
             ))}
@@ -371,10 +640,10 @@ export function ReferenceQuizzesPage() {
                     <div className="mt-1 text-xs text-slate-400">الحد الأقصى {item.maxAttempts}</div>
                   </ReferenceTableCell>
                   <ReferenceTableCell>
-                    <div className="flex items-center gap-2">
-                      <ActionIcon icon={Trash2} tone="danger" />
-                      <ActionIcon icon={SquarePen} />
-                      <ActionIcon icon={Copy} />
+                    <div className={`flex items-center gap-2 ${deleting === item.id ? 'pointer-events-none opacity-50' : ''}`}>
+                      <ActionIcon icon={Trash2} tone="danger" onClick={() => handleDelete(item.id)} />
+                      <ActionIcon icon={SquarePen} onClick={() => showSaved('جارٍ فتح محرر الاختبار...')} />
+                      <ActionIcon icon={Copy} onClick={() => handleDuplicate(item)} />
                       <Link href={withLocalePrefix(`/dashboard/quizzes/${item.id}/manage`, locale)}>
                         <ActionIcon icon={Eye} />
                       </Link>
@@ -418,10 +687,10 @@ export function ReferenceQuizzesPage() {
               </div>
 
               <div className="mt-6 flex justify-start gap-3">
-                <button type="button" onClick={handleCreate} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
-                  إنشاء
+                <button type="button" onClick={handleCreate} disabled={creating} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
+                  {creating ? 'جارٍ الإنشاء...' : 'إنشاء'}
                 </button>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                <button type="button" onClick={() => setShowCreateModal(false)} disabled={creating} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 disabled:opacity-50">
                   إلغاء
                 </button>
               </div>
@@ -435,24 +704,95 @@ export function ReferenceQuizzesPage() {
 
 export function ReferenceQuizManagePage() {
   const [activeQuestionId, setActiveQuestionId] = useState(1);
-  const [title, setTitle] = useState('ارفق اجابة السؤال الاول هنا');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [editorText, setEditorText] = useState('');
   const [required, setRequired] = useState(false);
-  const activeQuestion = quizManageQuestions.find((question) => question.id === activeQuestionId) || quizManageQuestions[0];
+  const [questions, setQuestions] = useState<QuizManageQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const activeQuestion = questions.find((question) => question.id === activeQuestionId) || questions[0];
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchQuizQuestions() {
+      setLoading(true);
+      setError(null);
+      try {
+        // Quiz manage page would typically fetch questions for a specific quiz.
+        // For now, we initialize with an empty state and let the user add questions.
+        // In a real implementation, this would fetch from /api/admin/quizzes/{id}/questions
+        if (!cancelled) {
+          setQuestions([]);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError('فشل في تحميل الأسئلة');
+          setLoading(false);
+        }
+      }
+    }
+    fetchQuizQuestions();
+    return () => { cancelled = true; };
+  }, []);
+
+  const showSaved = useCallback((msg = 'تم الحفظ بنجاح') => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(null), 2500);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    // Extract quiz ID from the URL path (e.g., /ar/dashboard/quizzes/123/manage)
+    const pathParts = window.location.pathname.split('/');
+    const manageIdx = pathParts.indexOf('manage');
+    const quizId = manageIdx > 0 ? pathParts[manageIdx - 1] : null;
+
+    if (!quizId) {
+      showSaved('لم يتم العثور على معرف الاختبار');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/quizzes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: quizId,
+          title: title || undefined,
+          description: description || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      showSaved('تم الحفظ بنجاح');
+    } catch (err: any) {
+      setSavedMsg(null);
+      setError(err.message || 'فشل في حفظ الاختبار');
+    } finally {
+      setSaving(false);
+    }
+  }, [title, description, showSaved]);
 
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
+        {savedMsg ? <div className="rounded-[1rem] bg-green-50 px-5 py-3 text-right text-sm font-semibold text-green-700">{savedMsg}</div> : null}
+        {error ? <div className="rounded-[1rem] bg-red-50 px-5 py-3 text-right text-sm font-semibold text-red-600">{error}</div> : null}
         <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex gap-3">
-              <Button variant="outline" className="h-12 rounded-full border-slate-200 bg-white px-5">
+              <Button variant="outline" onClick={() => showSaved('جارٍ فتح إعدادات الاختبار...')} className="h-12 rounded-full border-slate-200 bg-white px-5">
                 <Settings className="ml-2 h-4 w-4" />
                 إعدادات الاختبار
               </Button>
-              <Button className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
-                حفظ
+              <Button onClick={handleSave} disabled={saving} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
+                {saving ? 'جارٍ الحفظ...' : 'حفظ'}
               </Button>
             </div>
             <div className="text-right">
@@ -467,15 +807,16 @@ export function ReferenceQuizManagePage() {
           </div>
         </div>
 
+        {loading ? <LoadingSkeleton rows={2} /> : error ? <ErrorState message={error} /> : (
         <div className="grid gap-6 xl:grid-cols-[1fr,340px]">
           <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <div className="relative">
-                <select defaultValue={activeQuestion.fileType} className="h-11 appearance-none rounded-xl border border-slate-200 bg-white px-4 pl-10 text-sm text-slate-700 outline-none">
+                <select defaultValue={activeQuestion?.fileType || 'تحميل ملف'} className="h-11 appearance-none rounded-xl border border-slate-200 bg-white px-4 pl-10 text-sm text-slate-700 outline-none">
                   <option>تحميل ملف</option>
                 </select>
               </div>
-              <h2 className="text-2xl font-black text-slate-950">سؤال {activeQuestion.id}</h2>
+              <h2 className="text-2xl font-black text-slate-950">سؤال {activeQuestion?.id || 1}</h2>
             </div>
 
             <div className="space-y-5">
@@ -549,7 +890,12 @@ export function ReferenceQuizManagePage() {
 
           <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <PillButton>
+              <PillButton onClick={() => {
+                const newId = (questions[questions.length - 1]?.id || 0) + 1;
+                setQuestions((prev) => [...prev, { id: newId, title: `سؤال ${newId}`, fileType: 'تحميل ملف' }]);
+                setActiveQuestionId(newId);
+                setTitle(`سؤال ${newId}`);
+              }}>
                 <Plus className="h-4 w-4" />
                 إضافة
               </PillButton>
@@ -560,7 +906,7 @@ export function ReferenceQuizManagePage() {
             </div>
 
             <div className="space-y-3">
-              {quizManageQuestions.map((question) => {
+              {questions.map((question) => {
                 const active = question.id === activeQuestionId;
                 return (
                   <button
@@ -590,6 +936,7 @@ export function ReferenceQuizManagePage() {
             </div>
           </div>
         </div>
+        )}
       </div>
     </ReferenceDashboardShell>
   );

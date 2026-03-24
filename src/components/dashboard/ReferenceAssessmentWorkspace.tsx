@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FileQuestion, Search, TimerReset } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
@@ -45,87 +45,59 @@ const assessmentMeta: Record<
   },
 };
 
-const assessmentRowsByScope: Record<AssessmentScope, AssessmentRow[]> = {
-  quizzes: [
-    {
-      id: 'quiz-1',
-      title: { ar: 'اختبار الفيزياء الأسبوعي', en: 'Weekly physics quiz' },
-      audience: { ar: 'الأول الثانوي', en: 'First secondary' },
-      teacher: 'Magda zahran',
-      submissions: 24,
-      completion: '92%',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      scheduledAt: '2026-03-11 08:00',
-    },
-    {
-      id: 'quiz-2',
-      title: { ar: 'اختبار الإنجليزية التأسيسي', en: 'Foundation English quiz' },
-      audience: { ar: 'الصف السادس', en: 'Sixth grade' },
-      teacher: 'Muzna seth',
-      submissions: 18,
-      completion: '84%',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      scheduledAt: '2026-03-12 10:30',
-    },
-    {
-      id: 'quiz-3',
-      title: { ar: 'اختبار مراجعات الرياضيات', en: 'Math revision quiz' },
-      audience: { ar: 'الثالث الثانوي', en: 'Third secondary' },
-      teacher: 'رحاب رائد فيصل',
-      submissions: 0,
-      completion: '0%',
-      status: { ar: 'مسودة', en: 'Draft' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      scheduledAt: '2026-03-14 18:00',
-    },
-  ],
-  exams: [
-    {
-      id: 'exam-1',
-      title: { ar: 'الامتحان التجريبي الأول', en: 'First mock exam' },
-      audience: { ar: 'الثالث الثانوي', en: 'Third secondary' },
-      teacher: 'د. رحمة خليل',
-      submissions: 30,
-      completion: '87%',
-      status: { ar: 'منشور', en: 'Published' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      scheduledAt: '2026-03-15 09:00',
-    },
-    {
-      id: 'exam-2',
-      title: { ar: 'امتحان اللغة العربية النهائي', en: 'Final Arabic exam' },
-      audience: { ar: 'الأول الثانوي', en: 'First secondary' },
-      teacher: 'لادن ادريس بابكر ادريس',
-      submissions: 12,
-      completion: '52%',
-      status: { ar: 'قيد التنفيذ', en: 'Running' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      scheduledAt: '2026-03-10 12:00',
-    },
-    {
-      id: 'exam-3',
-      title: { ar: 'امتحان تأسيسي تجريبي', en: 'Foundation mock exam' },
-      audience: { ar: 'الصف السادس', en: 'Sixth grade' },
-      teacher: 'Muzna seth',
-      submissions: 0,
-      completion: '0%',
-      status: { ar: 'مسودة', en: 'Draft' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      scheduledAt: '2026-03-18 16:00',
-    },
-  ],
-};
+function mapApiToAssessmentRow(item: Record<string, unknown>): AssessmentRow {
+  const id = String(item.id || '');
+  const titleAr = String(item.title_ar || item.title || item.name || '');
+  const titleEn = String(item.title_en || item.title || item.name || '');
+  const audAr = String(item.audience_ar || item.grade_name || item.course_name || '');
+  const audEn = String(item.audience_en || item.grade_name || item.course_name || '');
+  const teacher = String(item.teacher_name || item.teacher || '-');
+  const submissions = Number(item.submission_count || item.submissions || item.attempts || 0);
+  const completion = item.completion_rate ? `${item.completion_rate}%` : '0%';
+  const isPublished = item.is_published === true || item.status === 'published' || item.status === 'running';
+  const isDraft = item.status === 'draft' || item.is_published === false;
+  const scheduledAt = String(item.scheduled_at || item.due_date || item.created_at || '-').replace('T', ' ').slice(0, 16);
+
+  return {
+    id,
+    title: { ar: titleAr, en: titleEn },
+    audience: { ar: audAr, en: audEn },
+    teacher,
+    submissions,
+    completion,
+    status: isDraft
+      ? { ar: 'مسودة', en: 'Draft' }
+      : isPublished
+        ? { ar: 'منشور', en: 'Published' }
+        : { ar: 'قيد التنفيذ', en: 'Running' },
+    statusClassName: isDraft
+      ? 'bg-[#eef2ff] text-[#4338ca]'
+      : 'bg-[#edfdf3] text-[#15803d]',
+    scheduledAt,
+  };
+}
 
 export default function ReferenceAssessmentWorkspace({ scope }: { scope: AssessmentScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = assessmentMeta[scope];
-  const rows = assessmentRowsByScope[scope];
+  const [rows, setRows] = useState<AssessmentRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<AssessmentFilter>('all');
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/assessments')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data?.assessments || [];
+        setRows(items.map((item: Record<string, unknown>) => mapApiToAssessmentRow(item)));
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [scope]);
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -253,6 +225,17 @@ export default function ReferenceAssessmentWorkspace({ scope }: { scope: Assessm
           </div>
 
           <div className="mt-6 grid gap-4">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="h-48 animate-pulse rounded-[1.75rem] bg-slate-100" />
+                ))}
+              </div>
+            ) : filteredRows.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
+                {isArabic ? 'لا توجد نماذج حالياً.' : 'No assessments available.'}
+              </div>
+            ) : null}
             {filteredRows.map((row) => (
               <article key={row.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">

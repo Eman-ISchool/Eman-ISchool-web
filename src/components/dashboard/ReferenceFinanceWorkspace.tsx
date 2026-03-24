@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Banknote, CreditCard, Landmark, ReceiptText, Search, TicketPercent, Wallet } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Banknote, Construction, CreditCard, Landmark, ReceiptText, Search, TicketPercent, Wallet } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,9 @@ type FinanceRow = {
   statusClassName: string;
   updatedAt: string;
 };
+
+/** Scopes that have no backend API yet */
+const UNIMPLEMENTED_SCOPES: FinanceScope[] = ['banks', 'expenses', 'coupons', 'salaries', 'payslips'];
 
 const financeMeta: Record<
   FinanceScope,
@@ -96,273 +99,108 @@ const financeMeta: Record<
   },
 };
 
-const financeRowsByScope: Record<FinanceScope, FinanceRow[]> = {
-  fees: [
-    {
-      id: 'fee-1',
-      title: { ar: 'رسوم كورس المعلم الإلكتروني', en: 'Teacher course fees' },
-      subtitle: { ar: 'الأول الثانوي', en: 'First secondary' },
-      owner: 'ميرا محمود حسن',
-      amount: 'AED 150',
-      status: { ar: 'قيد التحصيل', en: 'Collecting' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'fee-2',
-      title: { ar: 'رسوم تأسيس اللغة الإنجليزية', en: 'English foundation fees' },
-      subtitle: { ar: 'الصف السادس', en: 'Sixth grade' },
-      owner: 'ليان عبد الرحمن',
-      amount: 'AED 100',
-      status: { ar: 'مدفوع', en: 'Paid' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-09',
-    },
-    {
-      id: 'fee-3',
-      title: { ar: 'رسوم المراجعات النهائية', en: 'Final revision fees' },
-      subtitle: { ar: 'الثالث الثانوي', en: 'Third secondary' },
-      owner: 'يوسف سامي محمود',
-      amount: 'AED 180',
-      status: { ar: 'متأخر', en: 'Overdue' },
-      statusClassName: 'bg-[#fff1f2] text-[#e11d48]',
-      updatedAt: '2026-03-07',
-    },
-  ],
-  payments: [
-    {
-      id: 'pay-1',
-      title: { ar: 'دفعة ميرا محمود حسن', en: 'Mira Mahmoud payment' },
-      subtitle: { ar: 'تحويل بنكي', en: 'Bank transfer' },
-      owner: 'حساب المستقبل - بنك الإمارات',
-      amount: 'AED 150',
-      status: { ar: 'مؤكد', en: 'Confirmed' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'pay-2',
-      title: { ar: 'دفعة رتاج محمد فاروق', en: 'Retaj Farouk payment' },
-      subtitle: { ar: 'رابط دفع', en: 'Payment link' },
-      owner: 'بطاقة Visa',
-      amount: 'AED 100',
-      status: { ar: 'بانتظار التأكيد', en: 'Awaiting confirmation' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      updatedAt: '2026-03-09',
-    },
-    {
-      id: 'pay-3',
-      title: { ar: 'دفعة فاطمة علي أحمد', en: 'Fatima Ali payment' },
-      subtitle: { ar: 'نقدي', en: 'Cash' },
-      owner: 'الصندوق الرئيسي',
-      amount: 'AED 200',
-      status: { ar: 'مسجلة', en: 'Recorded' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-08',
-    },
-  ],
-  banks: [
-    {
-      id: 'bank-1',
-      title: { ar: 'حساب التحصيل الرئيسي', en: 'Primary collection account' },
-      subtitle: { ar: 'بنك الإمارات دبي الوطني', en: 'Emirates NBD' },
-      owner: 'AED - 1122 3344',
-      amount: 'AED 84,220',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'bank-2',
-      title: { ar: 'حساب المرتبات', en: 'Payroll account' },
-      subtitle: { ar: 'بنك أبوظبي الأول', en: 'First Abu Dhabi Bank' },
-      owner: 'AED - 9988 1100',
-      amount: 'AED 21,450',
-      status: { ar: 'نشط', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-09',
-    },
-    {
-      id: 'bank-3',
-      title: { ar: 'محفظة الخصومات', en: 'Discount wallet' },
-      subtitle: { ar: 'حساب مساعد', en: 'Auxiliary account' },
-      owner: 'AED - 2002 8866',
-      amount: 'AED 2,100',
-      status: { ar: 'مراجعة', en: 'Review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-06',
-    },
-  ],
-  currencies: [
-    {
-      id: 'cur-1',
-      title: { ar: 'الدرهم الإماراتي', en: 'UAE dirham' },
-      subtitle: { ar: 'العملة الافتراضية', en: 'Default currency' },
-      owner: 'AED',
-      amount: '1.00',
-      status: { ar: 'مفعل', en: 'Enabled' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'cur-2',
-      title: { ar: 'الجنيه المصري', en: 'Egyptian pound' },
-      subtitle: { ar: 'تحويل الرسوم', en: 'Fee conversion' },
-      owner: 'EGP',
-      amount: '13.10',
-      status: { ar: 'مراقب', en: 'Tracked' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      updatedAt: '2026-03-09',
-    },
-    {
-      id: 'cur-3',
-      title: { ar: 'الدولار الأمريكي', en: 'US dollar' },
-      subtitle: { ar: 'الدفع الدولي', en: 'International payments' },
-      owner: 'USD',
-      amount: '0.27',
-      status: { ar: 'مفعل', en: 'Enabled' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-08',
-    },
-  ],
-  expenses: [
-    {
-      id: 'exp-1',
-      title: { ar: 'اشتراك المنصة التعليمية', en: 'Platform subscription' },
-      subtitle: { ar: 'اشتراك شهري', en: 'Monthly subscription' },
-      owner: 'الفريق التقني',
-      amount: 'AED 460',
-      status: { ar: 'معتمد', en: 'Approved' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'exp-2',
-      title: { ar: 'أدوات التسويق', en: 'Marketing tools' },
-      subtitle: { ar: 'رخصة فريق', en: 'Team license' },
-      owner: 'قسم التسويق',
-      amount: 'AED 220',
-      status: { ar: 'بانتظار الصرف', en: 'Pending payout' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-07',
-    },
-    {
-      id: 'exp-3',
-      title: { ar: 'استوديو التسجيل', en: 'Recording studio' },
-      subtitle: { ar: 'مصروف تشغيلي', en: 'Operational expense' },
-      owner: 'قسم المحتوى',
-      amount: 'AED 300',
-      status: { ar: 'مرفوض', en: 'Rejected' },
-      statusClassName: 'bg-[#fff1f2] text-[#e11d48]',
-      updatedAt: '2026-03-06',
-    },
-  ],
-  coupons: [
-    {
-      id: 'cop-1',
-      title: { ar: 'خصم العودة للدراسة', en: 'Back to school discount' },
-      subtitle: { ar: 'خصم 15%', en: '15% off' },
-      owner: 'ALL-BUNDLES-15',
-      amount: '72 استخدام',
-      status: { ar: 'مفعل', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'cop-2',
-      title: { ar: 'خصم الأشقاء', en: 'Sibling discount' },
-      subtitle: { ar: 'خصم 10%', en: '10% off' },
-      owner: 'SIBLING10',
-      amount: '18 استخدام',
-      status: { ar: 'مفعل', en: 'Active' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-08',
-    },
-    {
-      id: 'cop-3',
-      title: { ar: 'عرض المراجعات', en: 'Revision promo' },
-      subtitle: { ar: 'خصم 20%', en: '20% off' },
-      owner: 'REVISION20',
-      amount: '0 استخدام',
-      status: { ar: 'مجمد', en: 'Paused' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      updatedAt: '2026-03-05',
-    },
-  ],
-  salaries: [
-    {
-      id: 'sal-1',
-      title: { ar: 'كشف رواتب مارس', en: 'March payroll' },
-      subtitle: { ar: 'فريق المعلمين', en: 'Teaching team' },
-      owner: '11 معلم',
-      amount: 'AED 14,400',
-      status: { ar: 'جاهز للتحويل', en: 'Ready to transfer' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'sal-2',
-      title: { ar: 'حوافز فبراير', en: 'February incentives' },
-      subtitle: { ar: 'المحتوى والدعم', en: 'Content and support' },
-      owner: '6 موظفين',
-      amount: 'AED 2,300',
-      status: { ar: 'تم التحويل', en: 'Transferred' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-08',
-    },
-    {
-      id: 'sal-3',
-      title: { ar: 'تسوية بدل إضافي', en: 'Allowance settlement' },
-      subtitle: { ar: 'معلمون متعاقدون', en: 'Contract teachers' },
-      owner: '4 ملفات',
-      amount: 'AED 920',
-      status: { ar: 'قيد المراجعة', en: 'Under review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-06',
-    },
-  ],
-  payslips: [
-    {
-      id: 'ps-1',
-      title: { ar: 'قسائم مارس', en: 'March payslips' },
-      subtitle: { ar: 'فريق المعلمين', en: 'Teaching team' },
-      owner: '11 ملف PDF',
-      amount: 'جاهزة',
-      status: { ar: 'مرسلة', en: 'Sent' },
-      statusClassName: 'bg-[#edfdf3] text-[#15803d]',
-      updatedAt: '2026-03-10',
-    },
-    {
-      id: 'ps-2',
-      title: { ar: 'قسائم فبراير', en: 'February payslips' },
-      subtitle: { ar: 'الدعم والإدارة', en: 'Support and admin' },
-      owner: '5 ملفات PDF',
-      amount: 'جاهزة',
-      status: { ar: 'أرشيف', en: 'Archived' },
-      statusClassName: 'bg-[#eef2ff] text-[#4338ca]',
-      updatedAt: '2026-03-08',
-    },
-    {
-      id: 'ps-3',
-      title: { ar: 'قسائم بدل إضافي', en: 'Allowance slips' },
-      subtitle: { ar: 'دفعة خاصة', en: 'Special batch' },
-      owner: '4 ملفات PDF',
-      amount: 'بانتظار المراجعة',
-      status: { ar: 'قيد المراجعة', en: 'Under review' },
-      statusClassName: 'bg-[#fff7ed] text-[#c2410c]',
-      updatedAt: '2026-03-06',
-    },
-  ],
+const financeApiByScope: Record<FinanceScope, string | null> = {
+  fees: '/api/invoices',
+  payments: '/api/invoices',
+  banks: null,
+  currencies: '/api/currencies',
+  expenses: null,
+  coupons: null,
+  salaries: null,
+  payslips: null,
 };
+
+function mapApiToFinanceRow(item: Record<string, unknown>, scope: FinanceScope): FinanceRow {
+  const id = String(item.id || '');
+  const titleAr = String(item.name_ar || item.name || item.title || item.description || '');
+  const titleEn = String(item.name_en || item.name || item.title || item.description || '');
+  const subtitleAr = String(item.type || item.category || item.code || '');
+  const subtitleEn = String(item.type || item.category || item.code || '');
+  const owner = String(item.student_name || item.user_name || item.owner || '-');
+  const amount = item.amount ? `AED ${item.amount}` : item.rate ? String(item.rate) : '-';
+  const isPaid = item.status === 'paid' || item.status === 'active' || item.status === 'confirmed' || item.is_active === true;
+  const updatedAt = String(item.updated_at || item.created_at || '-').split('T')[0];
+
+  const statusMap: Record<string, { label: { ar: string; en: string }; className: string }> = {
+    paid: { label: { ar: 'مدفوع', en: 'Paid' }, className: 'bg-[#edfdf3] text-[#15803d]' },
+    active: { label: { ar: 'نشط', en: 'Active' }, className: 'bg-[#edfdf3] text-[#15803d]' },
+    confirmed: { label: { ar: 'مؤكد', en: 'Confirmed' }, className: 'bg-[#edfdf3] text-[#15803d]' },
+    pending: { label: { ar: 'قيد التحصيل', en: 'Collecting' }, className: 'bg-[#fff7ed] text-[#c2410c]' },
+    overdue: { label: { ar: 'متأخر', en: 'Overdue' }, className: 'bg-[#fff1f2] text-[#e11d48]' },
+  };
+
+  const statusKey = String(item.status || (isPaid ? 'active' : 'pending'));
+  const mapped = statusMap[statusKey] || (isPaid
+    ? { label: { ar: 'نشط', en: 'Active' }, className: 'bg-[#edfdf3] text-[#15803d]' }
+    : { label: { ar: 'قيد المراجعة', en: 'Under review' }, className: 'bg-[#fff7ed] text-[#c2410c]' });
+
+  return {
+    id,
+    title: { ar: titleAr, en: titleEn },
+    subtitle: { ar: subtitleAr, en: subtitleEn },
+    owner,
+    amount: String(amount),
+    status: mapped.label,
+    statusClassName: mapped.className,
+    updatedAt,
+  };
+}
 
 export default function ReferenceFinanceWorkspace({ scope }: { scope: FinanceScope }) {
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const meta = financeMeta[scope];
-  const rows = financeRowsByScope[scope];
+  const isUnimplemented = UNIMPLEMENTED_SCOPES.includes(scope);
+  const [rows, setRows] = useState<FinanceRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<'all' | 'active' | 'attention'>('all');
   const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const endpoint = financeApiByScope[scope];
+    if (!endpoint) {
+      setRows([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    // FIX 2: For payments scope, only fetch paid/confirmed invoices
+    const url = scope === 'payments' ? `${endpoint}?status=paid` : endpoint;
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((body) => {
+            throw new Error(body?.error || `${res.status} ${res.statusText}`);
+          }).catch((parseErr) => {
+            if (parseErr instanceof Error && parseErr.message !== `${res.status} ${res.statusText}`) {
+              throw parseErr;
+            }
+            throw new Error(`${res.status} ${res.statusText}`);
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data?.invoices || data?.currencies || [];
+        // FIX 2: Additional client-side filter for payments (in case API doesn't filter by payment_status)
+        const filtered = scope === 'payments'
+          ? items.filter((item: Record<string, unknown>) =>
+              item.status === 'paid' || item.status === 'confirmed' || item.payment_status === 'paid' || item.payment_status === 'confirmed')
+          : items;
+        setRows(filtered.map((item: Record<string, unknown>) => mapApiToFinanceRow(item, scope)));
+      })
+      .catch((err: Error) => {
+        setRows([]);
+        setError(err.message || (isArabic ? 'حدث خطأ أثناء تحميل البيانات' : 'An error occurred while loading data'));
+      })
+      .finally(() => setLoading(false));
+  }, [scope, isArabic]);
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -519,6 +357,47 @@ export default function ReferenceFinanceWorkspace({ scope }: { scope: FinanceSco
               </tr>
             </thead>
             <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center">
+                    <div className="mx-auto h-6 w-48 animate-pulse rounded bg-slate-100" />
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center">
+                    <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+                      <AlertTriangle className="h-8 w-8 text-red-400" />
+                      <p className="text-sm font-semibold text-red-600">
+                        {isArabic ? 'حدث خطأ' : 'An error occurred'}
+                      </p>
+                      <p className="text-xs text-red-500">{error}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : isUnimplemented ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-14 text-center">
+                    <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+                      <Construction className="h-10 w-10 text-amber-400" />
+                      <p className="text-base font-bold text-slate-700">
+                        {isArabic ? 'هذا القسم قيد التطوير' : 'This section is under development'}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {isArabic
+                          ? 'لا توجد بيانات حالياً. سيتم إضافة هذه الميزة قريباً'
+                          : 'No data currently available. This feature will be added soon'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-400">
+                    {isArabic ? 'لا توجد بيانات حالياً.' : 'No data available.'}
+                  </td>
+                </tr>
+              ) : null}
               {filteredRows.map((row) => (
                 <tr key={row.id} className="border-t border-slate-200">
                   <td className="px-4 py-3">

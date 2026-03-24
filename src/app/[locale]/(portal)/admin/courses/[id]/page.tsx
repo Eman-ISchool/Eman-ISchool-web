@@ -682,6 +682,11 @@ function LiveSessionsTab({ courseId }: { courseId: string }) {
     );
 }
 
+interface TeacherOption {
+    id: string;
+    name: string;
+}
+
 export default function AdminCourseDetailsPage({ params }: { params: { id: string } }) {
     const locale = useLocale();
     const isArabic = locale === 'ar';
@@ -691,24 +696,54 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
     const [meetingLink, setMeetingLink] = useState('');
     const [details, setDetails] = useState('');
     const [courseLoading, setCourseLoading] = useState(true);
+    const [courseLoadError, setCourseLoadError] = useState<string | null>(null);
+    const [teachers, setTeachers] = useState<TeacherOption[]>([]);
+    const [saveMsg, setSaveMsg] = useState<string | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [savingCourse, setSavingCourse] = useState(false);
 
+    // Fetch teachers for dropdown
     useEffect(() => {
-        fetch(`/api/courses/${params.id}`)
+        fetch('/api/admin/users?role=teacher')
             .then((r) => r.json())
             .then((d) => {
-                const c = d.course;
-                if (!c) return;
+                const users = d.users || [];
+                setTeachers(users.map((u: any) => ({ id: u.id, name: u.name || u.email })));
+            })
+            .catch(() => {
+                // Fallback to hardcoded list if API fails
+                setTeachers([
+                    { id: '1', name: 'ابراهيم محمد' },
+                    { id: '2', name: 'د. رحمة خليل' },
+                    { id: '3', name: 'Zainab elfadili Ibrahim' },
+                ]);
+            });
+    }, []);
+
+    useEffect(() => {
+        // No single-course GET endpoint; fetch list and find by ID
+        fetch(`/api/courses?limit=50`)
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then((d) => {
+                const courses = d.courses || [];
+                const c = courses.find((course: any) => String(course.id) === String(params.id));
+                if (!c) {
+                    setCourseLoadError(isArabic ? 'لم يتم العثور على المادة الدراسية' : 'Course not found');
+                    return;
+                }
                 setCourseTitle(c.title || '');
-                setTeacher(c.teacher?.name || c.instructor_name || '');
+                setTeacher(c.teacher_name || c.teacher?.name || c.instructor_name || '');
                 setDetails(c.description || '');
                 setMeetingLink(c.meet_link || '');
             })
             .catch(() => {
-                setCourseTitle('Basics');
-                setTeacher('ابراهيم محمد');
+                setCourseLoadError(isArabic ? 'فشل في تحميل بيانات المادة الدراسية' : 'Failed to load course data');
             })
             .finally(() => setCourseLoading(false));
-    }, [params.id]);
+    }, [params.id, isArabic]);
 
     const copy = useMemo(
         () =>
@@ -776,33 +811,102 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
 
     const BackIcon = isArabic ? ArrowRight : ArrowLeft;
 
-    const handleCreateMeeting = () => {
-        // Simulating the creation of a Google Meet link locally
-        const randomString = Math.random().toString(36).substring(2, 12);
-        const generatedLink = `https://meet.google.com/${randomString.substring(0, 3)}-${randomString.substring(3, 7)}-${randomString.substring(7)}`;
-        setMeetingLink(generatedLink);
+    const [meetingLoading, setMeetingLoading] = useState(false);
+    const [meetingError, setMeetingError] = useState('');
+
+    const handleCreateMeeting = async () => {
+        setMeetingLoading(true);
+        setMeetingError('');
+
+        try {
+            console.log('[UI] Calling /api/meetings/create...');
+            const res = await fetch('/api/meetings/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    courseId: params.id,
+                    title: courseTitle || 'Eduverse Meeting',
+                    description: details || '',
+                }),
+            });
+            const data = await res.json();
+            console.log('[UI] Response:', res.status, JSON.stringify(data));
+
+            if (res.ok && data.meetLink) {
+                setMeetingLink(data.meetLink);
+                console.log('[UI] Meet link set:', data.meetLink);
+            } else {
+                const errMsg = data.error || 'فشل إنشاء رابط الاجتماع';
+                const detail = data.detail ? ` (${data.detail})` : '';
+                setMeetingError(`${errMsg}${detail}`);
+                console.error('[UI] Meeting creation failed:', data);
+            }
+        } catch (err: any) {
+            const errMsg = `فشل الاتصال بالخادم: ${err.message}`;
+            setMeetingError(errMsg);
+            console.error('[UI] Fetch error:', err);
+        }
+
+        setMeetingLoading(false);
     };
 
     const handleSave = async () => {
+        setSavingCourse(true);
+        setSaveMsg(null);
+        setSaveError(null);
         try {
-            const res = await fetch(`/api/courses/${params.id}`, {
+            const res = await fetch('/api/courses', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    id: params.id,
                     title: courseTitle,
                     description: details,
                     instructor_name: teacher,
                     meet_link: meetingLink || null,
                 }),
             });
-            if (!res.ok) throw new Error('save failed');
-        } catch (error) {
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || 'save failed');
+            }
+            setSaveMsg(isArabic ? 'تم حفظ التغييرات بنجاح' : 'Changes saved successfully');
+            setTimeout(() => setSaveMsg(null), 3000);
+        } catch (error: any) {
             console.error('Failed to save:', error);
+            setSaveError(error.message || (isArabic ? 'فشل في حفظ التغييرات' : 'Failed to save changes'));
+            setTimeout(() => setSaveError(null), 4000);
+        } finally {
+            setSavingCourse(false);
         }
     };
 
+    if (courseLoadError) {
+        return (
+            <div className="relative min-h-[calc(100vh-120px)] w-full pb-20">
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FileText className="mb-4 h-12 w-12 text-red-300" strokeWidth={1.5} />
+                    <p className="text-lg font-semibold text-red-600">{courseLoadError}</p>
+                    <Link
+                        href={withAdminPortalPrefix('/admin/courses', locale)}
+                        className="mt-4 rounded-full border border-[#e5e7eb] px-5 py-2 text-sm font-medium text-[#111111] hover:bg-[#f4f4f5]"
+                    >
+                        {isArabic ? 'العودة للمواد الدراسية' : 'Back to Courses'}
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="relative min-h-[calc(100vh-120px)] w-full pb-20">
+            {/* Save feedback messages */}
+            {saveMsg && (
+                <div className="mb-4 rounded-xl bg-green-50 px-5 py-3 text-sm font-semibold text-green-700">{saveMsg}</div>
+            )}
+            {saveError && (
+                <div className="mb-4 rounded-xl bg-red-50 px-5 py-3 text-sm font-semibold text-red-600">{saveError}</div>
+            )}
             {/* Header Section */}
             <div className="mb-8 flex items-center justify-between">
                 {/* Save Button (Left side in RTL) */}
@@ -810,10 +914,11 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
                     <button
                         type="button"
                         onClick={handleSave}
-                        className="flex items-center justify-center gap-2 rounded-full bg-[#111111] px-7 py-2.5 text-sm font-medium text-white shadow-lg transition-colors hover:bg-black/80"
+                        disabled={savingCourse}
+                        className="flex items-center justify-center gap-2 rounded-full bg-[#111111] px-7 py-2.5 text-sm font-medium text-white shadow-lg transition-colors hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Save className="h-4 w-4" />
-                        <span>{copy.save}</span>
+                        {savingCourse ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        <span>{savingCourse ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : copy.save}</span>
                     </button>
                 </div>
                 {/* Title & Back (Right side in RTL) */}
@@ -909,9 +1014,15 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
                                                     className="w-full h-[52px] appearance-none rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-2 text-[15px] text-[#111111] focus:outline-none focus:ring-1 focus:ring-[#111111] text-right"
                                                     dir="rtl"
                                                 >
-                                                    <option value="ابراهيم محمد">ابراهيم محمد</option>
-                                                    <option value="د. رحمة خليل">د. رحمة خليل</option>
-                                                    <option value="Zainab elfadili Ibrahim">Zainab elfadili Ibrahim</option>
+                                                    {teachers.length > 0 ? (
+                                                        teachers.map((t) => (
+                                                            <option key={t.id} value={t.name}>{t.name}</option>
+                                                        ))
+                                                    ) : (
+                                                        <>
+                                                            {teacher && <option value={teacher}>{teacher}</option>}
+                                                        </>
+                                                    )}
                                                 </select>
                                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4">
                                                     <ChevronDown className="h-5 w-5 text-[#a1a1aa]" />
@@ -983,10 +1094,15 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
                                     <button
                                         type="button"
                                         onClick={handleCreateMeeting}
-                                        className="flex items-center justify-center gap-2 rounded-full bg-[#111111] px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-black/80"
+                                        disabled={meetingLoading}
+                                        className="flex items-center justify-center gap-2 rounded-full bg-[#111111] px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Video className="h-[16px] w-[16px]" />
-                                        <span>{copy.meeting.createMeeting}</span>
+                                        {meetingLoading ? (
+                                            <Loader2 className="h-[16px] w-[16px] animate-spin" />
+                                        ) : (
+                                            <Video className="h-[16px] w-[16px]" />
+                                        )}
+                                        <span>{meetingLoading ? (isArabic ? 'جاري الإنشاء...' : 'Creating...') : copy.meeting.createMeeting}</span>
                                     </button>
                                 </div>
                             </CardHeader>
@@ -1005,6 +1121,18 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
                                         className="h-[52px] w-full rounded-[14px] bg-white border border-[#e5e7eb] px-5 focus-visible:ring-1 focus-visible:ring-[#111111] text-left text-[14px] text-[#71717a] font-mono"
                                         dir="ltr"
                                     />
+                                    {meetingError && (
+                                        <div className="w-full rounded-lg bg-red-50 border border-red-200 p-3 mt-2">
+                                            <p className="text-sm text-red-700 font-medium">{meetingError}</p>
+                                        </div>
+                                    )}
+                                    {meetingLink && (
+                                        <a href={meetingLink} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-1">
+                                            <Video className="h-4 w-4" />
+                                            {isArabic ? 'فتح الاجتماع' : 'Open Meeting'}
+                                        </a>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

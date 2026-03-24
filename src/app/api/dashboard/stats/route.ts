@@ -1,12 +1,46 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+interface CurrentUser {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    googleId: string;
+}
+
+interface TodayLessonRow {
+    id: string;
+    title: string;
+    start_date_time: string;
+    end_date_time: string;
+    status: string;
+    meet_link: string | null;
+    teacher: { id: string; name: string; image: string | null } | null;
+}
+
+interface DashboardStatsResponse {
+    totalLessons: number;
+    upcomingLessons: number;
+    completedLessons: number;
+    totalStudents: number;
+    todayLessons: Array<{
+        _id: string;
+        title: string;
+        startDateTime: string;
+        endDateTime: string;
+        status: string;
+        meetLink: string | null;
+        teacher: { id: string; name: string; image: string | null } | null;
+    }>;
+    thisWeekLessons: number;
+}
+
 export async function GET() {
     const session = await getServerSession(authOptions);
-    const currentUser = session ? await getCurrentUser(session) : null;
+    const currentUser: CurrentUser | null = session ? await getCurrentUser(session) : null;
 
     try {
         const now = new Date();
@@ -15,13 +49,8 @@ export async function GET() {
         const weekStart = getWeekStart();
         const weekEnd = getWeekEnd();
 
-        // Build queries based on user role
-        let lessonsQuery = supabaseAdmin.from('lessons');
-
-        // If user is a teacher, only show their lessons
-        if (currentUser?.role === 'teacher') {
-            lessonsQuery = lessonsQuery.select('*').eq('teacher_id', currentUser.id);
-        }
+        const isTeacher = currentUser?.role === 'teacher';
+        const teacherId = currentUser?.id;
 
         // Parallel queries for better performance
         const [
@@ -33,14 +62,14 @@ export async function GET() {
             thisWeekLessonsResult
         ] = await Promise.all([
             // Total lessons count
-            currentUser?.role === 'teacher'
-                ? supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('teacher_id', currentUser.id)
+            isTeacher && teacherId
+                ? supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('teacher_id', teacherId)
                 : supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }),
 
             // Upcoming lessons count
-            currentUser?.role === 'teacher'
+            isTeacher && teacherId
                 ? supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
-                    .eq('teacher_id', currentUser.id)
+                    .eq('teacher_id', teacherId)
                     .eq('status', 'scheduled')
                     .gte('start_date_time', now.toISOString())
                 : supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
@@ -48,9 +77,9 @@ export async function GET() {
                     .gte('start_date_time', now.toISOString()),
 
             // Completed lessons count
-            currentUser?.role === 'teacher'
+            isTeacher && teacherId
                 ? supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
-                    .eq('teacher_id', currentUser.id)
+                    .eq('teacher_id', teacherId)
                     .eq('status', 'completed')
                 : supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
                     .eq('status', 'completed'),
@@ -59,7 +88,7 @@ export async function GET() {
             supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'student'),
 
             // Today's lessons
-            currentUser?.role === 'teacher'
+            isTeacher && teacherId
                 ? supabaseAdmin.from('lessons')
                     .select(`
                         id,
@@ -70,7 +99,7 @@ export async function GET() {
                         meet_link,
                         teacher:users!lessons_teacher_id_fkey(id, name, image)
                     `)
-                    .eq('teacher_id', currentUser.id)
+                    .eq('teacher_id', teacherId)
                     .gte('start_date_time', todayStart)
                     .lte('start_date_time', todayEnd)
                     .order('start_date_time', { ascending: true })
@@ -89,9 +118,9 @@ export async function GET() {
                     .order('start_date_time', { ascending: true }),
 
             // This week's lessons count
-            currentUser?.role === 'teacher'
+            isTeacher && teacherId
                 ? supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
-                    .eq('teacher_id', currentUser.id)
+                    .eq('teacher_id', teacherId)
                     .gte('start_date_time', weekStart)
                     .lte('start_date_time', weekEnd)
                 : supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true })
@@ -100,7 +129,7 @@ export async function GET() {
         ]);
 
         // Transform today's lessons to match expected format
-        const todayLessons = todayLessonsResult.data?.map(lesson => ({
+        const todayLessons = (todayLessonsResult.data as TodayLessonRow[] | null)?.map((lesson) => ({
             _id: lesson.id,
             title: lesson.title,
             startDateTime: lesson.start_date_time,
@@ -110,15 +139,19 @@ export async function GET() {
             teacher: lesson.teacher,
         })) || [];
 
-        return NextResponse.json({
+        const statsResponse: DashboardStatsResponse = {
             totalLessons: totalLessonsResult.count || 0,
             upcomingLessons: upcomingLessonsResult.count || 0,
             completedLessons: completedLessonsResult.count || 0,
             totalStudents: totalStudentsResult.count || 0,
             todayLessons,
             thisWeekLessons: thisWeekLessonsResult.count || 0,
-        });
-    } catch (error) {
+        };
+
+        const response = NextResponse.json(statsResponse);
+        response.headers.set('Cache-Control', 'private, s-maxage=30, stale-while-revalidate=120');
+        return response;
+    } catch (error: unknown) {
         console.error('Error fetching dashboard stats:', error);
         return NextResponse.json({ error: 'Failed to fetch statistics' }, { status: 500 });
     }

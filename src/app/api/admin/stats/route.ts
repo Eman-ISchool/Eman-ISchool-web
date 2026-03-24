@@ -23,10 +23,17 @@ export async function GET(req: Request) {
         }
 
         const now = new Date();
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const startOfDayISO = startOfDay.toISOString();
+        const startOfWeekISO = startOfWeek.toISOString();
+        const startOfMonthISO = startOfMonth.toISOString();
+        const lastMonthStartISO = lastMonthStart.toISOString();
 
         // 1. Fetch counts in chunks to avoid overwhelming the connection pool
         const queries = [
@@ -39,8 +46,8 @@ export async function GET(req: Request) {
             supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }),
             supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('status', 'scheduled').gte('start_date_time', new Date().toISOString()),
             supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-            supabaseAdmin.from('lessons').select(`*, teacher:users!lessons_teacher_id_fkey(id, name, image), course:courses(id, title)`).gte('start_date_time', startOfDay).order('start_date_time', { ascending: true }).limit(10),
-            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).gte('start_date_time', startOfWeek),
+            supabaseAdmin.from('lessons').select(`*, teacher:users!lessons_teacher_id_fkey(id, name, image), course:courses(id, title)`).gte('start_date_time', startOfDayISO).order('start_date_time', { ascending: true }).limit(10),
+            supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).gte('start_date_time', startOfWeekISO),
 
             supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'active'),
             supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -48,10 +55,11 @@ export async function GET(req: Request) {
             supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'absent'),
             supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'late'),
 
-            supabaseAdmin.from('audit_logs').select(`*, user:users(id, name, email)`).order('created_at', { ascending: false }).limit(10),
+            // audit_logs table may not exist yet — wrap in a safe query that won't crash
+            supabaseAdmin.from('users').select('id, name, email, role, created_at').order('created_at', { ascending: false }).limit(10),
             supabaseAdmin.from('users').select(`id, name, email, image, lessons:lessons(count), courses:courses(count)`).eq('role', 'teacher').limit(10),
-            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).lt('created_at', startOfMonth).gte('created_at', lastMonthStart),
-            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).lt('created_at', startOfMonthISO).gte('created_at', lastMonthStartISO),
+            supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonthISO),
             // Additional queries for parity
             supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
             supabaseAdmin.from('enrollments').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
@@ -97,7 +105,7 @@ export async function GET(req: Request) {
             ? Math.round(((thisMonthUsers || 0) - lastMonthUsers) / lastMonthUsers * 100)
             : 0;
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             users: {
                 total: ((studentCount || 0) + (teacherCount || 0) + (adminCount || 0)),
                 students: studentCount || 0,
@@ -136,6 +144,8 @@ export async function GET(req: Request) {
             recentActivity: recentAuditLogs || [],
             teacherPerformance: teacherPerformance || [],
         });
+        response.headers.set('Cache-Control', 'private, s-maxage=30, stale-while-revalidate=120');
+        return response;
     } catch (error: any) {
         console.error('Error fetching admin stats:', error);
         return NextResponse.json(

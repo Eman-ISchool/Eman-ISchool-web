@@ -63,6 +63,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/courses', label: { ar: 'المواد الدراسية', en: 'Courses' }, icon: BookOpen },
       { href: '/dashboard/categories', label: { ar: 'الفئات', en: 'Categories' }, icon: FolderKanban },
       { href: '/dashboard/bundles', label: { ar: 'الفصول', en: 'Bundles' }, icon: CalendarDays },
+      { href: '/dashboard/exams', label: { ar: 'الامتحانات', en: 'Exams' }, icon: FileBarChart2 },
       { href: '/dashboard/quizzes', label: { ar: 'الاختبارات', en: 'Quizzes' }, icon: FileQuestion },
     ],
   },
@@ -92,6 +93,7 @@ const navGroups: NavGroup[] = [
     id: 'communication',
     label: { ar: 'التواصل', en: 'Communication' },
     items: [
+      { href: '/dashboard/announcements', label: { ar: 'الإعلانات', en: 'Announcements' }, icon: Bell },
       { href: '/dashboard/messages', label: { ar: 'الرسائل', en: 'Messages' }, icon: MessageSquare },
     ],
   },
@@ -99,8 +101,8 @@ const navGroups: NavGroup[] = [
     id: 'content',
     label: { ar: 'المحتوى', en: 'Content' },
     items: [
-      { href: '/dashboard/announcements', label: { ar: 'الإعلانات', en: 'Announcements' }, icon: Bell },
       { href: '/dashboard/cms', label: { ar: 'إدارة المحتوى', en: 'CMS' }, icon: FolderKanban },
+      { href: '/dashboard/blogs', label: { ar: 'المدونات', en: 'Blogs' }, icon: BookOpen },
       { href: '/dashboard/translations', label: { ar: 'الترجمة', en: 'Translations' }, icon: FileQuestion },
     ],
   },
@@ -411,7 +413,7 @@ export default function ReferenceDashboardShell({
                 })}
               </div>
 
-              {installCard}
+              {installBanner}
 
               <button
                 type="button"

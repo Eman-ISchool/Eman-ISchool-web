@@ -36,16 +36,16 @@ export default async function LocaleLayout({
 
   return (
     <AuthProvider>
-      <LanguageProviderWrapper>
-        <NextIntlClientProvider messages={messages}>
+      <NextIntlClientProvider messages={messages}>
+        <LanguageProviderWrapper>
           <div lang={locale} dir={direction} className="min-h-screen flex flex-col">
             <NextTopLoader color="#4A90E2" showSpinner={false} height={3} />
             <ConditionalLayout>
               {children}
             </ConditionalLayout>
           </div>
-        </NextIntlClientProvider>
-      </LanguageProviderWrapper>
+        </LanguageProviderWrapper>
+      </NextIntlClientProvider>
     </AuthProvider>
   );
 }

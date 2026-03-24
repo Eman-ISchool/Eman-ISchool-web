@@ -15,6 +15,28 @@ async function checkAdminAccess() {
     return { currentUser };
 }
 
+/**
+ * Map an assessments row to the shape the quizzes frontend expects.
+ */
+function mapAssessmentToQuiz(row: any) {
+    return {
+        id: row.id,
+        title: row.title || '-',
+        type: row.assessment_type || 'quiz',
+        status: row.is_published ? 'active' : 'draft',
+        subject_name: row.subject?.title || null,
+        class_name: row.course?.title || null,
+        teacher_name: null,
+        total_marks: row.attempt_limit ?? 0,
+        duration_minutes: row.duration_minutes ?? null,
+        questions_count: 0,
+        max_attempts: row.attempt_limit ?? 3,
+        passing_rate: null,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+    };
+}
+
 // GET /api/admin/quizzes
 export async function GET(req: Request) {
     const access = await checkAdminAccess();
@@ -29,21 +51,30 @@ export async function GET(req: Request) {
     const type = searchParams.get('type');
 
     let query = supabaseAdmin
-        .from('quizzes')
-        .select('*', { count: 'exact' })
+        .from('assessments')
+        .select(`
+            *,
+            course:courses(title),
+            subject:subjects(title)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false });
 
-    if (status) query = query.eq('status', status);
-    if (type) query = query.eq('type', type);
+    if (status === 'active') {
+        query = query.eq('is_published', true);
+    } else if (status === 'draft') {
+        query = query.eq('is_published', false);
+    }
+    if (type) query = query.eq('assessment_type', type);
 
     const { data, error, count } = await query;
 
     if (error) {
-        console.error('Error fetching quizzes:', error);
+        console.error('Error fetching quizzes (assessments):', error);
         return NextResponse.json({ error: 'Failed to fetch quizzes' }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data || [], count: count ?? 0 });
+    const mapped = (data || []).map(mapAssessmentToQuiz);
+    return NextResponse.json({ data: mapped, count: count ?? 0 });
 }
 
 // POST /api/admin/quizzes
@@ -56,33 +87,30 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, type, status, class_name, teacher_name, subject_name, total_marks, duration_minutes } = body;
+    const { title, type, status, duration_minutes } = body;
 
     if (!title) {
         return NextResponse.json({ error: 'title is required' }, { status: 400 });
     }
 
     const { data, error } = await supabaseAdmin
-        .from('quizzes')
+        .from('assessments')
         .insert({
             title,
-            type: type ?? 'quiz',
-            status: status ?? 'draft',
-            class_name,
-            teacher_name,
-            subject_name,
-            total_marks: total_marks ?? 100,
+            assessment_type: type ?? 'quiz',
+            is_published: status === 'active',
             duration_minutes: duration_minutes ?? 60,
+            teacher_id: access.currentUser!.id,
         })
         .select()
         .single();
 
     if (error) {
-        console.error('Error creating quiz:', error);
+        console.error('Error creating quiz (assessment):', error);
         return NextResponse.json({ error: 'Failed to create quiz' }, { status: 500 });
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(mapAssessmentToQuiz(data), { status: 201 });
 }
 
 // PATCH /api/admin/quizzes
@@ -95,25 +123,32 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, title, type, status, duration_minutes, ...rest } = body;
 
     if (!id) {
         return NextResponse.json({ error: 'id is required' }, { status: 400 });
     }
 
+    // Build update payload mapping frontend fields to assessments columns
+    const updates: Record<string, any> = {};
+    if (title !== undefined) updates.title = title;
+    if (type !== undefined) updates.assessment_type = type;
+    if (status !== undefined) updates.is_published = status === 'active';
+    if (duration_minutes !== undefined) updates.duration_minutes = duration_minutes;
+
     const { data, error } = await supabaseAdmin
-        .from('quizzes')
+        .from('assessments')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
 
     if (error) {
-        console.error('Error updating quiz:', error);
+        console.error('Error updating quiz (assessment):', error);
         return NextResponse.json({ error: 'Failed to update quiz' }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(mapAssessmentToQuiz(data));
 }
 
 // DELETE /api/admin/quizzes
@@ -133,12 +168,12 @@ export async function DELETE(req: Request) {
     }
 
     const { error } = await supabaseAdmin
-        .from('quizzes')
+        .from('assessments')
         .delete()
         .eq('id', id);
 
     if (error) {
-        console.error('Error deleting quiz:', error);
+        console.error('Error deleting quiz (assessment):', error);
         return NextResponse.json({ error: 'Failed to delete quiz' }, { status: 500 });
     }
 

@@ -1,14 +1,28 @@
+
+
+--claude --dangerously-skip-permissions
+
+claude --dangerously-skip-permissions
+
+
+Email: admin@school.com
+Password: Admin@1234
+
 Admin: admin@eduverse.com / password123
 Teacher: teacher@eduverse.com / password123
-Student: student@eduverse.com / password123
+
+Student: stude	nt@eduverse.com / password123
+
+Email: admin@school.com
+Password: Admin@1234
 
 790320149
 
+credentials
 
 - country: Jordan
 - mobile: 790320149
 - password: 12345678
-
 
 0147
 

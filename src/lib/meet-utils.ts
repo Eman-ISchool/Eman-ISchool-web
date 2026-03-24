@@ -1,15 +1,25 @@
-
 /**
  * Utilities for handling Google Meet links
  * Note: Jitsi Meet fallback has been removed - only Google Meet is supported
  */
+
+const MEET_HOSTNAME = 'meet.google.com';
+const MEET_CODE_REGEX = /^[a-z]{3}-[a-z]{4}-[a-z]{3}$/i;
 
 /**
  * Validates if the string is a valid Google Meet URL
  */
 export function isGoogleMeetUrl(url: string | null | undefined): boolean {
     if (!url) return false;
-    return url.startsWith('https://meet.google.com/');
+    try {
+        const parsed = new URL(url);
+        if (parsed.hostname !== MEET_HOSTNAME) return false;
+        const code = parsed.pathname.replace(/^\//, '').split('/')[0];
+        if (!code) return false;
+        return MEET_CODE_REGEX.test(code);
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -17,7 +27,13 @@ export function isGoogleMeetUrl(url: string | null | undefined): boolean {
  */
 export function getMeetCode(url: string): string | null {
     if (!isGoogleMeetUrl(url)) return null;
-    return url.split('meet.google.com/')[1]?.split('?')[0] || null;
+    try {
+        const parsed = new URL(url);
+        const code = parsed.pathname.replace(/^\//, '').split('/')[0];
+        return code || null;
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -25,7 +41,7 @@ export function getMeetCode(url: string): string | null {
  */
 export function formatMeetLink(url: string): string {
     const code = getMeetCode(url);
-    return code ? `meet.google.com/${code}` : url;
+    return code ? `${MEET_HOSTNAME}/${code}` : url;
 }
 
 /**

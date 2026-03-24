@@ -3,47 +3,44 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import Link from 'next/link';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
 import { Button } from '@/components/ui/button';
-import { getReferenceMockApplications } from '@/lib/reference-dashboard-data';
 import { supabase } from '@/lib/supabase';
 
 export default function DashboardApplicationDetailPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id: string; locale: string }>();
   const locale = useLocale();
   const isArabic = locale === 'ar';
   const [application, setApplication] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
 
     const load = async () => {
       try {
-        const { data } = await supabase
+        setFetchError(null);
+        const { data, error } = await supabase
           .from('enrollment_applications')
           .select('*, grades(name), users!enrollment_applications_user_id_fkey(name, email)')
           .eq('id', params.id)
           .single();
 
+        if (error) throw error;
+
         if (active) {
-          setApplication(
-            data ||
-              getReferenceMockApplications().find(
-                (entry) => String(entry.id) === String(params.id),
-              ) ||
-              null,
-          );
+          setApplication(data || null);
         }
-      } catch {
+      } catch (err: any) {
         if (active) {
-          setApplication(
-            getReferenceMockApplications().find(
-              (entry) => String(entry.id) === String(params.id),
-            ) || null,
-          );
+          setApplication(null);
+          setFetchError(err?.message || (isArabic ? 'حدث خطأ أثناء تحميل الطلب.' : 'An error occurred while loading the application.'));
         }
       } finally {
         if (active) {
@@ -57,26 +54,72 @@ export default function DashboardApplicationDetailPage() {
     return () => {
       active = false;
     };
-  }, [params.id]);
+  }, [params.id, isArabic]);
 
   const title = useMemo(
     () => `${isArabic ? 'الطلبات' : 'Applications'} #${params.id}`,
     [isArabic, params.id],
   );
 
-  const updateMessage = (message: string) => {
-    setActionMessage(message);
-    window.setTimeout(() => setActionMessage(null), 2500);
+  const showMessage = (text: string, type: 'success' | 'error') => {
+    setActionMessage({ text, type });
+    window.setTimeout(() => setActionMessage(null), 3500);
   };
+
+  const updateApplicationStatus = async (newStatus: 'approved' | 'rejected') => {
+    if (!application) return;
+
+    setActionLoading(newStatus);
+    try {
+      const { data, error } = await supabase
+        .from('enrollment_applications')
+        .update({ status: newStatus })
+        .eq('id', application.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setApplication((current: any) => current ? { ...current, ...data } : current);
+      showMessage(
+        newStatus === 'approved'
+          ? (isArabic ? 'تمت الموافقة على الطلب بنجاح.' : 'Application approved successfully.')
+          : (isArabic ? 'تم رفض الطلب بنجاح.' : 'Application rejected successfully.'),
+        'success',
+      );
+    } catch (err: any) {
+      showMessage(
+        err?.message || (isArabic ? 'فشل تحديث حالة الطلب.' : 'Failed to update application status.'),
+        'error',
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const BackArrow = isArabic ? ArrowRight : ArrowLeft;
 
   return (
     <ReferenceDashboardShell
       pageTitle={title}
       pageSubtitle={isArabic ? 'مراجعة الطلب وإدارة حالته' : 'Review the application and manage its status'}
     >
+      {/* Back navigation */}
+      <Link
+        href={`/${locale}/dashboard/applications`}
+        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+      >
+        <BackArrow className="h-4 w-4" />
+        {isArabic ? 'العودة إلى الطلبات' : 'Back to applications'}
+      </Link>
+
       {loading ? (
         <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
           {isArabic ? 'جاري تحميل تفاصيل الطلب...' : 'Loading application details...'}
+        </div>
+      ) : fetchError ? (
+        <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-rose-700 shadow-sm">
+          {fetchError}
         </div>
       ) : !application ? (
         <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-rose-700 shadow-sm">
@@ -115,6 +158,7 @@ export default function DashboardApplicationDetailPage() {
                 rows: [
                   [isArabic ? 'الفصل الدراسي' : 'Bundle', application.grades?.name || application.bundle_name || '-'],
                   [isArabic ? 'حالة الطلب' : 'Status', application.status || '-'],
+                  [isArabic ? 'رقم الطلب' : 'Application ID', String(application.id).slice(0, 6)],
                 ],
               },
             ].map((section) => (
@@ -147,7 +191,7 @@ export default function DashboardApplicationDetailPage() {
                   <tbody>
                     <tr className="border-t border-slate-200">
                       <td className="px-4 py-4">{isArabic ? 'رسوم الدراسة' : 'Study fees'}</td>
-                      <td className="px-4 py-4">{application.total_amount || 150} {application.currency || 'AED'}</td>
+                      <td className="px-4 py-4">{application.total_amount ?? 0} {application.currency || 'AED'}</td>
                       <td className="px-4 py-4">{application.created_at ? new Date(application.created_at).toLocaleDateString(isArabic ? 'ar' : 'en') : '-'}</td>
                     </tr>
                   </tbody>
@@ -172,45 +216,35 @@ export default function DashboardApplicationDetailPage() {
                 <Button
                   type="button"
                   className="rounded-full bg-emerald-600 hover:bg-emerald-700"
-                  onClick={() => {
-                    setApplication((current: any) => current ? { ...current, status: 'approved' } : current);
-                    updateMessage(isArabic ? 'تم اعتماد الطلب محلياً.' : 'Application approved locally.');
-                  }}
+                  disabled={actionLoading !== null || application.status === 'approved'}
+                  onClick={() => updateApplicationStatus('approved')}
                 >
-                  {isArabic ? 'الموافقة على الطلب' : 'Approve application'}
+                  {actionLoading === 'approved'
+                    ? (isArabic ? 'جاري الموافقة...' : 'Approving...')
+                    : (isArabic ? 'الموافقة على الطلب' : 'Approve application')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="rounded-full border-slate-300"
-                  onClick={() => {
-                    setApplication((current: any) => current ? { ...current, status: 'rejected' } : current);
-                    updateMessage(isArabic ? 'تم رفض الطلب محلياً.' : 'Application rejected locally.');
-                  }}
+                  disabled={actionLoading !== null || application.status === 'rejected'}
+                  onClick={() => updateApplicationStatus('rejected')}
                 >
-                  {isArabic ? 'رفض الطلب' : 'Reject application'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full border-slate-300"
-                  onClick={() => updateMessage(isArabic ? 'تم فتح وضع التعديل الاستعراضي.' : 'Preview edit mode opened.')}
-                >
-                  {isArabic ? 'تعديل الطلب' : 'Edit application'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full border-slate-300"
-                  onClick={() => updateMessage(isArabic ? 'تمت إضافة دفعة تجريبية.' : 'Preview payment added.')}
-                >
-                  {isArabic ? 'إضافة دفعة' : 'Add payment'}
+                  {actionLoading === 'rejected'
+                    ? (isArabic ? 'جاري الرفض...' : 'Rejecting...')
+                    : (isArabic ? 'رفض الطلب' : 'Reject application')}
                 </Button>
               </div>
 
               {actionMessage ? (
-                <div className="mt-4 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  {actionMessage}
+                <div
+                  className={`mt-4 rounded-[1.25rem] border px-4 py-3 text-sm ${
+                    actionMessage.type === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-rose-200 bg-rose-50 text-rose-700'
+                  }`}
+                >
+                  {actionMessage.text}
                 </div>
               ) : null}
             </section>

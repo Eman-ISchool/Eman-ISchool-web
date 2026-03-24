@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import {
     User, Edit, Globe, CreditCard, GraduationCap,
@@ -20,6 +20,14 @@ export default function StudentProfilePage() {
     const { data: session } = useSession();
     const [language, setLanguage] = useState<'en' | 'ar'>('en');
     const [activeModal, setActiveModal] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            console.log('Profile photo selected:', file.name);
+        }
+    };
 
     const toggleLanguage = () => {
         const newLang = language === 'en' ? 'ar' : 'en';
@@ -102,7 +110,17 @@ export default function StudentProfilePage() {
                                 <User className="w-10 h-10 text-[var(--color-primary)]" />
                             )}
                         </div>
-                        <button className="absolute bottom-0 right-0 w-7 h-7 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white shadow-lg">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+                        <button
+                            className="absolute bottom-0 right-0 w-7 h-7 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white shadow-lg"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
                             <Camera className="w-4 h-4" />
                         </button>
                     </div>

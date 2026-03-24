@@ -44,6 +44,16 @@
     ".next-poll-3002/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".auto-claude",
+    ".worktrees",
+    ".next",
+    ".next-poll",
+    ".next-poll-3001",
+    ".next-poll-3002",
+    ".next-codex",
+    ".next-codex-build",
+    ".next-clean",
+    "eduverse-mobile"
   ]
 }

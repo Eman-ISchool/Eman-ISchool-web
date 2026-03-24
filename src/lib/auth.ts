@@ -6,7 +6,6 @@ import { encrypt, decrypt, isEncrypted } from "./encryption";
 import { storeGoogleTokens } from "./google-token";
 import bcrypt from 'bcryptjs';
 import { getPhoneCandidates, isEmailIdentifier } from './auth-credentials';
-import { authenticateMockUser, provisionMockPhoneUser } from './mock-auth-store';
 import { normalizeReferenceSessionIdentity } from './reference-session-normalization';
 // Extend NextAuth types to include custom properties
 declare module "next-auth" {
@@ -66,59 +65,7 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Email or phone and password required");
                 }
 
-                // TEST_BYPASS: Allow hardcoded test users for E2E testing
-                if (process.env.TEST_BYPASS === 'true') {
-                    const testUsers: Record<string, any> = {
-                        'teacher@eduverse.com': { id: '00000000-0000-0000-0000-000000000001', email: 'teacher@eduverse.com', name: 'Test Teacher', role: 'teacher', image: null },
-                        'student@eduverse.com': { id: '00000000-0000-0000-0000-000000000002', email: 'student@eduverse.com', name: 'Test Student', role: 'student', image: null },
-                        'admin@eduverse.com': { id: '00000000-0000-0000-0000-000000000003', email: 'admin@eduverse.com', name: 'Test Admin', role: 'admin', image: null },
-                    };
-                    const lookupKey = isEmailIdentifier(identifier)
-                        ? identifier.toLowerCase()
-                        : identifier;
-                    const testUser = testUsers[lookupKey];
-                    if (testUser && credentials.password === 'password123') {
-                    console.log("TEST_BYPASS: Returning test user");
-                        return testUser;
-                    }
-                    console.log("TEST_BYPASS: No matching test user");
-                }
-
                 if (!isSupabaseAdminConfigured || !supabaseAdmin) {
-                    const mockUser = await authenticateMockUser({
-                        identifier,
-                        password: credentials.password as string,
-                        countryCode,
-                    });
-
-                    if (mockUser) {
-                        return {
-                            id: mockUser.id,
-                            email: mockUser.email,
-                            name: mockUser.name,
-                            image: mockUser.image,
-                            role: mockUser.role,
-                        };
-                    }
-
-                    if (!loginByEmail) {
-                        const provisionedUser = await provisionMockPhoneUser({
-                            identifier,
-                            password: credentials.password as string,
-                            countryCode,
-                        });
-
-                        if (provisionedUser) {
-                            return {
-                                id: provisionedUser.id,
-                                email: provisionedUser.email,
-                                name: provisionedUser.name,
-                                image: provisionedUser.image,
-                                role: provisionedUser.role,
-                            };
-                        }
-                    }
-
                     console.error('Supabase not configured for credentials auth');
                     throw new Error("Authentication service unavailable");
                 }
@@ -135,41 +82,7 @@ export const authOptions: NextAuthOptions = {
                           ).maybeSingle();
 
                     if (error || !user) {
-                        const mockUser = await authenticateMockUser({
-                            identifier,
-                            password: credentials.password as string,
-                            countryCode,
-                        });
-
-                        if (mockUser) {
-                            return {
-                                id: mockUser.id,
-                                email: mockUser.email,
-                                name: mockUser.name,
-                                image: mockUser.image,
-                                role: mockUser.role,
-                            };
-                        }
-
-                        if (!loginByEmail) {
-                            const provisionedUser = await provisionMockPhoneUser({
-                                identifier,
-                                password: credentials.password as string,
-                                countryCode,
-                            });
-
-                            if (provisionedUser) {
-                                return {
-                                    id: provisionedUser.id,
-                                    email: provisionedUser.email,
-                                    name: provisionedUser.name,
-                                    image: provisionedUser.image,
-                                    role: provisionedUser.role,
-                                };
-                            }
-                        }
-
-                        console.error("User not found or error");
+                        console.error("User not found or error:", error?.message);
                         throw new Error("Invalid email/phone or password");
                     }
                     // Verify password
@@ -178,22 +91,6 @@ export const authOptions: NextAuthOptions = {
                         user.password_hash || ''
                     );
                     if (!isValidPassword) {
-                        const mockUser = await authenticateMockUser({
-                            identifier,
-                            password: credentials.password as string,
-                            countryCode,
-                        });
-
-                        if (mockUser) {
-                            return {
-                                id: mockUser.id,
-                                email: mockUser.email,
-                                name: mockUser.name,
-                                image: mockUser.image,
-                                role: mockUser.role,
-                            };
-                        }
-
                         throw new Error("Invalid email or password");
                     }
                     return {
@@ -204,40 +101,6 @@ export const authOptions: NextAuthOptions = {
                         role: user.role,
                     };
                 } catch (error) {
-                    const mockUser = await authenticateMockUser({
-                        identifier,
-                        password: credentials.password as string,
-                        countryCode,
-                    });
-
-                    if (mockUser) {
-                        return {
-                            id: mockUser.id,
-                            email: mockUser.email,
-                            name: mockUser.name,
-                            image: mockUser.image,
-                            role: mockUser.role,
-                        };
-                    }
-
-                    if (!loginByEmail) {
-                        const provisionedUser = await provisionMockPhoneUser({
-                            identifier,
-                            password: credentials.password as string,
-                            countryCode,
-                        });
-
-                        if (provisionedUser) {
-                            return {
-                                id: provisionedUser.id,
-                                email: provisionedUser.email,
-                                name: provisionedUser.name,
-                                image: provisionedUser.image,
-                                role: provisionedUser.role,
-                            };
-                        }
-                    }
-
                     console.error("Credentials auth error:", error);
                     throw new Error("Authentication failed");
                 }
@@ -247,9 +110,6 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account }) {
             if (!user.email) return false;
-            if (process.env.TEST_BYPASS === 'true') {
-                return true;
-            }
             // Skip Supabase sync if not configured
             if (!isSupabaseAdminConfigured || !supabaseAdmin) {
                 console.warn('Supabase not configured, skipping user sync');
@@ -407,7 +267,7 @@ export async function getCurrentUser(session: any): Promise<{
             id: session.user.id as string,
             email: normalizedSessionUser.email || session.user.email,
             name: normalizedSessionUser.name || session.user.name || '',
-            role: normalizedSessionUser.role as string,
+            role: ((normalizedSessionUser.role as string) || '').toLowerCase(),
             googleId: (session.user as any).googleId || '',
         };
     }
@@ -418,7 +278,7 @@ export async function getCurrentUser(session: any): Promise<{
             id: session.user.id || '',
             email: normalizedSessionUser.email || session.user.email,
             name: normalizedSessionUser.name || session.user.name || '',
-            role: normalizedSessionUser.role || session.user.role || 'student',
+            role: (normalizedSessionUser.role || session.user.role || 'student').toLowerCase(),
             googleId: session.user.googleId || '',
         };
     }
@@ -435,7 +295,7 @@ export async function getCurrentUser(session: any): Promise<{
                     id: (session.user as any).id || '',
                     email: normalizedSessionUser.email || session.user.email,
                     name: normalizedSessionUser.name || session.user.name || '',
-                    role: normalizedSessionUser.role || (session.user as any).role || 'student',
+                    role: (normalizedSessionUser.role || (session.user as any).role || 'student').toLowerCase(),
                     googleId: (session.user as any).googleId || '',
                 };
             }
@@ -445,7 +305,7 @@ export async function getCurrentUser(session: any): Promise<{
             id: (user as any).id,
             email: (user as any).email,
             name: (user as any).name,
-            role: (user as any).role,
+            role: ((user as any).role || 'student').toLowerCase(),
             googleId: (user as any).google_id || '',
         };
     } catch (error) {
@@ -463,24 +323,29 @@ export async function getCurrentUser(session: any): Promise<{
         return null;
     }
 }
-// Helper to check if user has required role
+// Helper to check if user has required role (case-insensitive)
 export function hasRole(userRole: string | undefined, requiredRoles: string[]): boolean {
     if (!userRole) return false;
-    return requiredRoles.includes(userRole);
+    const normalized = userRole.toLowerCase();
+    return requiredRoles.some(r => r.toLowerCase() === normalized);
 }
-// Helper to check if user is admin
+// Helper to check if user is admin (case-insensitive)
 export function isAdmin(userRole: string | undefined): boolean {
-    return userRole === 'admin';
+    return !!userRole && userRole.toLowerCase() === 'admin';
 }
-// Helper to check if user is supervisor
+// Helper to check if user is supervisor (case-insensitive)
 export function isSupervisor(userRole: string | undefined): boolean {
-    return userRole === 'supervisor';
+    return !!userRole && userRole.toLowerCase() === 'supervisor';
 }
-// Helper to check if user is supervisor or admin
+// Helper to check if user is supervisor or admin (case-insensitive)
 export function isSupervisorOrAdmin(userRole: string | undefined): boolean {
-    return userRole === 'supervisor' || userRole === 'admin';
+    if (!userRole) return false;
+    const r = userRole.toLowerCase();
+    return r === 'supervisor' || r === 'admin';
 }
-// Helper to check if user is teacher or admin
+// Helper to check if user is teacher or admin (case-insensitive)
 export function isTeacherOrAdmin(userRole: string | undefined): boolean {
-    return userRole === 'teacher' || userRole === 'admin';
+    if (!userRole) return false;
+    const r = userRole.toLowerCase();
+    return r === 'teacher' || r === 'admin';
 }

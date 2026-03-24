@@ -19,13 +19,35 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: 'html',
-    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+    /* Shared settings for all projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
         baseURL: process.env.BASE_URL || 'http://localhost:3000',
 
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
+        
+        /* Screenshot settings for visual regression testing */
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+    },
+    
+    /* Configure expect for visual regression */
+    expect: {
+        /* Maximum time expect() should wait for the condition to be met. */
+        timeout: 5000,
+        
+        /* Visual regression comparison options */
+        toHaveScreenshot: {
+            /* Maximum acceptable pixel difference */
+            maxDiffPixels: 100,
+            
+            /* Threshold for pixel difference ratio (0-1) */
+            threshold: 0.2,
+            
+            /* Animation handling */
+            animations: 'disabled',
+        },
     },
 
     /* Configure projects for major browsers */
@@ -34,13 +56,13 @@ export default defineConfig({
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
         },
-        // {
-        //   name: 'firefox',
-        //   use: { ...devices['Desktop Firefox'] },
-        // },
-        // {
-        //   name: 'webkit',
-        //   use: { ...devices['Desktop Safari'] },
-        // },
     ],
+
+    /* Auto-start dev server before tests */
+    webServer: {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: true,
+        timeout: 60000,
+    },
 });

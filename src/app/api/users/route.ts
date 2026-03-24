@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
         let query = supabaseAdmin
             .from('users')
-            .select('*', { count: 'exact' })
+            .select('id, name, email, role, phone, avatar_url, is_active, created_at, updated_at, email_verified, image, bio', { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
 
@@ -142,7 +142,7 @@ export async function PATCH(req: Request) {
 
     try {
         const body = await req.json();
-        const { id, ...updates } = body;
+        const { id, ...rawUpdates } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'معرف المستخدم مطلوب' }, { status: 400 });
@@ -153,9 +153,20 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         }
 
-        // Only admins can change roles
-        if (updates.role && !isAdmin(currentUser.role)) {
-            delete updates.role;
+        // Allowlist of fields to prevent mass-assignment of sensitive columns
+        const SELF_UPDATEABLE_FIELDS = ['name', 'phone', 'avatar_url', 'bio', 'image'];
+        const ADMIN_EXTRA_FIELDS = ['role', 'is_active'];
+        // Never allow: password_hash, google_access_token, google_refresh_token, email_verified, email
+
+        const allowedFields = isAdmin(currentUser.role)
+            ? [...SELF_UPDATEABLE_FIELDS, ...ADMIN_EXTRA_FIELDS]
+            : SELF_UPDATEABLE_FIELDS;
+
+        const updates: Record<string, any> = {};
+        for (const key of allowedFields) {
+            if (rawUpdates[key] !== undefined) {
+                updates[key] = rawUpdates[key];
+            }
         }
 
         // Get old data for audit log

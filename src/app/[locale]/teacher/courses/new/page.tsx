@@ -26,19 +26,13 @@ export default async function NewCoursePage({
     const gradesData = await gradesRes.json();
     const grades = gradesData.grades || [];
 
-    let subjects: any[] = [];
-    if (process.env.TEST_BYPASS === 'true') {
-        const { getMockDb } = await import('@/lib/mockDb');
-        subjects = getMockDb().subjects || [];
-    } else {
-        const { data } = await supabaseAdmin
-            .from('subjects')
-            .select('id, title')
-            .eq('teacher_id', user.id)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
-        subjects = data || [];
-    }
+    const { data } = await supabaseAdmin
+        .from('subjects')
+        .select('id, title')
+        .eq('teacher_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+    const subjects: any[] = data || [];
 
     return (
         <div className="space-y-6">

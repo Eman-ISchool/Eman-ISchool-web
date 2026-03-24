@@ -4,8 +4,6 @@ import { authOptions, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createNotification } from '@/lib/notifications';
 import { generateRequestId, withRequestId } from '@/lib/request-id';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
-
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -19,39 +17,6 @@ export async function GET(req: Request) {
     }
 
     try {
-        if (process.env.TEST_BYPASS === 'true') {
-            const db = getMockDb();
-            let enrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-            const { searchParams } = new URL(req.url);
-            const status = searchParams.get('status');
-            const courseId = searchParams.get('courseId');
-            const studentId = searchParams.get('studentId');
-            const limit = parseInt(searchParams.get('limit') || '50', 10);
-            const offset = parseInt(searchParams.get('offset') || '0', 10);
-
-            if (status) {
-                enrollments = enrollments.filter((enrollment: any) => enrollment.status === status);
-            }
-            if (courseId) {
-                enrollments = enrollments.filter((enrollment: any) => enrollment.course_id === courseId);
-            }
-            if (studentId) {
-                enrollments = enrollments.filter((enrollment: any) => enrollment.student_id === studentId);
-            }
-            if (user.role === 'student') {
-                enrollments = enrollments.filter((enrollment: any) => enrollment.student_id === user.id);
-            }
-
-            const response = NextResponse.json({
-                enrollments: enrollments.slice(offset, offset + limit),
-                total: enrollments.length,
-                limit,
-                offset,
-            });
-            response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-            return response;
-        }
-
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status') || 'pending';
         const courseId = searchParams.get('courseId');
@@ -60,14 +25,13 @@ export async function GET(req: Request) {
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
 
-        // Build query
+        // Build query — join student via users FK
         let query = supabaseAdmin
             .from('enrollments')
             .select(`
                 *,
-                students(id, name, email),
-                courses(id, name, grade_level, price),
-                parents(id, name, email)
+                student:users!enrollments_student_id_fkey(id, name, email),
+                courses(id, name, grade_level, price)
             `)
             .eq('status', status)
             .order('enrolled_at', { ascending: false });
@@ -81,7 +45,8 @@ export async function GET(req: Request) {
             if (!isAdmin(user.role) && user.id !== parentId) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
-            query = query.eq('parent_id', parentId);
+            // parent_id not in schema — filter by student_id instead if needed
+            query = query.eq('student_id', parentId);
         }
         if (studentId) {
             // If studentId is provided, verify student has permission to view
@@ -107,7 +72,7 @@ export async function GET(req: Request) {
             countQuery = countQuery.eq('course_id', courseId);
         }
         if (parentId) {
-            countQuery = countQuery.eq('parent_id', parentId);
+            countQuery = countQuery.eq('student_id', parentId);
         }
         if (studentId) {
             countQuery = countQuery.eq('student_id', studentId);
@@ -121,7 +86,7 @@ export async function GET(req: Request) {
             limit,
             offset
         });
-        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        response.headers.set('Cache-Control', 'private, s-maxage=60, stale-while-revalidate=300');
         return response;
     } catch (error) {
         console.error('Error fetching enrollments:', error);
@@ -145,67 +110,6 @@ export async function POST(req: Request) {
 
         if (!courseId) {
             return withRequestId(NextResponse.json({ error: 'course_id is required', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
-        }
-
-        if (process.env.TEST_BYPASS === 'true') {
-            const db = getMockDb();
-            if (!Array.isArray(db.enrollments)) {
-                db.enrollments = [];
-            }
-            if (!Array.isArray(db.users)) {
-                db.users = [
-                    { id: '00000000-0000-0000-0000-000000000001', email: 'teacher@eduverse.com', name: 'Test Teacher', role: 'teacher' },
-                    { id: '00000000-0000-0000-0000-000000000002', email: 'student@eduverse.com', name: 'Test Student', role: 'student' },
-                    { id: '00000000-0000-0000-0000-000000000003', email: 'admin@eduverse.com', name: 'Test Admin', role: 'admin' },
-                ];
-            }
-
-            const courses = Array.isArray(db.courses) ? db.courses : [];
-            const targetCourse = courses.find((course: any) => course.id === courseId);
-            if (!targetCourse) {
-                return withRequestId(NextResponse.json({ error: 'Course not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
-            }
-
-            if (user.role === 'teacher' && targetCourse.teacher_id !== user.id) {
-                return withRequestId(NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, { status: 403 }), requestId);
-            }
-
-            const resolvedStudent = db.users.find((candidate: any) =>
-                (studentId && candidate.id === studentId) ||
-                (studentEmail && String(candidate.email).toLowerCase() === String(studentEmail).toLowerCase())
-            );
-
-            if (!resolvedStudent) {
-                return withRequestId(NextResponse.json({ error: 'User not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
-            }
-            if (resolvedStudent.role !== 'student') {
-                return withRequestId(NextResponse.json({ error: 'Target user is not a student account', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
-            }
-
-            const duplicate = db.enrollments.find((enrollment: any) => (
-                enrollment.course_id === courseId &&
-                enrollment.student_id === resolvedStudent.id &&
-                ['active', 'payment_completed', 'pending'].includes(enrollment.status)
-            ));
-            if (duplicate) {
-                return withRequestId(NextResponse.json({ error: 'Student already enrolled', code: 'CONFLICT', requestId }, { status: 409 }), requestId);
-            }
-
-            const enrollment = {
-                id: `enroll-${Date.now()}`,
-                student_id: resolvedStudent.id,
-                student_email: resolvedStudent.email,
-                student_name: resolvedStudent.name,
-                course_id: courseId,
-                grade_id: targetCourse.grade_id || null,
-                status: 'active',
-                enrollment_date: new Date().toISOString(),
-                enrolled_at: new Date().toISOString(),
-            };
-
-            db.enrollments.push(enrollment);
-            saveMockDb(db);
-            return withRequestId(NextResponse.json({ enrollment, requestId }, { status: 201 }), requestId);
         }
 
         // Teacher/Admin enrollment flow (teacher-owned course)
@@ -333,7 +237,6 @@ export async function POST(req: Request) {
             .insert({
                 student_id: resolvedStudentId,
                 course_id: courseId,
-                parent_id: user.id,
                 status: 'pending',
                 enrolled_at: new Date().toISOString(),
             })
@@ -371,7 +274,7 @@ export async function PATCH(req: Request) {
         // Get enrollment details
         const { data: enrollment } = await supabaseAdmin
             .from('enrollments')
-            .select('*, students(name), courses(name), parents(name, email)')
+            .select('*, student:users!enrollments_student_id_fkey(id, name, email), courses(id, name)')
             .eq('id', enrollmentId)
             .single();
 
@@ -385,8 +288,6 @@ export async function PATCH(req: Request) {
             .from('enrollments')
             .update({
                 status: newStatus,
-                updated_at: new Date().toISOString(),
-                rejection_reason: action === 'reject' ? reason : null
             })
             .eq('id', enrollmentId);
 
@@ -397,11 +298,11 @@ export async function PATCH(req: Request) {
             ? 'Enrollment Approved'
             : 'Enrollment Rejected';
         const notificationMessage = action === 'approve'
-            ? `Your child ${enrollment.students?.name}'s enrollment in ${enrollment.courses?.name} has been approved.`
-            : `Your child ${enrollment.students?.name}'s enrollment in ${enrollment.courses?.name} has been rejected. ${reason || ''}`;
+            ? `${enrollment.student?.name}'s enrollment in ${enrollment.courses?.name} has been approved.`
+            : `${enrollment.student?.name}'s enrollment in ${enrollment.courses?.name} has been rejected. ${reason || ''}`;
 
         await createNotification(
-            enrollment.parent_id,
+            enrollment.student_id,
             'enrollment',
             notificationTitle,
             notificationMessage,

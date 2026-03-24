@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -206,11 +207,14 @@ function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
 
 export default function JoinPage() {
   const locale = useLocale() as 'ar' | 'en';
+  const router = useRouter();
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
 
   const toggleFAQ = (index: number) => {
     setOpenFAQIndex(openFAQIndex === index ? null : index);
   };
+
+  const handleJoin = () => router.push(`/${locale}/register`);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -225,7 +229,7 @@ export default function JoinPage() {
               ? 'ابدأ رحلتك التعليمية مع منصة متكاملة توفر لك كل ما تحتاجه للنجاح'
               : 'Start your educational journey with an integrated platform that provides everything you need for success'}
           </p>
-          <Button size="lg" className="text-lg px-8 py-6">
+          <Button size="lg" className="text-lg px-8 py-6" onClick={handleJoin}>
             {locale === 'ar' ? 'ابدأ الآن' : 'Get Started Now'}
           </Button>
         </div>
@@ -375,7 +379,7 @@ export default function JoinPage() {
               ? 'انضم إلى آلاف الطلاب الذين يحققون نجاحاً مع منصتنا التعليمية'
               : 'Join thousands of students achieving success with our educational platform'}
           </p>
-          <Button size="lg" className="text-lg px-8 py-6">
+          <Button size="lg" className="text-lg px-8 py-6" onClick={handleJoin}>
             {locale === 'ar' ? 'أنشئ حسابك الآن' : 'Create Your Account Now'}
           </Button>
         </div>

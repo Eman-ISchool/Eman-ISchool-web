@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 import { buildStoredPhone } from '@/lib/auth-credentials';
-import { hasMockUserConflict, registerMockUser } from '@/lib/mock-auth-store';
 
 export async function POST(req: Request) {
     try {
@@ -33,120 +32,89 @@ export async function POST(req: Request) {
             );
         }
 
-        const mockConflicts = hasMockUserConflict(normalizedEmail, phone, countryCode);
+        // Check if user already exists
+        const { data: existingUser, error: existingUserError } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('email', normalizedEmail)
+            .maybeSingle();
 
-        const fallbackToMock = async () => {
-            if (mockConflicts.emailExists) {
+        if (existingUserError) {
+            console.error('Registration email check failed:', existingUserError);
+            return NextResponse.json(
+                { error: 'Registration failed' },
+                { status: 500 }
+            );
+        }
+
+        if (existingUser) {
+            return NextResponse.json(
+                { error: 'User with this email already exists' },
+                { status: 409 }
+            );
+        }
+
+        if (storedPhone) {
+            const { data: existingPhoneUser, error: existingPhoneError } = await supabaseAdmin
+                .from('users')
+                .select('id')
+                .eq('phone', storedPhone)
+                .maybeSingle();
+
+            if (existingPhoneError) {
+                console.error('Registration phone check failed:', existingPhoneError);
                 return NextResponse.json(
-                    { error: 'User with this email already exists' },
-                    { status: 409 }
+                    { error: 'Registration failed' },
+                    { status: 500 }
                 );
             }
 
-            if (mockConflicts.phoneExists) {
+            if (existingPhoneUser) {
                 return NextResponse.json(
                     { error: 'User with this phone already exists' },
                     { status: 409 }
                 );
             }
+        }
 
-            const newUser = await registerMockUser({
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create user
+        const { data: newUser, error: createError } = await supabaseAdmin
+            .from('users')
+            .insert({
                 email: normalizedEmail,
                 name,
-                password,
-                phone,
-                countryCode,
+                password_hash: hashedPassword,
                 role: 'parent',
-            });
+                phone: storedPhone,
+                is_active: true,
+                email_verified: false, // Pending verification
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
 
-            const { password_hash, ...userResult } = newUser;
-
+        if (createError) {
+            console.error('Registration insert failed:', createError);
             return NextResponse.json(
-                {
-                    message: 'Registration successful',
-                    user: userResult,
-                    storage: 'mock',
-                },
-                { status: 201 }
+                { error: 'Registration failed' },
+                { status: 500 }
             );
-        };
-
-        try {
-            // Check if user already exists
-            const { data: existingUser, error: existingUserError } = await supabaseAdmin
-                .from('users')
-                .select('id')
-                .eq('email', normalizedEmail)
-                .maybeSingle();
-
-            if (existingUserError) {
-                return fallbackToMock();
-            }
-
-            if (existingUser) {
-                return NextResponse.json(
-                    { error: 'User with this email already exists' },
-                    { status: 409 }
-                );
-            }
-
-            if (storedPhone) {
-                const { data: existingPhoneUser, error: existingPhoneError } = await supabaseAdmin
-                    .from('users')
-                    .select('id')
-                    .eq('phone', storedPhone)
-                    .maybeSingle();
-
-                if (existingPhoneError) {
-                    return fallbackToMock();
-                }
-
-                if (existingPhoneUser) {
-                    return NextResponse.json(
-                        { error: 'User with this phone already exists' },
-                        { status: 409 }
-                    );
-                }
-            }
-
-            // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            // Create user
-            const { data: newUser, error: createError } = await supabaseAdmin
-                .from('users')
-                .insert({
-                    email: normalizedEmail,
-                    name,
-                    password_hash: hashedPassword,
-                    role: 'parent',
-                    phone: storedPhone,
-                    is_active: true,
-                    email_verified: false, // Pending verification
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                })
-                .select()
-                .single();
-
-            if (createError) {
-                return fallbackToMock();
-            }
-
-            // Return success (excluding password hash)
-            const { password_hash, ...userResult } = newUser;
-
-            return NextResponse.json(
-                {
-                    message: 'Registration successful',
-                    user: userResult
-                },
-                { status: 201 }
-            );
-        } catch (supabaseError) {
-            console.error('Registration fallback triggered:', supabaseError);
-            return fallbackToMock();
         }
+
+        // Return success (excluding password hash)
+        const { password_hash, ...userResult } = newUser;
+
+        return NextResponse.json(
+            {
+                message: 'Registration successful',
+                user: userResult
+            },
+            { status: 201 }
+        );
 
     } catch (error) {
         console.error('Registration error:', error);

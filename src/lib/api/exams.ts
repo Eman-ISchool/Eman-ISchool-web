@@ -1,12 +1,12 @@
 /**
  * Exams API Client
- * 
+ *
  * Provides hooks for fetching exams list.
  */
 
 import { useState, useEffect } from 'react'
-import { fetchWithFallback } from './index'
-import { mockExams, type Exam } from '@/lib/mock-data/exams-data'
+import { fetchApi } from './index'
+import type { Exam } from '@/types/api'
 
 /**
  * Hook to fetch exams list
@@ -17,24 +17,21 @@ export function useExamsList() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function fetchData() {
       setIsLoading(true)
       setError(null)
-
       try {
-        const result = await fetchWithFallback(
-          mockExams,
-          '/api/exams'
-        )
-        setData(result)
+        const result = await fetchApi<Exam[]>('/api/exams')
+        if (!cancelled) setData(result)
       } catch (err) {
-        setError(err as Error)
+        if (!cancelled) setError(err as Error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
-
     fetchData()
+    return () => { cancelled = true }
   }, [])
 
   return { data, isLoading, error }

@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
 import { resolveGradeByRef } from '@/lib/grades';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
+
 
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
@@ -28,32 +28,6 @@ export const GET = withAuth(async (_req, { user, requestId }, { params }) => {
     return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
   }
 
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    const feeItems = (Array.isArray(db.grade_fee_items) ? db.grade_fee_items : [])
-      .filter((item: any) => item.grade_id === gradeRef.id)
-      .map((item: any) => ({
-        id: item.id,
-        item_name: item.item_name,
-        amount: Number(item.amount || 0),
-        due_date: item.due_date,
-        status: item.status || 'unpaid',
-        student_name: item.student_name || null,
-      }));
-
-    const expected_total = feeItems.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
-    const collected_total = feeItems
-      .filter((item: any) => item.status === 'paid')
-      .reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
-    const outstanding_total = Math.max(0, expected_total - collected_total);
-
-    return jsonWithRequestId({
-      feeItems,
-      summary: { expected_total, collected_total, outstanding_total },
-      requestId,
-    }, 200, requestId);
-  }
-
   const [courseIds, feeItemsResult] = await Promise.all([
     gradeCourseIds(gradeRef.id, user),
     supabaseAdmin
@@ -63,7 +37,7 @@ export const GET = withAuth(async (_req, { user, requestId }, { params }) => {
       .order('due_date', { ascending: true }),
   ]);
 
-  if (feeItemsResult.error && feeItemsResult.error.code !== 'PGRST205') {
+  if (feeItemsResult.error && feeItemsResult.error.code !== '42P01') {
     return jsonWithRequestId({ error: 'Failed to fetch fees', code: 'FETCH_ERROR', requestId }, 500, requestId);
   }
 
@@ -164,26 +138,6 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
   }
   if (!dueDate) {
     return jsonWithRequestId({ error: 'Due date is required', code: 'VALIDATION_ERROR', requestId }, 400, requestId);
-  }
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    if (!Array.isArray(db.grade_fee_items)) {
-      db.grade_fee_items = [];
-    }
-    const feeItem = {
-      id: `gfi-${Date.now()}`,
-      grade_id: gradeRef.id,
-      item_name: itemName,
-      amount,
-      due_date: dueDate,
-      status: 'unpaid',
-      created_by: user.id,
-      created_at: new Date().toISOString(),
-    };
-    db.grade_fee_items.push(feeItem);
-    saveMockDb(db);
-    return jsonWithRequestId({ feeItem, requestId }, 201, requestId);
   }
 
   const { data: feeItem, error } = await supabaseAdmin

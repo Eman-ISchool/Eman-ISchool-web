@@ -10,10 +10,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     const { id } = params;
 
-    // Fetch lesson to get course_id for enrollment verification
+    // Fetch lesson to get course_id for enrollment verification + teacher_id for endLesson
     const { data: lesson } = await supabaseAdmin
         .from('lessons')
-        .select('id, course_id')
+        .select('id, course_id, teacher_id')
         .eq('id', id)
         .single();
 
@@ -77,19 +77,11 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
 
     // Check if it's the teacher leaving -> Maybe end the lesson if requested
     const body = await req.json().catch(() => ({}));
-    if (body.endLesson && user.role === 'teacher') {
-        const { data: lesson } = await supabaseAdmin
+    if (body.endLesson && user.role === 'teacher' && lesson.teacher_id === user.id) {
+        await supabaseAdmin
             .from('lessons')
-            .select('teacher_id')
-            .eq('id', id)
-            .single();
-
-        if (lesson?.teacher_id === user.id) {
-            await supabaseAdmin
-                .from('lessons')
-                .update({ status: 'completed' })
-                .eq('id', id);
-        }
+            .update({ status: 'completed' })
+            .eq('id', id);
     }
 
     return NextResponse.json({ success: true, requestId });

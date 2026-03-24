@@ -28,76 +28,6 @@ export async function GET(req: Request) {
         const currentUser = session?.user ? await getCurrentUser(session) : null;
         const canSeeUnpublished = !!(currentUser && isTeacherOrAdmin(currentUser.role));
 
-        if (process.env.TEST_BYPASS === 'true') {
-            const { getMockDb } = require('@/lib/mockDb');
-            const db = getMockDb();
-            const allCourses = Array.isArray(db.courses) ? db.courses : [];
-            const allEnrollments = Array.isArray(db.enrollments) ? db.enrollments : [];
-            const allLessons = Array.isArray(db.lessons) ? db.lessons : [];
-            const nowIso = new Date().toISOString();
-
-            let courses = [...allCourses];
-
-            if (currentUser?.role === 'teacher') {
-                courses = courses.filter((course: any) => course.teacher_id === currentUser.id);
-            }
-            if (currentUser?.role === 'student') {
-                const enrolledCourseIds = allEnrollments
-                    .filter((enrollment: any) => enrollment.student_id === currentUser.id && enrollment.status === 'active')
-                    .map((enrollment: any) => enrollment.course_id);
-                courses = courses.filter((course: any) => enrolledCourseIds.includes(course.id));
-            }
-
-            const subjectFilter = subjectId || subject;
-            if (subjectFilter) {
-                courses = courses.filter((course: any) => course.subject_id === subjectFilter);
-            }
-            if (gradeId) {
-                courses = courses.filter((course: any) => course.grade_id === gradeId);
-            }
-            if (teacherId) {
-                courses = courses.filter((course: any) => course.teacher_id === teacherId);
-            }
-            if (!canSeeUnpublished) {
-                courses = courses.filter((course: any) => course.is_published !== false);
-            } else if (published === 'true') {
-                courses = courses.filter((course: any) => course.is_published === true);
-            } else if (published === 'false') {
-                courses = courses.filter((course: any) => course.is_published === false);
-            }
-            if (search) {
-                const needle = search.toLowerCase();
-                courses = courses.filter((course: any) =>
-                    String(course.title || '').toLowerCase().includes(needle) ||
-                    String(course.description || '').toLowerCase().includes(needle)
-                );
-            }
-
-            const enriched = courses.map((course: any) => {
-                const nextLesson = allLessons
-                    .filter((lesson: any) => lesson.course_id === course.id && String(lesson.start_date_time || '') > nowIso)
-                    .sort((a: any, b: any) => String(a.start_date_time).localeCompare(String(b.start_date_time)))[0];
-                return {
-                    ...course,
-                    teacher_name: course.teacher?.name || 'Test Teacher',
-                    next_lesson: nextLesson ? { title: nextLesson.title, start_date_time: nextLesson.start_date_time } : null,
-                };
-            });
-
-            const total = enriched.length;
-            return NextResponse.json({
-                courses: enriched.slice(offset, offset + limit),
-                total,
-                meta: {
-                    page,
-                    limit,
-                    total,
-                    totalPages: Math.max(1, Math.ceil(total / limit)),
-                },
-                requestId,
-            });
-        }
-
         if (!supabaseAdmin) {
             return NextResponse.json(
                 { error: 'Database not configured', code: 'DATABASE_NOT_CONFIGURED', requestId },
@@ -105,6 +35,7 @@ export async function GET(req: Request) {
             );
         }
 
+        // Try full query with joins; fall back to basic query if FK relationships are missing
         let query = supabaseAdmin
             .from('courses')
             .select(`
@@ -116,6 +47,26 @@ export async function GET(req: Request) {
             `, { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
+
+        // Pre-check: test if the join query works; if not, fall back to simple select
+        const testResult = await supabaseAdmin
+            .from('courses')
+            .select(`
+                *,
+                teacher:users!courses_teacher_id_fkey(id, name, email, image),
+                grade:grades(id, name, slug),
+                subject:subjects(id, title, slug),
+                enrollments:enrollments(count)
+            `, { count: 'exact', head: true });
+
+        if (testResult.error) {
+            console.warn('Courses join query failed, using basic query:', testResult.error.message);
+            query = supabaseAdmin
+                .from('courses')
+                .select('*', { count: 'exact' })
+                .order('created_at', { ascending: false })
+                .range(offset, offset + limit - 1);
+        }
 
         if (currentUser?.role === 'teacher') {
             query = query.eq('teacher_id', currentUser.id);
@@ -165,7 +116,15 @@ export async function GET(req: Request) {
         }
 
         if (search) {
-            query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+            // Sanitize search input: escape PostgREST special characters to prevent injection
+            const sanitizedSearch = search
+                .replace(/\\/g, '\\\\')
+                .replace(/%/g, '\\%')
+                .replace(/,/g, '\\,')
+                .replace(/\./g, '\\.')
+                .replace(/\(/g, '\\(')
+                .replace(/\)/g, '\\)');
+            query = query.or(`title.ilike.%${sanitizedSearch}%,description.ilike.%${sanitizedSearch}%`);
         }
 
         const { data: courses, error, count } = await query;
@@ -273,24 +232,6 @@ export async function POST(req: Request) {
                 { error: 'Price must be non-negative', code: 'VALIDATION_ERROR', requestId },
                 { status: 400 }
             );
-        }
-
-        if (process.env.TEST_BYPASS === 'true') {
-            const { getMockDb, saveMockDb } = require('@/lib/mockDb');
-            const db = getMockDb();
-            if (!db.courses) db.courses = [];
-            const newCourse = {
-                id: `course-${Date.now()}`,
-                title,
-                description,
-                grade_id,
-                subject_id: subject_id || body.subject,
-                teacher_id: currentUser.id,
-                teacher: { name: currentUser.name, email: currentUser.email }
-            };
-            db.courses.push(newCourse);
-            saveMockDb(db);
-            return NextResponse.json({ course: newCourse, requestId }, { status: 201 });
         }
 
         // Validate grade_id exists and is active
@@ -475,6 +416,7 @@ export async function PATCH(req: Request) {
         if (updates.grade_id !== undefined) dbUpdates.grade_id = updates.grade_id;
         if (updates.isPublished !== undefined) dbUpdates.is_published = updates.isPublished;
         if (updates.maxStudents !== undefined) dbUpdates.max_students = updates.maxStudents;
+        if (updates.meet_link !== undefined) dbUpdates.meet_link = updates.meet_link;
 
         const { data: course, error } = await supabaseAdmin
             .from('courses')

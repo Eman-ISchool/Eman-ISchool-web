@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getMockDb, saveMockDb } from '@/lib/mockDb';
+
 
 export const GET = withAuth(async (req, { user, requestId }) => {
   const { searchParams } = new URL(req.url);
   const isActive = searchParams.get('is_active');
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    let grades = db.grades || [];
-    return NextResponse.json({ grades, requestId }, { status: 200 });
-  }
 
   let query = supabaseAdmin
     .from('grades')
@@ -68,31 +62,6 @@ export const POST = withAuth(async (req, { user, requestId }) => {
       { error: 'Missing required fields: name, slug', code: 'VALIDATION_ERROR', requestId },
       { status: 400 }
     );
-  }
-
-  if (process.env.TEST_BYPASS === 'true') {
-    const db = getMockDb();
-    if (!db.grades) db.grades = [];
-    const newGrade = {
-      id: `grade-${Date.now()}`,
-      name: body.name,
-      slug: body.slug,
-      sort_order: body.sort_order || 0,
-      is_active: body.is_active !== undefined ? body.is_active : true,
-      supervisor_id: user.id,
-      description: body.description || null,
-      image_url: body.image_url || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      supervisor: {
-        id: user.id,
-        name: user.name || 'Test Teacher',
-        email: user.email || 'teacher@eduverse.com',
-      },
-    };
-    db.grades.push(newGrade);
-    saveMockDb(db);
-    return NextResponse.json({ grade: newGrade, requestId }, { status: 201 });
   }
 
   // Check for duplicate slug
