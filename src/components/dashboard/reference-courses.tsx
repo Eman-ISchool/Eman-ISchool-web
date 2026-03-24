@@ -546,15 +546,16 @@ function CourseListCard({
         <p className="mt-2 text-sm text-slate-500">{teacher}</p>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex gap-1">
-          <ActionIcon icon={Trash2} tone="danger" onClick={onDelete} />
-          <ActionIcon icon={Pencil} onClick={() => router.push(href)} />
-          <ActionIcon icon={Eye} onClick={() => router.push(href)} />
-        </div>
-
-        <Link href={href} className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50">
-          إدارة
+      <div className="mt-4 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={onDelete}
+          className="rounded-xl border border-red-200 bg-white px-4 py-2 text-xs font-bold text-red-600 shadow-sm transition hover:bg-red-50"
+        >
+          حذف المادة الدراسية
+        </button>
+        <Link href={href} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-sm transition hover:bg-slate-50">
+          معاينة
         </Link>
       </div>
     </div>
