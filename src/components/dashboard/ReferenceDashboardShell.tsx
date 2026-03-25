@@ -8,7 +8,6 @@ import {
   Bell,
   BookOpen,
   CalendarDays,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
@@ -19,7 +18,6 @@ import {
   LayoutDashboard,
   Menu,
   MessageSquare,
-  MonitorDown,
   ReceiptText,
   Settings,
   Shield,
@@ -28,6 +26,7 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
+import InstallBanner from '@/components/pwa/InstallBanner';
 
 import { withLocalePrefix } from '@/lib/locale-path';
 
@@ -147,8 +146,6 @@ export default function ReferenceDashboardShell({
   const isArabic = locale === 'ar';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  const [installDismissed, setInstallDismissed] = useState(false);
-
   const isOverview = navItemActive(pathname, dashboardOverviewItem.href, locale);
 
   useEffect(() => {
@@ -168,48 +165,6 @@ export default function ReferenceDashboardShell({
   const mobileLinks = useMemo(
     () => [dashboardOverviewItem, ...navGroups.flatMap((group) => group.items), ...footerItems],
     [],
-  );
-
-  const installBanner = installDismissed ? null : (
-    <div className="bg-[#161616] px-5 py-4 text-white sm:px-8">
-      <div className="flex items-center justify-between gap-5">
-        <button
-          type="button"
-          onClick={() => setInstallDismissed(true)}
-          className="shrink-0 rounded-full p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
-          aria-label={isArabic ? 'إغلاق' : 'Close'}
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        <div className="flex flex-1 items-center justify-center gap-4">
-          <div className="hidden rounded-2xl border border-white/15 bg-white/5 p-2 text-white/80 md:flex">
-            <MonitorDown className="h-4 w-4" />
-          </div>
-
-          <div className="text-center">
-            <p className="text-base font-bold">{isArabic ? 'تثبيت التطبيق' : 'Install app'}</p>
-            <p className="mt-1 text-sm text-white/70">
-              {isArabic
-                ? 'احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع'
-                : 'Get the full app experience with offline access and faster loading'}
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            if ('serviceWorker' in navigator) {
-              window.alert(isArabic ? 'افتح قائمة المتصفح واختر "إضافة إلى الشاشة الرئيسية"' : 'Open browser menu and choose "Add to Home Screen"');
-            }
-          }}
-          className="shrink-0 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
-        >
-          {isArabic ? 'تثبيت التطبيق' : 'Install app'}
-        </button>
-      </div>
-    </div>
   );
 
   const sidebar = (
@@ -344,7 +299,7 @@ export default function ReferenceDashboardShell({
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          {installBanner}
+          <InstallBanner locale={locale} />
 
           <div className="px-4 pt-4 md:hidden">
             <button
@@ -413,7 +368,7 @@ export default function ReferenceDashboardShell({
                 })}
               </div>
 
-              {installBanner}
+              <InstallBanner locale={locale} />
 
               <button
                 type="button"

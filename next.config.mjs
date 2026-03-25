@@ -90,6 +90,52 @@ const pwaConfig = withPWA({
     skipWaiting: true,
     disable: process.env.NODE_ENV === 'development',
     buildExcludes: [/middleware-manifest\.json$/],
+    fallbacks: {
+        document: '/ar/offline',
+    },
+    runtimeCaching: [
+        {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+                cacheName: 'google-fonts-stylesheets',
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+        },
+        {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+                cacheName: 'google-fonts-webfonts',
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+        },
+        {
+            urlPattern: /\.(?:js|css)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+                cacheName: 'static-resources',
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+        },
+        {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|avif|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+                cacheName: 'images',
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+        },
+        {
+            urlPattern: /^\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+                cacheName: 'api-cache',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+                networkTimeoutSeconds: 10,
+            },
+        },
+    ],
 });
 
 export default withNextIntl(pwaConfig(nextConfig));

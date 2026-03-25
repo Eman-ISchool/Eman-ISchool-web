@@ -1,13 +1,15 @@
 {
-  "name": "Eduverse",
-  "short_name": "Eduverse",
-  "description": "Educational platform for immersive learning",
-  "start_url": "/",
+  "name": "Eman ISchool | المدرسة الإلكترونية الأولى",
+  "short_name": "Eman ISchool",
+  "description": "منصة تعليمية رائدة تقدم المنهج المصري والأزهري. تعلم أينما كنت.",
+  "start_url": "/ar/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
+  "dir": "rtl",
+  "lang": "ar",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#161616",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -28,6 +30,6 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [],
-  "categories": ["education"]
+  "categories": ["education"],
+  "prefer_related_applications": false
 }

@@ -111,30 +111,42 @@ export default function DashboardApplicationsPage() {
 
             <div className="p-6 pt-0">
               <div className="space-y-4 mb-6">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-                  <div className="relative flex-1 w-full max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground rtl:left-auto rtl:right-2.5" />
-                    <Input
-                      type="text"
-                      placeholder={isArabic ? 'بحث باسم الطالب أو ولي الأمر...' : 'Search student or guardian...'}
-                      className="pl-8 rtl:pl-3 rtl:pr-8 bg-transparent"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <div className="relative flex-1 w-full">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground rtl:left-auto rtl:right-2.5" />
+                      <Input
+                        type="text"
+                        placeholder={isArabic ? 'بحث باسم الطالب أو ولي الأمر أو رقم الهاتف...' : 'Search by name, phone, guardian name or phone...'}
+                        className="pl-8 rtl:pl-3 rtl:pr-8 bg-transparent"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                      />
+                    </div>
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="all">{isArabic ? 'جميع الطلبات' : 'All Applications'}</option>
+                      <option value="approved">{isArabic ? 'تمت الموافقة' : 'Approved'}</option>
+                      <option value="pending">{isArabic ? 'قيد الانتظار' : 'Pending'}</option>
+                      <option value="rejected">{isArabic ? 'مرفوض' : 'Rejected'}</option>
+                    </select>
                   </div>
-
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="h-10 px-4 flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">{isArabic ? 'تصفية' : 'Filter'}</span>
-                    </Button>
-                    <Button variant="outline" className="h-10 px-4 flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      <span className="hidden sm:inline">{isArabic ? 'تصدير' : 'Export'}</span>
-                    </Button>
-                    <Button variant="outline" className="h-10 px-4 flex items-center gap-2">
-                      <Printer className="h-4 w-4" />
-                      <span className="hidden sm:inline">{isArabic ? 'طباعة' : 'Print'}</span>
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <select
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="all">{isArabic ? 'جميع الفصول' : 'All Bundles'}</option>
+                    </select>
+                    <Input type="text" placeholder={isArabic ? 'من تاريخ' : 'From Date'} className="h-10 max-w-[160px]" />
+                    <span className="text-sm text-muted-foreground">{isArabic ? 'إلى' : 'to'}</span>
+                    <Input type="text" placeholder={isArabic ? 'إلى تاريخ' : 'To Date'} className="h-10 max-w-[160px]" />
+                    <Button variant="outline" size="sm" onClick={() => { setQuery(''); setStatus('all'); setGrade('all'); }}>
+                      {isArabic ? 'مسح الفلاتر' : 'Clear All Filters'}
                     </Button>
                   </div>
                 </div>
@@ -167,60 +179,72 @@ export default function DashboardApplicationsPage() {
                   <ReferenceTable>
                     <ReferenceTableHeader>
                       <ReferenceTableRow>
-                        <ReferenceTableHead>{isArabic ? 'رقم الطلب' : 'ID'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'المعرف' : 'ID'}</ReferenceTableHead>
                         <ReferenceTableHead>{isArabic ? 'الطالب' : 'Student'}</ReferenceTableHead>
                         <ReferenceTableHead>{isArabic ? 'ولي الأمر' : 'Guardian'}</ReferenceTableHead>
-                        <ReferenceTableHead>{isArabic ? 'الفصل الدراسي' : 'Bundle'}</ReferenceTableHead>
-                        <ReferenceTableHead>{isArabic ? 'وقت التقديم' : 'Applied At'}</ReferenceTableHead>
-                        <ReferenceTableHead>{isArabic ? 'الرسوم' : 'Total Fees'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'الهاتف' : 'Phone'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'هاتف ولي الأمر' : 'Guardian Phone'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'مادة الدراسية' : 'Bundle'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'التاريخ' : 'Date'}</ReferenceTableHead>
                         <ReferenceTableHead>{isArabic ? 'الحالة' : 'Status'}</ReferenceTableHead>
-                        <ReferenceTableHead className="text-left rtl:text-right w-[100px]">{isArabic ? 'الإجراءات' : 'Actions'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'المديونية' : 'Debt'}</ReferenceTableHead>
+                        <ReferenceTableHead>{isArabic ? 'المدفوع' : 'Paid'}</ReferenceTableHead>
+                        <ReferenceTableHead className="text-left rtl:text-right w-[120px]">{isArabic ? 'الإجراءات' : 'Actions'}</ReferenceTableHead>
                       </ReferenceTableRow>
                     </ReferenceTableHeader>
                     <ReferenceTableBody>
                       {currentPageItems.map((application) => {
                         const statusDetails = getApplicationStatusMeta(application.status, isArabic);
+                        const currency = application.currency || 'AED';
 
                         return (
                           <ReferenceTableRow key={application.id}>
-                            <ReferenceTableCell className="font-medium text-blue-600 dark:text-blue-400">
-                              #{application.id.slice(0, 6)}
+                            <ReferenceTableCell className="font-medium">
+                              {application.id.slice(0, 6)}
+                            </ReferenceTableCell>
+                            <ReferenceTableCell className="font-medium">
+                              {application.student_details?.name || '-'}
                             </ReferenceTableCell>
                             <ReferenceTableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium dark:text-gray-200">{application.student_details?.name || '-'}</span>
-                                <span className="text-xs text-muted-foreground">{application.student_details?.phone || '-'}</span>
-                              </div>
+                              {application.parent_details?.name || application.users?.name || '-'}
                             </ReferenceTableCell>
-                            <ReferenceTableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium dark:text-gray-200">{application.parent_details?.name || application.users?.name || '-'}</span>
-                                <span className="text-xs text-muted-foreground">{application.parent_details?.phone || application.users?.email || '-'}</span>
-                              </div>
+                            <ReferenceTableCell className="text-muted-foreground">
+                              {application.student_details?.phone || '-'}
+                            </ReferenceTableCell>
+                            <ReferenceTableCell className="text-muted-foreground">
+                              {application.parent_details?.phone || application.users?.email || '-'}
                             </ReferenceTableCell>
                             <ReferenceTableCell className="text-muted-foreground">
                               {application.grades?.name || '-'}
                             </ReferenceTableCell>
                             <ReferenceTableCell className="text-muted-foreground text-sm">
                               {application.created_at
-                                ? new Date(application.created_at).toLocaleDateString(isArabic ? 'ar' : 'en', { year: 'numeric', month: 'short', day: 'numeric' })
+                                ? new Date(application.created_at).toLocaleDateString(isArabic ? 'ar' : 'en', { year: 'numeric', month: 'numeric', day: 'numeric' })
                                 : '-'}
-                            </ReferenceTableCell>
-                            <ReferenceTableCell className="font-medium text-slate-700 dark:text-slate-300">
-                              {application.total_amount || 0} <span className="text-xs font-normal text-slate-500">{application.currency || 'AED'}</span>
                             </ReferenceTableCell>
                             <ReferenceTableCell>
                               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusDetails.className} bg-opacity-10 text-opacity-90 border-transparent`}>
                                 {statusDetails.label}
                               </span>
                             </ReferenceTableCell>
+                            <ReferenceTableCell className="font-medium">
+                              {application.total_amount || '0.00'} {currency}
+                            </ReferenceTableCell>
+                            <ReferenceTableCell className="font-medium">
+                              {application.paid_amount || '0.00'} {currency}
+                            </ReferenceTableCell>
                             <ReferenceTableCell className="text-left rtl:text-right">
-                              <Link href={withLocalePrefix(`/dashboard/applications/${application.id}`, locale)}>
-                                <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                                  <Eye className="h-3.5 w-3.5" />
-                                  <span className="hidden sm:inline">{isArabic ? 'عرض' : 'View'}</span>
+                              <div className="flex items-center gap-1">
+                                <Link href={withLocalePrefix(`/dashboard/applications/${application.id}`, locale)}>
+                                  <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span>{isArabic ? 'عرض التفاصيل' : 'View Details'}</span>
+                                  </Button>
+                                </Link>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <Download className="h-3.5 w-3.5" />
                                 </Button>
-                              </Link>
+                              </div>
                             </ReferenceTableCell>
                           </ReferenceTableRow>
                         );
@@ -231,32 +255,58 @@ export default function DashboardApplicationsPage() {
               )}
 
               {!loading && !error && filteredApplications.length > 0 && (
-                <div className="flex items-center justify-between space-x-2 py-4 mt-2">
-                  <div className="text-sm text-muted-foreground">
-                    {isArabic
-                      ? `عرض ${(page - 1) * PAGE_SIZE + 1} إلى ${Math.min(page * PAGE_SIZE, filteredApplications.length)} من ${filteredApplications.length} طلب`
-                      : `Showing ${(page - 1) * PAGE_SIZE + 1} to ${Math.min(page * PAGE_SIZE, filteredApplications.length)} of ${filteredApplications.length} entries`
-                    }
+                <>
+                  <div className="flex items-center justify-between space-x-2 py-4 mt-2">
+                    <div className="text-sm text-muted-foreground">
+                      {isArabic
+                        ? `عرض ${(page - 1) * PAGE_SIZE + 1} إلى ${Math.min(page * PAGE_SIZE, filteredApplications.length)} من ${filteredApplications.length} طلب`
+                        : `Showing ${(page - 1) * PAGE_SIZE + 1} to ${Math.min(page * PAGE_SIZE, filteredApplications.length)} of ${filteredApplications.length} applications`
+                      }
+                    </div>
+                    <div className="space-x-1 rtl:space-x-reverse flex items-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        {isArabic ? 'السابق' : 'Previous'}
+                      </Button>
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map((p) => (
+                        <Button
+                          key={p}
+                          variant={p === page ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setPage(p)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {p}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                      >
+                        {isArabic ? 'التالي' : 'Next'}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-x-2 rtl:space-x-reverse flex">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                    >
-                      {isArabic ? 'السابق' : 'Previous'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                    >
-                      {isArabic ? 'التالي' : 'Next'}
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        {isArabic ? 'تحديث الطلبات المتأخرة' : 'Update Overdue Applications'}
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        {isArabic ? 'موافقة جماعية' : 'Bulk Approve'}
+                      </Button>
+                    </div>
+                    <Button size="sm">
+                      {isArabic ? 'تقديم طلب جديد' : 'New Application'}
                     </Button>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </div>
