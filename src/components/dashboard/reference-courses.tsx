@@ -33,6 +33,8 @@ import {
   Users,
   Video,
   Loader2,
+  Package,
+  Download,
 } from 'lucide-react';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
@@ -113,12 +115,15 @@ interface CategoryRow {
 
 interface BundleRow {
   id: string;
+  realId: string;
   name: string;
   description: string;
   category: string;
   teacher: string;
   students: number;
   status: string;
+  isActive: boolean;
+  imageUrl: string | null;
   createdAt: string;
 }
 
@@ -1790,10 +1795,92 @@ export function ReferenceCategoriesPage() {
   );
 }
 
+function BundleListCard({
+  realId,
+  name,
+  description,
+  category,
+  isActive,
+  imageUrl,
+  onDelete,
+}: {
+  realId: string;
+  name: string;
+  description: string;
+  category: string;
+  isActive: boolean;
+  imageUrl: string | null;
+  onDelete?: () => void;
+}) {
+  const locale = useLocale();
+  const href = withLocalePrefix(`/dashboard/bundles/${realId}`, locale);
+
+  return (
+    <div className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-sm">
+      {/* Image area */}
+      <div className="relative">
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} className="h-40 w-full object-cover" />
+        ) : (
+          <div className="flex h-40 items-center justify-center bg-[#f7f7f8]">
+            <Package className="h-12 w-12 text-slate-300" strokeWidth={1.2} />
+          </div>
+        )}
+        {/* Status badge */}
+        <span
+          className={`absolute bottom-3 left-3 inline-flex rounded-md px-2.5 py-1 text-xs font-bold ${
+            isActive ? 'bg-emerald-500 text-white' : 'bg-slate-400 text-white'
+          }`}
+        >
+          {isActive ? 'نشط' : 'غير نشط'}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="p-5">
+        <div className="text-right">
+          <h3 className="text-lg font-black leading-tight text-slate-950">{name}</h3>
+          {description && description !== '-' && (
+            <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-400">{description}</p>
+          )}
+        </div>
+
+        {/* Category */}
+        <div className="mt-3 text-right">
+          <span className="text-xs text-slate-400">الفئة</span>
+          {category && category !== '-' ? (
+            <p className="text-sm font-semibold text-slate-600">{category}</p>
+          ) : (
+            <p className="text-sm text-slate-400">غير مصنف</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-red-500 transition hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          <Link
+            href={href}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-sm transition hover:bg-slate-50"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            معاينة
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ReferenceBundlesPage() {
   const locale = useLocale();
-  const router = useRouter();
   const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [bundleRowsData, setBundleRowsData] = useState<BundleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1811,12 +1898,15 @@ export function ReferenceBundlesPage() {
         const data = json.data || json || [];
         const mapped: BundleRow[] = (Array.isArray(data) ? data : []).map((item: any, idx: number) => ({
           id: `#${idx + 1}`,
+          realId: String(item.id),
           name: item.name || '-',
           description: item.description || '-',
           category: item.category || '-',
           teacher: item.teacher_name || item.teacher || '-',
           students: item.students_count ?? 0,
-          status: item.status === 'active' ? 'نشط' : (item.status || 'نشط'),
+          status: item.status === 'active' ? 'نشط' : 'غير نشط',
+          isActive: item.status === 'active' || item.is_active === true,
+          imageUrl: item.image_url || null,
           createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-SA') : '-',
         }));
         setBundleRowsData(mapped);
@@ -1830,12 +1920,33 @@ export function ReferenceBundlesPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = bundleRowsData.filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
+  const handleDelete = useCallback(async (realId: string) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا الفصل؟')) return;
+    try {
+      const res = await fetch(`/api/admin/bundles?id=${realId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      setBundleRowsData((prev) => prev.filter((b) => b.realId !== realId));
+    } catch (err: any) {
+      setError(err.message || 'فشل في حذف الفصل');
+      setTimeout(() => setError(null), 4000);
+    }
+  }, []);
+
+  const filtered = bundleRowsData
+    .filter((row) => {
+      if (statusFilter === 'active') return row.isActive;
+      if (statusFilter === 'inactive') return !row.isActive;
+      return true;
+    })
+    .filter((row) => [row.name, row.description, row.teacher].join(' ').toLowerCase().includes(query.toLowerCase()));
 
   return (
     <ReferenceDashboardShell>
       <div className="space-y-6">
-        <SectionHeading title="الفصول" subtitle="إدارة الفصول والبرامج الأكاديمية" />
+        <SectionHeading title="الفصول" subtitle="إدارة مجموعات المواد الدراسية والفصول" />
 
         <TopBar
           action={
@@ -1845,53 +1956,41 @@ export function ReferenceBundlesPage() {
             </PillButton>
           }
         >
+          <PillButton variant="secondary">
+            <Download className="h-4 w-4" />
+            dashboard.bundles.export
+          </PillButton>
+          <PillButton variant="secondary">
+            <UploadCloud className="h-4 w-4" />
+            dashboard.bundles.import
+          </PillButton>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+            className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm"
+          >
+            <option value="all">جميع الفصول</option>
+            <option value="active">نشط</option>
+            <option value="inactive">غير نشط</option>
+          </select>
           <SearchField placeholder="بحث عن الفصول..." value={query} onChange={setQuery} />
         </TopBar>
 
         {loading ? <LoadingSkeleton rows={3} /> : error ? <ErrorState message={error} /> : filtered.length === 0 && !query ? <EmptyState message="لا توجد فصول بعد." /> : (
-        <ReferenceTable>
-          <ReferenceTableHeader>
-            <ReferenceTableRow>
-              <ReferenceTableHead>المعرف</ReferenceTableHead>
-              <ReferenceTableHead>الاسم</ReferenceTableHead>
-              <ReferenceTableHead>الوصف</ReferenceTableHead>
-              <ReferenceTableHead>الفئة</ReferenceTableHead>
-              <ReferenceTableHead>المعلم</ReferenceTableHead>
-              <ReferenceTableHead>الطلاب</ReferenceTableHead>
-              <ReferenceTableHead>الحالة</ReferenceTableHead>
-              <ReferenceTableHead>تاريخ الإنشاء</ReferenceTableHead>
-              <ReferenceTableHead>الإجراءات</ReferenceTableHead>
-            </ReferenceTableRow>
-          </ReferenceTableHeader>
-          <ReferenceTableBody>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((row) => (
-              <ReferenceTableRow key={row.id}>
-                <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
-                <ReferenceTableCell className="font-semibold">
-                  <Link href={withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale)} className="hover:text-slate-950 hover:underline">
-                    {row.name}
-                  </Link>
-                </ReferenceTableCell>
-                <ReferenceTableCell className="text-slate-500">{row.description}</ReferenceTableCell>
-                <ReferenceTableCell className="text-slate-500">{row.category}</ReferenceTableCell>
-                <ReferenceTableCell className="text-slate-500">{row.teacher}</ReferenceTableCell>
-                <ReferenceTableCell className="font-semibold">{row.students}</ReferenceTableCell>
-                <ReferenceTableCell>
-                  <StatusChip label={row.status} tone="success" />
-                </ReferenceTableCell>
-                <ReferenceTableCell className="text-slate-500">{row.createdAt}</ReferenceTableCell>
-                <ReferenceTableCell>
-                  <div className="flex items-center gap-2">
-                    <Link href={withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale)}>
-                      <ActionIcon icon={Eye} />
-                    </Link>
-                    <ActionIcon icon={Pencil} onClick={() => router.push(withLocalePrefix(`/dashboard/bundles/${row.id.replace('#', '')}`, locale))} />
-                  </div>
-                </ReferenceTableCell>
-              </ReferenceTableRow>
+              <BundleListCard
+                key={row.realId}
+                realId={row.realId}
+                name={row.name}
+                description={row.description}
+                category={row.category}
+                isActive={row.isActive}
+                imageUrl={row.imageUrl}
+                onDelete={() => handleDelete(row.realId)}
+              />
             ))}
-          </ReferenceTableBody>
-        </ReferenceTable>
+          </div>
         )}
       </div>
     </ReferenceDashboardShell>
