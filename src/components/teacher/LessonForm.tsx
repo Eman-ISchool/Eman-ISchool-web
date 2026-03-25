@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,19 +24,21 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Initial state
+    // Support both camelCase (API list response) and snake_case (Supabase direct)
+    const lessonStart = lesson?.start_date_time || lesson?.startDateTime;
+    const lessonEnd = lesson?.end_date_time || lesson?.endDateTime;
+
     const [formData, setFormData] = useState({
         title: lesson?.title || '',
-        startDateTime: lesson?.startDateTime ? new Date(lesson.startDateTime).toISOString().slice(0, 16) : '',
-        duration: lesson ?
-            Math.round((new Date(lesson.endDateTime).getTime() - new Date(lesson.startDateTime).getTime()) / 60000) :
-            60,
+        startDateTime: lessonStart ? new Date(lessonStart).toISOString().slice(0, 16) : '',
+        duration: lessonStart && lessonEnd
+            ? Math.round((new Date(lessonEnd).getTime() - new Date(lessonStart).getTime()) / 60000)
+            : 60,
         description: lesson?.description || '',
-        meetLink: lesson?.meetLink || '',
-        meetingTitle: lesson?.meeting_title || '',
-        meetingProvider: lesson?.meeting_provider || '',
-        meetingDurationMin: lesson?.meeting_duration_min || '',
-        generateMeet: false
+        meetLink: lesson?.meet_link || lesson?.meetLink || '',
+        meetingProvider: lesson?.meeting_provider || lesson?.meetingProvider || '',
+        meetingTitle: lesson?.meeting_title || lesson?.meetingTitle || '',
+        meetingDurationMin: lesson?.meeting_duration_min || lesson?.meetingDurationMin || '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -45,10 +47,6 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
             ...prev,
             [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
         }));
-    };
-
-    const handleCheckboxChange = (checked: boolean) => {
-        setFormData(prev => ({ ...prev, generateMeet: checked }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,6 +63,10 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
             const startDate = new Date(formData.startDateTime);
             const endDate = new Date(startDate.getTime() + Number(formData.duration) * 60000);
 
+            // If teacher pasted a manual meet link, skip auto-generation
+            const hasManualLink = !!formData.meetLink.trim();
+            const wantsAutoGenerate = formData.meetingProvider === 'google_meet' && !hasManualLink;
+
             const payload = {
                 title: formData.title,
                 description: formData.description,
@@ -72,12 +74,11 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
                 endDateTime: endDate.toISOString(),
                 courseId: courseId,
                 subjectId: subjectId,
-                skipMeetGeneration: !formData.generateMeet,
-                meetLink: formData.meetLink,
-                meetingTitle: formData.meetingTitle,
-                meetingProvider: formData.meetingProvider,
-                meetingDurationMin: formData.meetingDurationMin,
-                // If editing, include ID (not in body for POST usually but maybe handle appropriately)
+                meetLink: formData.meetLink.trim() || undefined,
+                skipMeetGeneration: !wantsAutoGenerate,
+                meetingTitle: formData.meetingTitle || undefined,
+                meetingProvider: formData.meetingProvider || undefined,
+                meetingDurationMin: formData.meetingDurationMin ? Number(formData.meetingDurationMin) : undefined,
             };
 
             const url = lesson ? '/api/lessons' : '/api/lessons';
@@ -95,12 +96,11 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
             const data = await res.json();
 
             if (!res.ok) {
+                const errorMessage = data.details ? `${data.error}: ${data.details} (${data.code})` : (data.error || 'Failed to save lesson');
                 if (data.requiresGoogleAuth) {
-                    // Logic to handle Google Auth redirect if needed
-                    // For now just show error
-                    throw new Error(data.error);
+                    throw new Error(errorMessage);
                 }
-                throw new Error(data.error || 'Failed to save lesson');
+                throw new Error(errorMessage);
             }
 
             // Redirect back to course details
@@ -190,61 +190,45 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="meetLink">{t('meetLink')}</Label>
-                        <Input
-                            id="meetLink"
-                            name="meetLink"
-                            type="url"
-                            placeholder={t('meetLinkPlaceholder')}
-                            value={formData.meetLink || ''}
-                            onChange={handleChange}
-                            disabled={isLoading}
-                        />
+                    {/* ── Google Meet Section ── */}
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 space-y-3">
+                        <p className="text-sm font-semibold text-blue-700">Google Meet</p>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="meetLink">رابط الميتينج (الصق هنا لو عندك رابط)</Label>
+                            <Input
+                                id="meetLink"
+                                name="meetLink"
+                                type="url"
+                                value={formData.meetLink || ''}
+                                onChange={handleChange}
+                                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                                disabled={isLoading}
+                            />
+                            <p className="text-xs text-gray-500">
+                                اتركه فارغاً + اختر &quot;Google Meet&quot; أسفله عشان يتولّد أوتوماتيك
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="meetingProvider">Meeting Provider</Label>
+                            <select
+                                id="meetingProvider"
+                                name="meetingProvider"
+                                value={formData.meetingProvider || ''}
+                                onChange={handleChange}
+                                disabled={isLoading}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="">— بدون ميتينج —</option>
+                                <option value="google_meet">Google Meet (أوتوماتيك)</option>
+                                <option value="zoom">Zoom</option>
+                                <option value="teams">Microsoft Teams</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="meetingTitle">{t('meetingTitle')}</Label>
-                        <Input
-                            id="meetingTitle"
-                            name="meetingTitle"
-                            type="text"
-                            value={formData.meetingTitle || ''}
-                            onChange={handleChange}
-                            disabled={isLoading}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="meetingProvider">{t('meetingProvider')}</Label>
-                        <select
-                            id="meetingProvider"
-                            name="meetingProvider"
-                            value={formData.meetingProvider || ''}
-                            onChange={handleChange}
-                            disabled={isLoading}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <option value="">{t('selectProvider')}</option>
-                            <option value="google_meet">Google Meet</option>
-                            <option value="zoom">Zoom</option>
-                            <option value="teams">Microsoft Teams</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="meetingDurationMin">{t('meetingDuration')} (minutes)</Label>
-                        <Input
-                            id="meetingDurationMin"
-                            name="meetingDurationMin"
-                            type="number"
-                            min="1"
-                            value={formData.meetingDurationMin || ''}
-                            onChange={handleChange}
-                            disabled={isLoading}
-                        />
-                    </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
                     <Button

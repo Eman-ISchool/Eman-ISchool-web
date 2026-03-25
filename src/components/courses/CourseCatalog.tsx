@@ -19,8 +19,8 @@ export async function CourseCatalog({
     const queryText = typeof searchParams.q === 'string' ? searchParams.q : '';
     const gradeId = typeof searchParams.grade === 'string' ? searchParams.grade : '';
 
-    // Fetch grades for filter
-    const { data: grades } = await supabaseAdmin
+    // Build grades query for filter
+    const gradesQuery = supabaseAdmin
         .from('grades')
         .select('id, name')
         .eq('is_active', true)
@@ -47,7 +47,14 @@ export async function CourseCatalog({
         query = query.eq('grade_id', gradeId);
     }
 
-    const { data: courses } = await query;
+    // Performance limit for initial server render
+    query = query.limit(12);
+
+    // Fetch both in parallel
+    const [ { data: grades }, { data: courses } ] = await Promise.all([
+        gradesQuery,
+        query
+    ]);
 
     return (
         <div className="space-y-6">

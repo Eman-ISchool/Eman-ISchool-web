@@ -66,11 +66,8 @@ export async function GET(req: Request) {
             supabaseAdmin.from('courses').select('id, title, is_published, enrollments:enrollments(count)').order('created_at', { ascending: false }).limit(20),
         ];
 
-        const results = [];
-        for (let i = 0; i < queries.length; i += 5) {
-            const chunk = await Promise.all(queries.slice(i, i + 5));
-            results.push(...chunk);
-        }
+        // Fire all queries simultaneously in parallel to eliminate compounding chunk delays
+        const results = await Promise.all(queries);
 
         const [
             { count: studentCount },

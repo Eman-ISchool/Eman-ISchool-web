@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/withAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withRequestId } from '@/lib/request-id';
-import { generateMeetLink, toGoogleMeetApiError } from '@/lib/google-meet';
+import { generateMeetLink } from '@/lib/meet-service';
 function jsonWithRequestId(body: any, status: number, requestId: string) {
   return withRequestId(NextResponse.json(body, { status }), requestId);
 }
@@ -116,30 +116,7 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
   }
 
-  const allowManualMeet = process.env.ALLOW_MANUAL_MEET_LINK === 'true';
-  const normalizedProvidedMeetLink = providedMeetLink.startsWith('https://meet.google.com/') ? providedMeetLink : '';
-  let meetResult;
-  if (normalizedProvidedMeetLink && allowManualMeet) {
-    meetResult = { meetLink: normalizedProvidedMeetLink, google_event_id: '' };
-  } else {
-    try {
-      meetResult = await generateMeetLink({
-        summary: title,
-        description: description || 'Eduverse live lesson',
-        startTime: startDateTime,
-        endTime: endDateTime,
-        requestId,
-      });
-    } catch (error: any) {
-      const googleError = toGoogleMeetApiError(error);
-      return jsonWithRequestId(
-        { error: googleError.error, code: googleError.code, detail: googleError.detail, requestId },
-        googleError.status,
-        requestId
-      );
-    }
-  }
-
+  // Step 1: Insert lesson first (without meet link)
   const { data: lesson, error: lessonError } = await supabaseAdmin
     .from('lessons')
     .insert({
@@ -150,9 +127,9 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
       start_date_time: startDateTime,
       end_date_time: endDateTime,
       status: 'scheduled',
-      meet_link: meetResult.meetLink,
+      meet_link: null,
       meeting_provider: 'google_meet',
-      google_event_id: meetResult.google_event_id,
+      google_event_id: null,
     })
     .select()
     .single();
@@ -161,25 +138,35 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
     return jsonWithRequestId({ error: 'Failed to create lesson', code: 'CREATE_ERROR', requestId }, 500, requestId);
   }
 
-  const { error: meetingError } = await supabaseAdmin
-    .from('lesson_meetings')
-    .upsert({
-      lesson_id: lesson.id,
-      provider: 'google_calendar',
-      meet_url: meetResult.meetLink,
-      event_id: meetResult.google_event_id,
-      created_by_teacher_id: user.id,
-      status: 'active',
-    }, { onConflict: 'lesson_id' });
+  // Step 2: Generate Google Meet link using meet-service (handles token management automatically)
+  try {
+    const meetResult = await generateMeetLink(user.id, lesson.id);
 
-  if (meetingError) {
+    const { data: updatedLesson, error: updateError } = await supabaseAdmin
+      .from('lessons')
+      .update({
+        meet_link: meetResult.meetLink,
+        google_event_id: meetResult.googleEventId || null,
+        google_calendar_link: meetResult.googleCalendarLink || null,
+      })
+      .eq('id', lesson.id)
+      .select()
+      .single();
+
+    if (updateError || !updatedLesson) {
+      console.error('[POST /api/courses/[id]/lessons] Failed to persist Meet link — rolling back:', updateError);
+      await supabaseAdmin.from('lessons').delete().eq('id', lesson.id);
+      return jsonWithRequestId({ error: 'Failed to save Google Meet link. Lesson was not created.', code: 'GOOGLE_CALENDAR_ERROR', requestId }, 500, requestId);
+    }
+
+    return jsonWithRequestId({ lesson: updatedLesson, requestId }, 201, requestId);
+  } catch (meetError: any) {
+    console.error('[POST /api/courses/[id]/lessons] Meet generation failed — rolling back:', meetError.message);
     await supabaseAdmin.from('lessons').delete().eq('id', lesson.id);
     return jsonWithRequestId(
-      { error: 'Google Meet persistence failed. Lesson was not created.', code: 'GOOGLE_CALENDAR_ERROR', requestId },
-      503,
+      { error: `Lesson was not created because Google Meet link could not be generated: ${meetError.message}`, code: 'GOOGLE_CALENDAR_ERROR', requestId },
+      400,
       requestId
     );
   }
-
-  return jsonWithRequestId({ lesson, requestId }, 201, requestId);
 }, { allowedRoles: ['admin', 'teacher'] });
