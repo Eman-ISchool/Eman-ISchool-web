@@ -78,7 +78,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     // For students, only show their submissions (not counts)
     if (currentUser.role === 'student') {
-      const { data: submissions, error: submissionsError } = await supabaseAdmin
+      const { error: submissionsError } = await supabaseAdmin
         .from('assessment_submissions')
         .select(`
           *,

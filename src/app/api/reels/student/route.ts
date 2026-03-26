@@ -5,12 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import type { Database } from '@/types/database';
-
 export const dynamic = 'force-dynamic';
-
-type Reel = Database['public']['Tables']['reels']['Row'];
-type Enrollment = Database['public']['Tables']['enrollments']['Row'];
 
 /**
  * GET /api/reels/student
@@ -80,7 +75,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch all reels first (we'll sort them manually for relevance)
-        const { data: reels, error, count } = await query;
+        const { data: reels, error } = await query;
 
         if (error) {
             console.error('Error fetching student reels:', error);

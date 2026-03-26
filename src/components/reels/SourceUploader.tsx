@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import * as tus from 'tus-js-client';
-import { validateVideoFile, validateDocumentFile, validateFileByType } from '@/lib/file-validation';
+import { validateFileByType } from '@/lib/file-validation';
 import type { SourceContentType } from '@/types/database';
 
 interface UploadProgress {
@@ -125,73 +125,6 @@ export default function SourceUploader({
       handleFileSelect(e.target.files[0]);
     }
   }, [handleFileSelect]);
-
-  // Start upload using TUS protocol
-  const startUpload = useCallback(async () => {
-    if (!file) {
-      return;
-    }
-
-    try {
-      // Create TUS upload
-      const upload = new tus.Upload(file, {
-        endpoint: '/api/source-content',
-        chunkSize: 5 * 1024 * 1024, // 5MB chunks
-        retryDelays: [0, 3000, 5000], // Exponential backoff
-        metadata: {
-          filename: file.name,
-          filetype: file.type,
-          uploadtype: getFileType(file),
-        },
-        onError: (error) => {
-          console.error('[SourceUploader] Upload error:', error);
-          setIsUploading(false);
-          setUploadProgress(null);
-          onUploadError?.(error.message || 'Upload failed');
-        },
-        onProgress: (bytesUploaded, bytesTotal) => {
-          const progress = (bytesUploaded / bytesTotal) * 100;
-          const uploadSpeed = bytesUploaded / ((Date.now() - startTime) / 1000);
-          
-          setUploadProgress({
-            progress,
-            bytesUploaded,
-            bytesTotal,
-            uploadSpeed,
-          });
-          
-          onProgress?.({
-            progress,
-            bytesUploaded,
-            bytesTotal,
-            uploadSpeed,
-          });
-        },
-        onSuccess: async () => {
-          console.log('[SourceUploader] Upload complete');
-          setIsUploading(false);
-          setUploadProgress(null);
-          
-          // Get source ID from response
-          // Note: The actual source ID would come from the API response
-          // For now, we'll extract it from the upload URL or response
-          const sourceId = extractSourceIdFromUpload(upload.url || '');
-          
-          onUploadComplete?.(sourceId, upload.url || '');
-        },
-      });
-
-      uploadRef.current = upload;
-      upload.start();
-      
-      const startTime = Date.now();
-    } catch (error) {
-      console.error('[SourceUploader] Upload initiation error:', error);
-      setIsUploading(false);
-      setUploadProgress(null);
-      onUploadError?.(error instanceof Error ? error.message : 'Upload failed');
-    }
-  }, [file, onUploadComplete, onUploadError, onProgress]);
 
   // Extract source ID from upload URL
   const extractSourceIdFromUpload = (url: string): string => {

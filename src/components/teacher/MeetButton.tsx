@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, Loader2, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 export function MeetButton({
     lessonId,

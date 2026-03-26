@@ -119,7 +119,6 @@ const LessonMaterialsSection = memo<LessonMaterialsSectionProps>(({ lessonId, on
           <button
             onClick={() => {
               // TODO: Open add material modal
-              console.log('Add material button clicked');
             }}
             className="btn-add-material"
             aria-label="Add material to lesson"

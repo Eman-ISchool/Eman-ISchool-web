@@ -2,7 +2,7 @@
 
 import { useCoursesList } from '@/lib/api/courses';
 import { CardView } from '@/components/admin';
-import { BookOpen, Users } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { LoadingState, ErrorState } from '@/components/admin/StateComponents';
 import { useRouter, useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';

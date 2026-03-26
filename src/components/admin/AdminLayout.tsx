@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
@@ -15,13 +15,11 @@ import {
     Database,
     Settings,
     ChevronLeft,
-    ChevronDown,
     Menu,
     X,
     User,
 } from 'lucide-react';
-import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
-import { useTranslations } from 'next-intl';
+import { withLocalePrefix } from '@/lib/locale-path';
 import { useLocale } from 'next-intl';
 
 interface AdminLayoutProps {
@@ -29,7 +27,6 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-    const router = useRouter();
     const { data: session, status } = useSession();
     const pathname = usePathname();
     const locale = useLocale();

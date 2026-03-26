@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
-type Reel = Database['public']['Tables']['reels']['Row'];
 type ReelInsert = Database['public']['Tables']['reels']['Insert'];
 
 /**

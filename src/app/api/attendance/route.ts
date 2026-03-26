@@ -151,7 +151,7 @@ export async function GET(req: Request) {
         if (endDate) query = query.lte('joined_at', endDate);
 
         // Get total count
-        const { count: totalCount, error: countError } = await supabaseAdmin
+        const { count: totalCount } = await supabaseAdmin
             .from('attendance')
             .select('*', { count: 'exact', head: true });
 

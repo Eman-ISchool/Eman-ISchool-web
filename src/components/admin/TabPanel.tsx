@@ -56,8 +56,6 @@ export default function TabPanel({
         },
     };
 
-    const activeTabData = tabs.find(tab => tab.id === activeTab);
-
     return (
         <div className={className}>
             {/* Tab Navigation */}

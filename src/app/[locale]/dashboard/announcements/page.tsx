@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Megaphone, Plus, Clock, FileText, Users, Search } from 'lucide-react';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';

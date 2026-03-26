@@ -1,9 +1,6 @@
-
-
 --claude --dangerously-skip-permissions
 
 claude --dangerously-skip-permissions
-
 
 Email: admin@school.com
 Password: Admin@1234

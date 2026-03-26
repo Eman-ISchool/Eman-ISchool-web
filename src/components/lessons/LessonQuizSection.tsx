@@ -35,7 +35,7 @@ export default function LessonQuizSection({
   userId,
 }: LessonQuizSectionProps) {
   const t = useTranslations('lessons');
-  const { data: session } = useSession();
+  useSession();
   const [quizList, setQuizList] = useState<Assessment[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, AssessmentSubmission[]>>({});
   const [loading, setLoading] = useState(true);

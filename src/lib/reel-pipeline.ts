@@ -1,10 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { transcribeVideo, validateTranscriptForSegmentation } from './transcription-api';
+import { transcribeVideo } from './transcription-api';
 import { segmentTranscript, validateSegmentation } from './content-segmenter';
 import { generateReel } from './runway-api';
-import type { ProcessingJobType, ProcessingJobStatus, SourceStatus } from '@/types/database';
-import { notifyAdminOfAIFailure } from './reel-notifications';
-import { moderateContent } from './content-screening';
+import type { ProcessingJobStatus } from '@/types/database';
 
 // Initialize Supabase client
 const supabase = createClient(

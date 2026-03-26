@@ -18,8 +18,6 @@ import {
   Microscope,
   FlipHorizontal,
   Eye,
-  EyeOff,
-  RotateCw,
 } from 'lucide-react';
 import type { VRLanguage } from '@/types/vr';
 

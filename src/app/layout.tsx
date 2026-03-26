@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Tajawal } from 'next/font/google';
-import localFont from 'next/font/local'; // Or import from next/font/google if available
 import { defaultLocale } from '@/i18n/config';
 import { cookies } from 'next/headers';
 import '@/lib/init'; // Initialize application configuration

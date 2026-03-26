@@ -8,7 +8,6 @@ import {
     Target,
     Brain,
     Award,
-    CheckCircle,
     TrendingUp,
     AlertTriangle,
     BookOpen,

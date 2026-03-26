@@ -179,17 +179,7 @@ export function canJoinLesson(role: string): boolean {
  * query the database to check the enrollments table.
  */
 export function isStudentEnrolled(studentId: string, courseId: string): boolean {
-  // In a real implementation, we would query the database:
-  // const { data } = await supabase
-  //   .from('enrollments')
-  //   .select('*')
-  //   .eq('student_id', studentId)
-  //   .eq('course_id', courseId)
-  //   .eq('status', 'active')
-  //   .single();
-  // return !!data;
-
-  // For now, return false as a safe default
+  // Placeholder - return false as a safe default
   return false;
 }
 

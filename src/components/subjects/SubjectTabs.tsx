@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, ClipboardList, Info, Users, CreditCard } from 'lucide-react';
+import { BookOpen, Calendar, Info, Users, CreditCard } from 'lucide-react';
 import React from 'react';
 
 export type SubjectTab = 'information' | 'courses' | 'calendar' | 'fees' | 'students';

@@ -1,7 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { CourseCard } from './CourseCard';
 import { CourseFilters } from './CourseFilters';
-import { getTranslations } from 'next-intl/server';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
 
@@ -14,8 +13,6 @@ export async function CourseCatalog({
     locale: string;
     role?: 'parent' | 'student' | 'public';
 }) {
-    const t = await getTranslations('courses'); // Need to add 'courses' translations? Or use common
-
     const queryText = typeof searchParams.q === 'string' ? searchParams.q : '';
     const gradeId = typeof searchParams.grade === 'string' ? searchParams.grade : '';
 

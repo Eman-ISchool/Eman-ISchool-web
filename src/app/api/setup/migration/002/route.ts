@@ -18,7 +18,7 @@ export async function GET() {
     CREATE INDEX IF NOT EXISTS idx_password_resets_user_id ON password_resets(user_id);
     `;
 
-    const { error } = await supabaseAdmin.rpc('exec_sql', { sql_query: sql });
+    await supabaseAdmin.rpc('exec_sql', { sql_query: sql });
 
     // If RPC exec_sql doesn't exist (it usually doesn't by default), we might be stuck.
     // However, we can try to use raw query if the library supports it, but supabase-js usually doesn't expose raw query easily without RPC.

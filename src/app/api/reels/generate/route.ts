@@ -5,10 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { submitGenerationRequest, pollGenerationUntilComplete } from '@/lib/nano-banana';
-import { screenReel } from '@/lib/content-screening';
+import { submitGenerationRequest } from '@/lib/nano-banana';
 import { logGenerationNotification, logFailureNotification } from '@/lib/reel-notifications';
-import type { ReelInsert, GenerationLogInsert } from '@/lib/supabase';
 
 /**
  * POST /api/reels/generate

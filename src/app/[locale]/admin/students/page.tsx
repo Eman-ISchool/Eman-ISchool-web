@@ -10,7 +10,6 @@ import {
     Download,
     CheckCircle,
     Clock,
-    X,
     Calendar,
     Copy,
     User,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import DataTable, { Column } from '@/components/admin/DataTable';
 import { LoadingState } from '@/components/admin/StateComponents';
-import Modal, { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '@/components/admin/Modal';
+import Modal from '@/components/admin/Modal';
 import { StandardActionsDropdown } from '@/components/admin/DropdownMenu';
 
 interface AttendanceRecord {
@@ -60,7 +59,6 @@ interface Toast {
 export default function StudentsPage() {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState<Student[]>([]);
-    const [showNewModal, setShowNewModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [activeDetailTab, setActiveDetailTab] = useState<'info' | 'fees' | 'attendance'>('info');
     const [toast, setToast] = useState<Toast>({ message: '', visible: false });
@@ -70,8 +68,6 @@ export default function StudentsPage() {
     const generateAttendanceRecords = (): AttendanceRecord[] => {
         const records: AttendanceRecord[] = [];
         const today = new Date();
-        const statuses: ('present' | 'absent' | 'late' | 'excused')[] = ['present', 'absent', 'late', 'excused'];
-
         for (let i = 1; i <= today.getDate(); i++) {
             // Skip weekends (Friday & Saturday)
             const date = new Date(today.getFullYear(), today.getMonth(), i);
@@ -512,7 +508,6 @@ export default function StudentsPage() {
                         تصدير
                     </button>
                     <button
-                        onClick={() => setShowNewModal(true)}
                         className="admin-btn admin-btn-primary"
                     >
                         <Plus className="w-5 h-5" />
@@ -615,8 +610,8 @@ export default function StudentsPage() {
                 actions={(student) => (
                     <StandardActionsDropdown
                         onViewDetails={() => handleRowClick(student)}
-                        onEdit={() => console.log('Edit', student.id)}
-                        onDelete={() => console.log('Delete', student.id)}
+                        onEdit={() => {}}
+                        onDelete={() => {}}
                     />
                 )}
             />

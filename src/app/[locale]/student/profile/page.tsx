@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import {
     User, Edit, Globe, CreditCard, GraduationCap,
     FileText, ClipboardList, Settings, LogOut,
-    ChevronRight, Camera, Check
+    ChevronRight, Camera
 } from 'lucide-react';
 
 interface ProfileSection {
@@ -25,7 +25,7 @@ export default function StudentProfilePage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            console.log('Profile photo selected:', file.name);
+            // TODO: Handle profile photo upload
         }
     };
 

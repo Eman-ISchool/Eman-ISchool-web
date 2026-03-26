@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import type { VRScene, VRExperience } from '@/types/vr';
+import type { VRScene } from '@/types/vr';
 
 // Dynamically import VR components (client-side only)
 const VRCanvas = dynamic(

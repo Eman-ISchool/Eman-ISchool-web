@@ -4,14 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video, Mic, VideoOff, MicOff, AlertTriangle, CheckCircle, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
 import { validateMeetLinkForJoining } from '@/lib/meet-utils';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function ClassroomPage() {
-    const { data: session } = useSession();
+    useSession();
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -76,7 +76,7 @@ export default function ClassroomPage() {
                 const timeout = setTimeout(() => {
                     if (randomCheckVisible) { // If still visible
                         // Ideally we would mark them as 'away' or 'absent' in backend
-                        console.log('Random check failed - user away');
+                        // Random check failed - user away
                     }
                 }, 60000);
 
@@ -106,16 +106,6 @@ export default function ClassroomPage() {
         } catch (err) {
             console.error("Error accessing media devices:", err);
             alert("يرجى السماح بالوصول للكاميرا والميكروفون لتسجيل الحضور");
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-            setCameraActive(false);
-            setMicActive(false);
-            setAttendanceStatus('absent'); // Or pending
         }
     };
 

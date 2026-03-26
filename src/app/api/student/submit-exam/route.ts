@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         const { submissionId, assessmentId, answers } = await req.json();
         
         // Rate limiting: Check if student has submitted this exam recently
-        const { data: recentSubmission, error: recentError } = await supabaseAdmin
+        const { data: recentSubmission } = await supabaseAdmin
             .from('assessment_submissions')
             .select('id, submitted_at')
             .eq('student_id', user.id)

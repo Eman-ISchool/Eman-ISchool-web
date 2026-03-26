@@ -87,7 +87,6 @@ export async function GET(
             });
         }
 
-        const childIds = children.map(c => c.id);
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -107,8 +106,8 @@ export async function GET(
                     .in('status', ['scheduled', 'live'])
                     .gt('start_date_time', new Date().toISOString());
 
-                // Fetch pending homework count
-                const { count: pendingHomeworkCount } = await supabaseAdmin
+                // Fetch pending homework count (used below via actualPendingHomeworkCount)
+                await supabaseAdmin
                     .from('assignments')
                     .select('*', { count: 'exact', head: true })
                     .in('course_id', supabaseAdmin

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, CheckCircle, XCircle, Save, Download, FileText, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
@@ -54,9 +54,6 @@ export function SubmissionGrader({
     const handleSaveGrades = async () => {
         setIsSaving(true);
         try {
-            let totalManualPoints = 0;
-            let totalAutoPoints = 0;
-
             // Prepare updates for assessment_answers
             const answerUpdates = mergedData.map(item => {
                 if (!item.answer) return null;
@@ -66,13 +63,11 @@ export function SubmissionGrader({
 
                 if (qType === 'multiple_choice') {
                     // Auto graded, keep existing points
-                    totalAutoPoints += finalPoints;
                     return null; // No need to update the DB answer row if it's already graded unless teacher overrides? Assuming no override.
                 } else {
                     // Manual graded
                     const manualData = grades[item.answer.id];
                     finalPoints = manualData?.points || 0;
-                    totalManualPoints += finalPoints;
 
                     return {
                         id: item.answer.id,

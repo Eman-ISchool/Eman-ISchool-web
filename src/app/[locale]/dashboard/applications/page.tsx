@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Search, Eye, Download, Printer, Filter } from 'lucide-react';
+import { Search, Eye, Download } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';

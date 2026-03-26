@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { logAdminReelAction, logAdminReelView } from '@/lib/admin-audit-log';
+import { logAdminReelAction } from '@/lib/admin-audit-log';
 
 
 interface Reel {

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Clock, Save, FileBox, FileQuestion } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, FileBox, FileQuestion } from 'lucide-react';
 
 export default async function AssessmentResultsPage({
     params: { locale, assessmentId }

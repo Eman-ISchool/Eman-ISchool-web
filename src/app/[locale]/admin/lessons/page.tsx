@@ -7,13 +7,11 @@ import {
     Video,
     FileText,
     Clock,
-    Users,
     Play,
     Upload,
-    X,
 } from 'lucide-react';
 import DataTable, { Column } from '@/components/admin/DataTable';
-import { LoadingState, EmptyState } from '@/components/admin/StateComponents';
+import { LoadingState } from '@/components/admin/StateComponents';
 import Modal, { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '@/components/admin/Modal';
 import { StandardActionsDropdown } from '@/components/admin/DropdownMenu';
 

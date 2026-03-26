@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Send, User, ChevronLeft, MoreVertical, Check, CheckCheck } from 'lucide-react';
+import { Search, Send, User, ChevronLeft, Check, CheckCheck } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface Message { id: string; content: string; senderId: string; createdAt: string; read?: boolean; }

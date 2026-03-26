@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, Smartphone, Tablet, Globe } from 'lucide-react';
 import { PlatformCard } from '@/components/download/PlatformCard';
 import { detectPlatform, type Platform } from '@/lib/platform-detect';
-import { BuildArtifact, formatFileSize } from '@/types/builds';
+import { BuildArtifact } from '@/types/builds';
 
 // Default build data (will be replaced with actual manifest data)
 const defaultArtifacts: BuildArtifact[] = [
@@ -71,7 +70,6 @@ export default function DownloadPage() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
 
-    console.log(`User response to the install prompt: ${outcome}`);
     setDeferredPrompt(null);
   };
 

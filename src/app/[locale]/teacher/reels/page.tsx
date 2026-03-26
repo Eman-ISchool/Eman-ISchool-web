@@ -62,20 +62,16 @@ export default function TeacherReelsPage() {
     const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-
     useEffect(() => {
         fetchData();
-        
+
         // Start polling for processing items
         const interval = setInterval(() => {
             if (viewMode === 'source-content') {
                 fetchSourceContent();
             }
         }, 5000); // Poll every 5 seconds
-        
-        setPollingInterval(interval);
-        
+
         return () => {
             if (interval) {
                 clearInterval(interval);

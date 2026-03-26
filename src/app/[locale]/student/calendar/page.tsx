@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Video, Clock, User, X, AlertCircle, CalendarDays } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { fetchSessions, Session } from '@/lib/session-api';
+import { fetchSessions } from '@/lib/session-api';
 
 interface Lesson {
     id: string;

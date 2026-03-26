@@ -15,8 +15,6 @@ import {
     filterSubjectsByType,
     searchSubjects,
     exportCurriculumJSON,
-    type Stage,
-    type Grade,
     type Subject
 } from '@/lib/curriculum';
 

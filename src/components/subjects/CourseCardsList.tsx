@@ -1,8 +1,7 @@
 'use client';
 
-import { BookOpen, MapPin, Clock, Users } from 'lucide-react';
+import { BookOpen, Clock, Users } from 'lucide-react';
 import React from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Course {
     id: string;

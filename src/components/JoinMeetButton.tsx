@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Video, Loader2, AlertCircle } from 'lucide-react';
+import { Video, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
 

@@ -8,7 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { submitGenerationRequest } from '@/lib/nano-banana';
 import { logRegenerationRequested } from '@/lib/generation-log';
 import { logGenerationNotification } from '@/lib/reel-notifications';
-import type { ReelInsert, ReelUpdate } from '@/lib/supabase';
+import type { ReelUpdate } from '@/lib/supabase';
 
 /**
  * POST /api/reels/[reelId]/regenerate
@@ -125,7 +125,7 @@ export async function POST(
         }
 
         // Update reel status to queued
-        const { data: updatedReel, error: updateError } = await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
             .from('reels')
             .update({
                 status: 'queued',

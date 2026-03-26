@@ -13,7 +13,7 @@ interface AdminPortalLayoutProps {
 }
 
 export default function AdminPortalLayout({ children, params }: AdminPortalLayoutProps) {
-    const { data: session, status } = useSession();
+    const { status } = useSession();
     const router = useRouter();
 
     // Show loading state while checking authentication

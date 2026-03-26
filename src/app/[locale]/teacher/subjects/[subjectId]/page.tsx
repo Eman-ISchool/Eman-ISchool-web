@@ -6,19 +6,10 @@ import { useState, useEffect, useCallback } from 'react';
 import {
     ArrowLeft,
     BookOpen,
-    Calendar,
-    ClipboardList,
     Users,
-    FileText,
-    Sparkles,
-    Video,
-    ExternalLink,
-    Clock,
     Layers,
-    FolderOpen,
     RefreshCw,
     Plus,
-    Info,
     CalendarDays,
     CreditCard,
 } from 'lucide-react';
@@ -35,21 +26,6 @@ interface Subject {
     is_active: boolean;
     teacher_id: string;
     created_at: string;
-}
-
-interface Lesson {
-    _id?: string;
-    id?: string;
-    title: string;
-    description?: string;
-    startDateTime?: string;
-    start_date_time?: string;
-    endDateTime?: string;
-    end_date_time?: string;
-    meetLink?: string;
-    meet_link?: string;
-    status: string;
-    course?: { id: string; title: string };
 }
 
 interface Course {
@@ -73,8 +49,6 @@ export default function SubjectDetailPage() {
     const [studentsCount, setStudentsCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [tabLoading, setTabLoading] = useState(false);
-
-    const user = session?.user as any;
 
     // Fetch subject details
     const fetchSubject = useCallback(async () => {
@@ -121,16 +95,6 @@ export default function SubjectDetailPage() {
 
     const handleNavigation = (path: string) => {
         router.push(withLocalePrefix(path, locale));
-    };
-
-    const formatDateTime = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
     };
 
     if (loading) {

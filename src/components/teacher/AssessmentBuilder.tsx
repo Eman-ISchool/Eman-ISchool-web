@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Plus, Trash2, Check, X, Image as ImageIcon, Copy, Clock, Settings, Type } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Trash2, Check, X, Image as ImageIcon, Clock, Settings, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 // Helper for generating unique question IDs in state
@@ -51,7 +51,6 @@ export function AssessmentBuilder({
     const [longDescription, setLongDescription] = useState('');
     const [courseId, setCourseId] = useState('');
     const [durationMinutes, setDurationMinutes] = useState<number | ''>('');
-    const [isPublished, setIsPublished] = useState(false);
 
     // Questions State
     const [questions, setQuestions] = useState<Question[]>([

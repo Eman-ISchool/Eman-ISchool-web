@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -8,14 +8,11 @@ import {
     Link2,
     Sparkles,
     Upload,
-    BookOpen,
-    MonitorPlay,
     CheckCircle,
     Globe,
     Laptop,
     GraduationCap,
     Eye,
-    Play,
     Settings
 } from "lucide-react";
 

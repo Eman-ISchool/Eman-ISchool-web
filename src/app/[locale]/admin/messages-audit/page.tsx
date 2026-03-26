@@ -9,9 +9,7 @@ import {
     Clock,
     Filter,
     ChevronLeft,
-    Calendar,
     Download,
-    Users,
 } from 'lucide-react';
 import { LoadingState, EmptyState } from '@/components/admin/StateComponents';
 import DataTable, { Column } from '@/components/admin/DataTable';

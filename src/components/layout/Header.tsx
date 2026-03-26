@@ -15,7 +15,7 @@ export function Header() {
   const locale = getLocaleFromPathname(pathname);
   const nextLocale = locale === 'ar' ? 'en' : 'ar';
   const isArabic = locale === 'ar';
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = useMemo(

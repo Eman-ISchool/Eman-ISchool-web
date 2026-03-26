@@ -5,9 +5,9 @@ import { notFound, redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Clock, Users, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import QuickEnroll from '@/components/parent/QuickEnroll';
 
 export default async function ParentCourseDetailsPage({

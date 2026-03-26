@@ -86,7 +86,6 @@ export default async function GradeDetailPage({ params, searchParams }: GradeDet
         userRole={currentUser.role}
         supervisorId={grade.supervisor_id}
         onTabChange={(tab) => {
-          console.log(`Tab changed to: ${tab}`);
           // TODO: Track tab changes for analytics
         }}
       />

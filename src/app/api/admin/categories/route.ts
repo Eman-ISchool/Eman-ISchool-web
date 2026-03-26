@@ -69,14 +69,17 @@ export async function POST(req: Request) {
     const gradeName = name_ar || name;
     const slug = gradeName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u0600-\u06FF-]/g, '');
 
+    const insertData: Record<string, any> = {
+        name: gradeName,
+        name_en: name_en || name || gradeName,
+        slug: `${slug}-${Date.now()}`,
+        is_active: status !== 'inactive',
+    };
+    if (description) insertData.description = description;
+
     const { data, error } = await supabaseAdmin
         .from('grades')
-        .insert({
-            name: gradeName,
-            name_en: name_en || name || gradeName,
-            slug: `${slug}-${Date.now()}`,
-            is_active: status !== 'inactive',
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -90,8 +93,8 @@ export async function POST(req: Request) {
         name: data.name,
         name_ar: data.name,
         name_en: data.name_en,
-        description: '',
-        color: '#0D6EFD',
+        description: data.description || '',
+        color: data.color || '#0D6EFD',
         status: data.is_active ? 'active' : 'inactive',
         created_at: data.created_at,
     }, { status: 201 });
@@ -116,6 +119,7 @@ export async function PATCH(req: Request) {
     const updates: Record<string, any> = {};
     if (name || name_ar) updates.name = name_ar || name;
     if (name_en) updates.name_en = name_en;
+    if (rest.description !== undefined) updates.description = rest.description;
     if (status !== undefined) updates.is_active = status !== 'inactive';
 
     const { data, error } = await supabaseAdmin

@@ -108,8 +108,6 @@ export default function ReferenceDashboardOverview() {
   const completedLessons = stats?.lessons?.completed ?? 0;
   const completionRate =
     totalLessons > 0 ? ((completedLessons / totalLessons) * 100).toFixed(1) : '0.0';
-  const attendanceRate = stats?.attendance?.rate ?? 0;
-
   // Build chart data from coursesWithEnrollments (enrollment counts per course over time)
   const chartData =
     stats?.coursesWithEnrollments?.map((c) => ({

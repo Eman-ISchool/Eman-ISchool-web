@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, AlertCircle, Save, FileBox, CheckCircle2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Clock, FileBox, CheckCircle2 } from 'lucide-react';
 import { withLocalePrefix } from '@/lib/locale-path';
 import Image from 'next/image';
 

@@ -54,7 +54,7 @@ export default function CurrencyComparePage() {
                     setError(data.warning);
                 }
             }
-        } catch (err) {
+        } catch (_err) {
             setError('فشل في تحميل أسعار العملات، استخدام الأسعار الافتراضية');
             setRates(FALLBACK_RATES);
             setIsFallback(true);

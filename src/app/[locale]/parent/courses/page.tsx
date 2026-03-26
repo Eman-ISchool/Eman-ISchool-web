@@ -1,5 +1,4 @@
 import { CourseCatalog } from '@/components/courses/CourseCatalog';
-import { getTranslations } from 'next-intl/server';
 
 export default async function ParentCoursesPage({
     params: { locale },
@@ -8,8 +7,6 @@ export default async function ParentCoursesPage({
     params: { locale: string };
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    const t = await getTranslations('parent.courses');
-
     return (
         <div className="space-y-6">
             <div>

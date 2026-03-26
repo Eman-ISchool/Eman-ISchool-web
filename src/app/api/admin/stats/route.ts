@@ -26,7 +26,6 @@ export async function GET(req: Request) {
         const startOfDay = new Date(now);
         startOfDay.setHours(0, 0, 0, 0);
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
         const startOfWeek = new Date(now);
         startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);

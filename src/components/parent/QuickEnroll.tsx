@@ -79,8 +79,8 @@ export default function QuickEnroll({ courseId, courseTitle }: { courseId: strin
                 throw new Error(error.error || 'Enrollment failed');
             }
 
-            const data = await res.json();
-            
+            await res.json();
+
             setMessage({
                 type: 'success',
                 text: isArabic 

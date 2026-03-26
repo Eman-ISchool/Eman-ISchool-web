@@ -9,7 +9,6 @@ import {
   Bold,
   BookOpen,
   Calendar,
-  CalendarDays,
   ChevronDown,
   Clock,
   Eye,
@@ -21,7 +20,6 @@ import {
   ListOrdered,
   MessageSquare,
   Pencil,
-  Phone,
   Plus,
   Save,
   Search,
@@ -33,11 +31,11 @@ import {
   Users,
   Video,
   Loader2,
-  Package,
   Download,
   DollarSign,
   X,
   Mail,
+  MoreHorizontal,
 } from 'lucide-react';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
@@ -720,7 +718,6 @@ function CourseListCard({
   onDelete?: () => void;
 }) {
   const locale = useLocale();
-  const router = useRouter();
   const href = withLocalePrefix(`/dashboard/courses/${id}`, locale);
 
   return (
@@ -786,7 +783,7 @@ export function ReferenceCoursesCatalogPage() {
           teacher: c.teacher_name || c.teacher?.name || '-',
         }));
         setItems(mapped);
-      } catch (err) {
+      } catch (_err) {
         if (!cancelled) setError('فشل في تحميل المواد الدراسية');
       } finally {
         if (!cancelled) setLoading(false);
@@ -897,7 +894,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
         } else {
           if (!cancelled) setCourseError('لم يتم العثور على المادة الدراسية');
         }
-      } catch (err) {
+      } catch (_err) {
         if (!cancelled) setCourseError('فشل في تحميل بيانات المادة الدراسية');
       } finally {
         if (!cancelled) setCourseLoading(false);
@@ -1631,6 +1628,9 @@ export function ReferenceCategoriesPage() {
   const [editRow, setEditRow] = useState<CategoryRow | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1648,10 +1648,10 @@ export function ReferenceCategoriesPage() {
           description: item.description || 'لا يوجد وصف',
           courses: '—',
           bundles: '—',
-          createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-EG') : '-',
+          createdAt: item.created_at || '-',
         }));
         setRows(mapped);
-      } catch (err) {
+      } catch (_err) {
         if (!cancelled) setError('فشل في تحميل الفئات');
       } finally {
         if (!cancelled) setLoading(false);
@@ -1661,13 +1661,19 @@ export function ReferenceCategoriesPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = rows.filter((row) => [row.name, row.description].join(' ').toLowerCase().includes(query.toLowerCase()));
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handler = () => setOpenMenuId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openMenuId]);
 
-  const [creating, setCreating] = useState(false);
+  const filtered = rows.filter((row) => [row.name, row.description].join(' ').toLowerCase().includes(query.toLowerCase()));
 
   const handleCreate = async () => {
     if (!name.trim()) return;
-    setCreating(true);
+    setSaving(true);
     try {
       const res = await fetch('/api/admin/categories', {
         method: 'POST',
@@ -1683,7 +1689,7 @@ export function ReferenceCategoriesPage() {
           description: data.description || description.trim() || 'لا يوجد وصف',
           courses: '—',
           bundles: '—',
-          createdAt: data.created_at ? new Date(data.created_at).toLocaleDateString('ar-EG') : '-',
+          createdAt: data.created_at || '-',
         },
         ...current,
       ]);
@@ -1693,7 +1699,44 @@ export function ReferenceCategoriesPage() {
     } catch (err) {
       console.error('Failed to create category:', err);
     } finally {
-      setCreating(false);
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editRow || !editName.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editRow.id, name: editName.trim(), name_ar: editName.trim() }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setRows((prev) => prev.map((r) => r.id === editRow.id ? { ...r, name: editName.trim(), description: editDescription.trim() || 'لا يوجد وصف' } : r));
+      setEditRow(null);
+    } catch (err) {
+      console.error('Failed to update category:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    try {
+      const res = await fetch(`/api/admin/categories?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'فشل في حذف الفئة');
+        return;
+      }
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error('Failed to delete category:', err);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -1720,22 +1763,45 @@ export function ReferenceCategoriesPage() {
             </ReferenceTableRow>
           </ReferenceTableHeader>
           <ReferenceTableBody>
-            {filtered.map((row) => (
+            {filtered.map((row, index) => (
               <ReferenceTableRow key={row.id}>
-                <ReferenceTableCell className="font-bold text-slate-700">{row.id}</ReferenceTableCell>
+                <ReferenceTableCell className="font-bold text-slate-700">#{index + 1}</ReferenceTableCell>
                 <ReferenceTableCell className="font-semibold">{row.name}</ReferenceTableCell>
                 <ReferenceTableCell className="text-slate-500">{row.description}</ReferenceTableCell>
                 <ReferenceTableCell className="text-slate-300">{row.courses}</ReferenceTableCell>
                 <ReferenceTableCell className="text-slate-300">{row.bundles}</ReferenceTableCell>
-                <ReferenceTableCell className="text-slate-500">{row.createdAt}</ReferenceTableCell>
+                <ReferenceTableCell className="text-slate-500 text-xs">{row.createdAt}</ReferenceTableCell>
                 <ReferenceTableCell>
-                  <button
-                    type="button"
-                    onClick={() => { setEditRow(row); setEditName(row.name); setEditDescription(row.description); }}
-                    className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                  >
-                    فتح القائمة
-                  </button>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === row.id ? null : row.id); }}
+                      className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:bg-slate-50"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                    {openMenuId === row.id && (
+                      <div className="absolute left-0 top-full z-50 mt-1 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setEditRow(row); setEditName(row.name); setEditDescription(row.description === 'لا يوجد وصف' ? '' : row.description); setOpenMenuId(null); }}
+                          className="flex w-full items-center gap-2 px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          تعديل
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(row.id); }}
+                          disabled={deleting === row.id}
+                          className="flex w-full items-center gap-2 px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {deleting === row.id ? 'جاري الحذف...' : 'حذف'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </ReferenceTableCell>
               </ReferenceTableRow>
             ))}
@@ -1764,10 +1830,10 @@ export function ReferenceCategoriesPage() {
               </div>
 
               <div className="mt-6 flex justify-start gap-3">
-                <button type="button" onClick={handleCreate} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
-                  إنشاء
+                <button type="button" onClick={handleCreate} disabled={saving || !name.trim()} className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
+                  {saving ? 'جاري الإنشاء...' : 'إنشاء'}
                 </button>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
+                <button type="button" onClick={() => { setShowCreateModal(false); setName(''); setDescription(''); }} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
                   إلغاء
                 </button>
               </div>
@@ -1788,20 +1854,17 @@ export function ReferenceCategoriesPage() {
                 </div>
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-semibold text-slate-700">الوصف</label>
-                  <Textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right" />
+                  <Textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} placeholder="لا يوجد وصف" className="min-h-[100px] rounded-[1rem] border-slate-200 bg-white text-right" />
                 </div>
               </div>
               <div className="mt-6 flex justify-start gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!editName.trim()) return;
-                    setRows((prev) => prev.map((r) => r.id === editRow.id ? { ...r, name: editName.trim(), description: editDescription.trim() } : r));
-                    setEditRow(null);
-                  }}
-                  className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white"
+                  onClick={handleEdit}
+                  disabled={saving || !editName.trim()}
+                  className="rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white disabled:opacity-50"
                 >
-                  حفظ
+                  {saving ? 'جاري الحفظ...' : 'حفظ'}
                 </button>
                 <button type="button" onClick={() => setEditRow(null)} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
                   إلغاء
@@ -1926,7 +1989,7 @@ export function ReferenceBundlesPage() {
           createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('ar-SA') : '-',
         }));
         setBundleRowsData(mapped);
-      } catch (err) {
+      } catch (_err) {
         if (!cancelled) setError('فشل في تحميل الفصول');
       } finally {
         if (!cancelled) setLoading(false);
@@ -2015,9 +2078,6 @@ export function ReferenceBundlesPage() {
 
 export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
   const locale = useLocale();
-  const [bundleData, setBundleData] = useState<BundleDetailFixture | null>(null);
-  const [bundleLoading, setBundleLoading] = useState(!!bundleId);
-  const [bundleError, setBundleError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -2051,8 +2111,6 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
     if (!bundleId) return;
     let cancelled = false;
     async function fetchBundleDetail() {
-      setBundleLoading(true);
-      setBundleError(null);
       try {
         const res = await fetch('/api/admin/bundles');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -2069,17 +2127,6 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           setEndDate(bundle.end_date || '');
           setAcceptingRequests(bundle.accepting_requests ?? true);
           setActive(bundle.status === 'active');
-          setBundleData({
-            id: bundle.id,
-            name: bundle.name || '',
-            description: bundle.description || '',
-            category: bundle.category || '',
-            teacher: bundle.teacher_name || bundle.teacher || '',
-            startDate: bundle.start_date || '',
-            endDate: bundle.end_date || '',
-            acceptingRequests: bundle.accepting_requests ?? true,
-            active: bundle.status === 'active',
-          });
         }
 
         // Fetch courses/subjects for this bundle
@@ -2171,10 +2218,8 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
             ];
           });
         }
-      } catch (err) {
-        if (!cancelled) setBundleError('فشل في تحميل بيانات الفصل');
-      } finally {
-        if (!cancelled) setBundleLoading(false);
+      } catch (_err) {
+        // Bundle load error (state removed as unused)
       }
     }
     fetchBundleDetail();
@@ -2816,7 +2861,7 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
         setLessonData(ld);
         setMaterials(mats);
         setAttendance(att);
-      } catch (err) {
+      } catch (_err) {
         if (!cancelled) setLessonError('فشل في تحميل بيانات الدرس');
       } finally {
         if (!cancelled) setLessonLoading(false);

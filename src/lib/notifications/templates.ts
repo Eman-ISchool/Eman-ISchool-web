@@ -20,7 +20,6 @@ import type {
   CancellationPayload,
   AssignmentDuePayload,
   ExamReminderPayload,
-  NotificationPayloadMap,
 } from '@/types/notifications';
 
 // ============================================
@@ -439,7 +438,6 @@ function replaceVariables(template: string, variables: Record<string, any>): str
   });
 
   // Handle else: {{else}}
-  const elseRegex = /\{\{else\}\}([\s\S]*?)$/g;
   // This is a fallback - if we reach here, the previous conditions were false
   // The else handling is implicit through the if/else-if chain
 

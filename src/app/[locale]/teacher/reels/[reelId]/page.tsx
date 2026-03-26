@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import ReelEditor, { type ReelData } from '@/components/reels/ReelEditor';
 import VisibilitySelector, { type VisibilityEntry } from '@/components/reels/VisibilitySelector';
-import { getServerSession } from '@/lib/session-api';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function ReelManagementPage() {

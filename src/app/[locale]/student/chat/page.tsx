@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Send, User, ChevronLeft, MoreVertical, Check, CheckCheck, Loader2, MessageCircle, Wifi, WifiOff } from 'lucide-react';
-import { useRealtimeChat, useRealtimeThreads, findOrCreateThread, ChatMessage, ThreadWithParticipant, ChatParticipant } from '@/lib/chat';
+import { useRealtimeChat, ChatMessage, ThreadWithParticipant, ChatParticipant } from '@/lib/chat';
 
 // Mock data for fallback when Supabase is not configured
 const mockThreads: ThreadWithParticipant[] = [
@@ -55,7 +55,7 @@ function ChatContent() {
     const [selectedThread, setSelectedThread] = useState<ThreadWithParticipant | null>(null);
     const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const [isConnected, setIsConnected] = useState(true);
+    const [isConnected] = useState(true);
     const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 

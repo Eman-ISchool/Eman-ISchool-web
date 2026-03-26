@@ -30,7 +30,7 @@ export function computeAttendanceStatus(
   lessonStartTime: string,
   lessonEndTime?: string,
   lateThresholdMinutes: number = 10,
-  earlyExitThresholdMinutes: number = 10
+  _earlyExitThresholdMinutes: number = 10
 ): AttendanceStatus {
   // If student never joined, mark as absent
   if (!joinTime) {
@@ -39,16 +39,16 @@ export function computeAttendanceStatus(
 
   const joinDate = new Date(joinTime);
   const startDate = new Date(lessonStartTime);
-  
+
   // Calculate time difference in milliseconds
   const timeDiff = joinDate.getTime() - startDate.getTime();
   const lateThresholdMs = lateThresholdMinutes * 60 * 1000;
-  
+
   // If student joined within the late threshold, mark as present
   if (timeDiff <= lateThresholdMs) {
     // Check for early exit if lesson end time is provided
     if (lessonEndTime) {
-      const endDate = new Date(lessonEndTime);
+      const _endDate = new Date(lessonEndTime);
       // We need leave_time to check for early exit
       // This is a simplified version - in practice, we'd need leave_time
       // For now, just return 'present' if they joined on time
@@ -88,11 +88,11 @@ export function computeAttendanceStatusWithLeaveTime(
   const joinDate = new Date(joinTime);
   const startDate = new Date(lessonStartTime);
   const endDate = new Date(lessonEndTime);
-  
+
   // Calculate time difference in milliseconds
   const timeDiff = joinDate.getTime() - startDate.getTime();
   const lateThresholdMs = lateThresholdMinutes * 60 * 1000;
-  
+
   // Check for early exit
   if (leaveTime) {
     const leaveDate = new Date(leaveTime);

@@ -24,7 +24,6 @@ export default function ProcessingStatus({
   onRetry,
   className = '',
 }: ProcessingStatusProps) {
-  const [currentStep, setCurrentStep] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
 
   // Calculate overall progress
@@ -33,12 +32,6 @@ export default function ProcessingStatus({
     const totalSteps = steps.length;
     const progress = (completedSteps / totalSteps) * 100;
     setOverallProgress(progress);
-
-    // Update current step
-    const inProgressStep = steps.findIndex(s => s.status === 'in_progress');
-    if (inProgressStep !== -1) {
-      setCurrentStep(inProgressStep);
-    }
 
     // Check if all steps are complete
     if (completedSteps === totalSteps) {

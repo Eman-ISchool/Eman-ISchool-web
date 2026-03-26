@@ -1,7 +1,7 @@
 'use client';
 
 import { Download, Smartphone, Tablet, Globe } from 'lucide-react';
-import { BuildArtifact, formatFileSize } from '@/types/builds';
+import { formatFileSize } from '@/types/builds';
 
 interface PlatformCardProps {
   platform: 'android' | 'ios' | 'pwa';

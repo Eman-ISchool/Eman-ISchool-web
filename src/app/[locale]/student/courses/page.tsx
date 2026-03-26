@@ -5,13 +5,12 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
-import { BookOpen, Calendar, User, RefreshCw } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
 import { CourseStatusTabs, CourseStatusFilter } from '@/components/courses/CourseStatusTabs';
 import { PageError } from '@/components/ui/page-error';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DataState, createIdleState, createLoadingState, createErrorState, createSuccessState, isSuccess, isLoading } from '@/types/page-state';
-import { withLocalePrefix } from '@/lib/locale-path';
 import { BookOpen as BookIcon } from 'lucide-react';
 
 interface Course {

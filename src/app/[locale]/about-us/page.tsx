@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -7,7 +6,6 @@ export const metadata = {
 };
 
 export default function AboutPage({ params }: { params: { locale: string } }) {
-  const locale = params?.locale || 'ar';
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto space-y-12">

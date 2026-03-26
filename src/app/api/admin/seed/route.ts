@@ -30,8 +30,6 @@ function randomName() {
 
 function randomEmail(name: string) {
     // simplistic email gen
-    const prefix = name.replace(/\s/g, '.').toLowerCase(); // unlikely to work with Arabic well for real email but ok or demo
-    // Actually better to use latin names for emails or random string
     return `user_${Math.random().toString(36).substring(7)}@eman-ischool.com`;
 }
 
@@ -56,10 +54,8 @@ export async function GET() {
     }
 
     try {
-        const createdUsers: string[] = [];
         const createdTeachers: string[] = [];
         const createdCourses: string[] = [];
-        const createdLessons: string[] = [];
         const testUserIds: Record<string, string> = {};
 
         // 0. Create Test Users with known credentials (for automated testing)

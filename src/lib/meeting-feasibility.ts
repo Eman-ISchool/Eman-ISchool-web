@@ -3,7 +3,7 @@
  * Validates whether a meeting can be joined and provides testing capabilities
  */
 
-import { isGoogleMeetUrl, validateMeetLinkForJoining } from './meet-utils';
+import { validateMeetLinkForJoining } from './meet-utils';
 
 export interface MeetingFeasibility {
     canJoin: boolean;

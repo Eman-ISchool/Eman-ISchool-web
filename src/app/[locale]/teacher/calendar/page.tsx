@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Video, Clock, User, X, Plus, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Video, Clock, X, Plus, Users } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { withLocalePrefix } from '@/lib/locale-path';
 
@@ -44,11 +44,7 @@ export default function TeacherCalendarPage() {
     const locale = language;
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-    const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
-
     const [lessons, setLessons] = useState<Lesson[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     // Mock lessons for fallback
     const mockLessons: Lesson[] = language === 'ar' ? [
@@ -67,7 +63,6 @@ export default function TeacherCalendarPage() {
 
     useEffect(() => {
         const loadLessons = async () => {
-            setLoading(true);
             try {
                 // Fetch lessons for the current teacher
                 // In a real app, the API would filter by the logged-in user's ID from list-sessions
@@ -144,10 +139,7 @@ export default function TeacherCalendarPage() {
                 setLessons([...apiLessons, ...generatedMockLessons]);
             } catch (err) {
                 console.error('Error loading lessons:', err);
-                setError(t('calendar.fetchError') || 'Failed to load lessons');
                 setLessons(mockLessons); // Fallback
-            } finally {
-                setLoading(false);
             }
         };
 

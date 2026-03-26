@@ -34,7 +34,7 @@ export default function LessonHomeworkSection({
   userId,
 }: LessonHomeworkSectionProps) {
   const t = useTranslations('lessons');
-  const { data: session } = useSession();
+  useSession();
   const [homeworkList, setHomeworkList] = useState<Homework[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, HomeworkSubmission>>({});
   const [loading, setLoading] = useState(true);

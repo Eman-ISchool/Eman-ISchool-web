@@ -14,7 +14,7 @@ interface Payment {
 }
 
 export function PaymentList() {
-    const { t, language } = useLanguage();
+    const { language } = useLanguage();
 
     const payments: Payment[] = [
         {

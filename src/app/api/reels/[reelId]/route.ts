@@ -6,9 +6,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { logApprovalNotification, logRejectionNotification } from '@/lib/reel-notifications';
-import type { Database } from '@/types/database';
-
-type Reel = Database['public']['Tables']['reels']['Row'];
 
 /**
  * GET /api/reels/[reelId]

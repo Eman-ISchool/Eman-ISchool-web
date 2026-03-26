@@ -15,8 +15,6 @@ import {
     FileText,
     UserX,
     Trash2,
-    TrendingUp,
-    Award,
 } from 'lucide-react';
 import DataTable, { Column } from '@/components/admin/DataTable';
 import { LoadingState } from '@/components/admin/StateComponents';
@@ -430,10 +428,6 @@ export default function TeachersPage() {
     const avgPerformance = teachers.length > 0
         ? (teachers.reduce((sum, t) => sum + t.performanceRating, 0) / teachers.length).toFixed(1)
         : 0;
-    const avgAttendance = teachers.length > 0
-        ? (teachers.reduce((sum, t) => sum + t.attendanceRate, 0) / teachers.length).toFixed(0)
-        : 0;
-
     return (
         <div className="space-y-6">
             {/* Header */}

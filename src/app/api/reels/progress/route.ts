@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
-type ReelProgress = Database['public']['Tables']['reel_progress']['Row'];
 type ReelProgressInsert = Database['public']['Tables']['reel_progress']['Insert'];
 type ReelProgressUpdate = Database['public']['Tables']['reel_progress']['Update'];
 

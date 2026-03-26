@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import Image from 'next/image';
 import { AccessDenied } from '@/components/teacher/AccessDenied';
 
 export default async function CourseDetailsPage({

@@ -62,7 +62,7 @@ export async function GET() {
 
     // Test if columns exist by trying to select them
     try {
-        const { data, error } = await supabaseAdmin
+        const { error } = await supabaseAdmin
             .from('users')
             .select('google_access_token, google_refresh_token, google_token_expires_at')
             .limit(1);

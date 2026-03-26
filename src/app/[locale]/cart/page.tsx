@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCartStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardTitle } from '@/components/ui/card';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';

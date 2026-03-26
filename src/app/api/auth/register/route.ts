@@ -106,7 +106,7 @@ export async function POST(req: Request) {
         }
 
         // Return success (excluding password hash)
-        const { password_hash, ...userResult } = newUser;
+        const { password_hash: _password_hash, ...userResult } = newUser;
 
         return NextResponse.json(
             {

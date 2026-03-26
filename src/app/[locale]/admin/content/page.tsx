@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import {
-    FileText,
     Plus,
     Bell,
     Image as ImageIcon,
     Layout,
     Calendar,
     Pin,
-    Edit2,
     Trash2,
     Eye,
     Upload,

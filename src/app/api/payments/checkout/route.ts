@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { checkouts, returnUrl } = body; // Array of { enrollmentId, courseId, studentId }
+        const { checkouts } = body; // Array of { enrollmentId, courseId, studentId }
 
         if (!checkouts || !Array.isArray(checkouts) || checkouts.length === 0) {
             return NextResponse.json({ error: 'Invalid checkout data' }, { status: 400 });

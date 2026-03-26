@@ -819,7 +819,6 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
         setMeetingError('');
 
         try {
-            console.log('[UI] Calling /api/meetings/create...');
             const res = await fetch('/api/meetings/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -830,11 +829,9 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
                 }),
             });
             const data = await res.json();
-            console.log('[UI] Response:', res.status, JSON.stringify(data));
 
             if (res.ok && data.meetLink) {
                 setMeetingLink(data.meetLink);
-                console.log('[UI] Meet link set:', data.meetLink);
             } else {
                 const errMsg = data.error || 'فشل إنشاء رابط الاجتماع';
                 const detail = data.detail ? ` (${data.detail})` : '';

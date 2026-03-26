@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck, RefreshCw } from 'lucide-react';
+import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
 import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
@@ -12,7 +12,6 @@ import { TeacherCardList } from '@/components/student/TeacherCardList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
 import { PaymentList } from '@/components/student/PaymentList';
 import { PageError } from '@/components/ui/page-error';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 import { DataState, createIdleState, createLoadingState, createErrorState, createSuccessState } from '@/types/page-state';
@@ -64,7 +63,6 @@ export default function StudentHomePage() {
     }, []);
 
     const handleUpload = async (assignmentId: string, file: File) => {
-        console.log('Uploading file for assignment:', assignmentId, file.name);
         await new Promise(resolve => setTimeout(resolve, 2000));
     };
 

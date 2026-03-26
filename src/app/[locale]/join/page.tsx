@@ -14,7 +14,6 @@ import {
   GraduationCap,
   Users,
   Briefcase,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';

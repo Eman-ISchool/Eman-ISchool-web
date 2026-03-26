@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
-import { Plus, Search, DollarSign, CreditCard, CheckCircle, Filter } from 'lucide-react';
+import { Plus, DollarSign, CreditCard, CheckCircle, Filter } from 'lucide-react';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
 import { Input } from '@/components/ui/input';
 import {

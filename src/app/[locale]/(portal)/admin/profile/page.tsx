@@ -17,7 +17,6 @@ export default function AdminProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSave = () => {
-        console.log('Saving profile:', formData);
         setIsEditing(false);
     };
 
@@ -36,7 +35,7 @@ export default function AdminProfilePage() {
                             A
                         </div>
                         <button
-                            onClick={() => console.log('Upload photo')}
+                            onClick={() => {}}
                             className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700"
                         >
                             <Camera className="h-4 w-4" />

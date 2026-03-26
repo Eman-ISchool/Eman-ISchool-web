@@ -12,7 +12,7 @@
  * - Exam section (Phase 7)
  */
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import LessonLifecycleBar from './LessonLifecycleBar';
 import LessonInfoSection from './LessonInfoSection';
 import LessonMaterialsSection from './LessonMaterialsSection';
@@ -42,13 +42,6 @@ export default function LessonDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>('');
   const [userId, setUserId] = useState<string>('');
-
-  // Cache for lazy-loaded sections using useRef for session lifetime
-  const sectionCache = useRef<Record<string, any>>({
-    homework: null,
-    quiz: null,
-    exam: null,
-  });
 
   useEffect(() => {
     const loadLesson = async () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MoreHorizontal, Plus, Search, UserCheck, UserRound, Filter, Settings2, Download, SlidersHorizontal, Trash2, Edit, KeyRound, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Plus, Search, Download, SlidersHorizontal, Trash2, Edit, KeyRound, Loader2 } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';

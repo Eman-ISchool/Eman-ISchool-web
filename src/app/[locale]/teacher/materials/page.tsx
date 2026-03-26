@@ -8,7 +8,6 @@
 import { useState, useEffect } from 'react';
 
 export default function MaterialsPage() {
-    const [materials, setMaterials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

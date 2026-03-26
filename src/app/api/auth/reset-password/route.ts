@@ -8,7 +8,6 @@ import crypto from 'crypto';
  * Higher values indicate stronger passwords
  */
 function calculatePasswordEntropy(password: string): number {
-    const charsetSize = 94; // Printable ASCII characters
     let entropy = 0;
     const frequency: Record<string, number> = {};
 

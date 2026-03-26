@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { OrbitControls, Html, Stars } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
-import type { VRLanguage, InfoHotspot } from '@/types/vr';
+import type { VRLanguage } from '@/types/vr';
 
 /**
  * Planet data with accurate relative sizes and orbital characteristics

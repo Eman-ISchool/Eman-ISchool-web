@@ -52,7 +52,7 @@ export default function TeacherReelUploadPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
-  const { uploadFile, cancelUpload, retryUpload, resetUpload, state: uploadState } = useSourceUpload();
+  const { resetUpload, state: uploadState } = useSourceUpload();
   
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [sourceContent, setSourceContent] = useState<SourceContent | null>(null);
@@ -66,8 +66,6 @@ export default function TeacherReelUploadPage() {
 
   // Handle upload completion
   const handleUploadComplete = async (sourceId: string, fileUrl: string) => {
-    console.log('[UploadPage] Upload complete:', sourceId);
-    
     // Fetch source content details
     try {
       const response = await fetch(`/api/source-content/${sourceId}`);
@@ -171,7 +169,6 @@ export default function TeacherReelUploadPage() {
 
   // Handle processing complete
   const handleProcessingComplete = () => {
-    console.log('[UploadPage] Processing complete');
     // Navigate to reels library after a short delay
     setTimeout(() => {
       router.push(withLocalePrefix('/teacher/reels', locale));

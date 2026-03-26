@@ -3,7 +3,6 @@ import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
-import { AttendanceSheet } from '@/components/teacher/AttendanceSheet';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

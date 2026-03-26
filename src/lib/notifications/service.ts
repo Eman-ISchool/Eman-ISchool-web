@@ -12,19 +12,15 @@ import type {
   NotificationChannel,
   NotificationStatus,
   NotificationType,
-  NotificationPriority,
 } from '@/types/database';
 import type {
   CreateNotificationInput,
   CreateBatchNotificationInput,
   DeliveryResult,
-  BatchDeliveryResult,
-  NotificationPayloadMap,
   ChannelPreferences,
   NotificationTypePreferences,
 } from '@/types/notifications';
 import { NotificationError, NotificationErrorCode } from '@/types/notifications';
-import { renderTemplate } from './templates';
 
 // Type aliases for database types
 type NotificationPreferencesRow = Database['public']['Tables']['notification_preferences']['Row'];
@@ -262,9 +258,6 @@ export class NotificationService {
       // User has disabled all channels or this notification type
       return [];
     }
-
-    // Get user preferences for scheduling
-    const prefs = await this.getUserPreferences(input.user_id);
 
     // Calculate scheduled_for time (respecting quiet hours if needed)
     let scheduledFor: Date;

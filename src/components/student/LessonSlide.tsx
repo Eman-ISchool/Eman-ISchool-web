@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Video, Clock, User, AlertCircle } from 'lucide-react';
-import { checkMeetingFeasibility, formatTimeRemaining, type LessonInfo } from '@/lib/meeting-feasibility';
+import { Video, Clock, User } from 'lucide-react';
+import { checkMeetingFeasibility, type LessonInfo } from '@/lib/meeting-feasibility';
 
 export interface Lesson {
     id: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Upload, Plus, Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import Modal, { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '@/components/admin/Modal';
 
 export interface TeacherFormData {
@@ -121,7 +121,6 @@ export default function TeacherFormModal({
         ...initialData,
     });
     const [activeSection, setActiveSection] = useState<'personal' | 'teaching' | 'financial' | 'status'>('personal');
-    const [newSubject, setNewSubject] = useState('');
 
     const handleInputChange = (field: keyof TeacherFormData, value: string | number | string[]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));

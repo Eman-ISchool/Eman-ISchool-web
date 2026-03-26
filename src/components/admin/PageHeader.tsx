@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils';
+
 
 interface PageHeaderProps {
   title: string;

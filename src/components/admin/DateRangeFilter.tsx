@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft } from 'lucide-react';
 
 interface DateRangeFilterProps {
     onDateRangeChange: (start: Date, end: Date) => void;

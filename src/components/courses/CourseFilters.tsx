@@ -3,9 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
-import { useDebounce } from '@/hooks/use-debounce'; // Assuming generic hook or create one
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 // Simple debounce hook implementation if not exists
 function useDebounceValue<T>(value: T, delay: number): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);

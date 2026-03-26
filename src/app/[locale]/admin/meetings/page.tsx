@@ -4,22 +4,18 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Video,
     Calendar,
     Users,
     Clock,
     ArrowLeft,
-    ChevronLeft,
-    ChevronRight,
     Play,
     CheckCircle,
     XCircle,
     ExternalLink,
-    Filter,
 } from 'lucide-react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
@@ -53,8 +49,6 @@ export default function AdminMeetingsPage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [eventFilter, setEventFilter] = useState<string>('');
-
-    const limit = 50;
 
     useEffect(() => {
         if (status === 'loading') return;

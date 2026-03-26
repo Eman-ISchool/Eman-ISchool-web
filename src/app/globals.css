@@ -86,20 +86,6 @@ body {
   cursor: not-allowed;
 }
 
-/* Glass effects */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.glass-dark {
-  background: rgba(17, 17, 17, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
 
 /* Status badges */
 .badge-upcoming {
@@ -571,12 +557,6 @@ body {
   }
 }
 
-/* Admin Audit Log */
-.admin-audit-log {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
 
 /* Capacitor Mobile: Offline Detection */
 .app-offline::before {

@@ -73,12 +73,6 @@ export default async function StudentLessonDetailPage({
         .eq('student_id', user.id)
         .single();
 
-    const isJoined = !!attendance?.join_time;
-    const now = new Date();
-    const startTime = new Date(lesson.start_date_time);
-    const endTime = new Date(lesson.end_date_time);
-    const isLive = now >= startTime && now <= endTime;
-
     return (
         <div className="space-y-6">
             {/* Header */}

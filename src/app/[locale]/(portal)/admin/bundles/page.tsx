@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { Layers3, Plus, Loader2 } from 'lucide-react';
+import { Layers3, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/admin/PageHeader';
 
 interface Bundle {

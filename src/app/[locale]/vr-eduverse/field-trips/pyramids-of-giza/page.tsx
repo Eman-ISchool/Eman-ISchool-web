@@ -760,7 +760,7 @@ export default function PyramidsOfGizaPage() {
 
   // Handle hotspot click
   const handleHotspotClick = useCallback((hotspotId: string, hotspotType: string) => {
-    console.log(`Hotspot clicked: ${hotspotId} (${hotspotType})`);
+    // Hotspot interaction handled by parent component
   }, []);
 
   // Handle info hotspot
@@ -815,7 +815,6 @@ export default function PyramidsOfGizaPage() {
 
   // Calculate progress
   const totalScenes = scenes.length;
-  const totalHotspots = scenes.reduce((sum, scene) => sum + scene.hotspots.length, 0);
   const totalQuizzes = scenes.reduce(
     (sum, scene) => sum + scene.hotspots.filter((h) => h.type === 'quiz').length,
     0

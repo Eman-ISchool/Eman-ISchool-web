@@ -131,7 +131,7 @@ export async function POST(
 
         // Update reel status to queued
         // @ts-ignore - Supabase type inference issue
-        const { data: updatedReel, error: updateError } = await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
             .from('reels')
             .update({
                 status: 'queued',

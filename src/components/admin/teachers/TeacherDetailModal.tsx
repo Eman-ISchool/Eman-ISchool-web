@@ -57,9 +57,9 @@ export default function TeacherDetailModal({
     const [feedbackTab, setFeedbackTab] = useState<'parents' | 'students'>('parents');
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [attendanceData, setAttendanceData] = useState<any[]>([]);
-    const [feedback, setFeedback] = useState<{ parents: any[]; students: any[] }>({ parents: [], students: [] });
-    const [documents, setDocuments] = useState<any[]>([]);
-    const [certifications, setCertifications] = useState<any[]>([]);
+    const [feedback] = useState<{ parents: any[]; students: any[] }>({ parents: [], students: [] });
+    const [documents] = useState<any[]>([]);
+    const [certifications] = useState<any[]>([]);
     const [attendanceSummary, setAttendanceSummary] = useState({ present: 0, absent: 0, totalSessions: 0 });
 
     useEffect(() => {

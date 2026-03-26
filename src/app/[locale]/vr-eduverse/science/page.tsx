@@ -18,7 +18,6 @@ import {
   Lightbulb,
   ChevronRight,
   Zap,
-  Globe2,
 } from "lucide-react";
 
 export const metadata = {
@@ -165,13 +164,6 @@ export default function ScienceHubPage() {
     biology: "bg-green-600",
     chemistry: "bg-purple-600",
     physics: "bg-orange-600",
-  };
-
-  const categoryIcons = {
-    astronomy: Telescope,
-    biology: Dna,
-    chemistry: FlaskConical,
-    physics: Zap,
   };
 
   // Group visualizations by category

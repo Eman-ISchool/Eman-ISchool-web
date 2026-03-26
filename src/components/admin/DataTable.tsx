@@ -7,7 +7,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Search,
-    MoreHorizontal,
 } from 'lucide-react';
 import { EmptyState, TableSkeleton } from './StateComponents';
 

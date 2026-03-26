@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,6 @@ import { ChevronLeft, CheckCircle, XCircle, FileText, Download } from "lucide-re
 import { supabase } from "@/lib/supabase";
 
 export default function ApplicationDetail({ params }: { params: { id: string } }) {
-    const router = useRouter();
     const [app, setApp] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 

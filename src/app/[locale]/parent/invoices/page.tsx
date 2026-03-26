@@ -6,8 +6,7 @@ import { withLocalePrefix } from '@/lib/locale-path';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { FileText, Download } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { FileText } from 'lucide-react';
 
 export default async function ParentInvoicesPage({
     params: { locale }
@@ -16,8 +15,6 @@ export default async function ParentInvoicesPage({
 }) {
     const session = await getServerSession(authOptions);
     const user = session?.user as any;
-    const t = await getTranslations('parent.invoices'); // Assume keys exist or fallback
-
     if (!session || user?.role !== 'parent') {
         redirect(withLocalePrefix('/', locale));
     }

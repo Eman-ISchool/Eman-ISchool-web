@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import type { Database } from '@/types/database';
-
 export const dynamic = 'force-dynamic';
-
-type ReelProgress = Database['public']['Tables']['reel_progress']['Row'];
-type User = Database['public']['Tables']['users']['Row'];
-type Reel = Database['public']['Tables']['reels']['Row'];
 
 /**
  * GET /api/admin/student-history
@@ -128,7 +122,7 @@ export async function GET(request: NextRequest) {
       statsQuery = statsQuery.lte('last_watched_at', new Date(endDate).toISOString());
     }
 
-    const { data: statsData, error: statsError } = await statsQuery;
+    const { data: statsData } = await statsQuery;
 
     const summary = {
       totalViews: statsData?.reduce((sum, p) => sum + (p.watch_count || 0), 0) || 0,
@@ -142,7 +136,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Get unique students list
-    const { data: studentsData, error: studentsError } = await supabaseAdmin
+    const { data: studentsData } = await supabaseAdmin
       .from('reel_progress')
       .select(`
         user_id,

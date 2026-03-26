@@ -26,7 +26,7 @@ export type TicketCategory = 'technical' | 'billing' | 'enrollment' | 'general';
 export type MaterialType = 'file' | 'link' | 'book' | 'image' | 'video';
 export type DiscountType = 'sibling' | 'coupon' | 'promotional';
 export type MeetingStatus = 'created' | 'active' | 'ended';
-export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed' | 'draft' | 'pending_review' | 'published' | 'unpublished' | 'deleted';
+export type ReelStatus = 'queued' | 'processing' | 'pending_review' | 'approved' | 'rejected' | 'failed' | 'draft' | 'published' | 'unpublished' | 'deleted';
 
 // AI Video Reels Pipeline types
 export type SourceContentType = 'video' | 'document' | 'recording' | 'external_link';

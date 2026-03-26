@@ -35,7 +35,7 @@ export default function LessonExamSection({
   userId,
 }: LessonExamSectionProps) {
   const t = useTranslations('lessons');
-  const { data: session } = useSession();
+  useSession();
   const [examList, setExamList] = useState<Assessment[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, AssessmentSubmission[]>>({});
   const [loading, setLoading] = useState(true);

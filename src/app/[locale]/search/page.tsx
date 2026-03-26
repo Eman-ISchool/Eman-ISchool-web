@@ -7,64 +7,6 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, Users } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 
-// Mock Data (duplicated for now, in real app would come from API/Sanity)
-const PRODUCTS = [
-    {
-        id: 1,
-        title: "اللغة العربية - الصف الثالث الإعدادي",
-        description: "شرح شامل لمنهج اللغة العربية للشهادة الإعدادية مع تدريبات مكثفة.",
-        price: "450 ج.م",
-        duration: "40 ساعة",
-        students: "1,200",
-        image: "/course-arabic.png"
-    },
-    {
-        id: 2,
-        title: "الرياضيات (لغات) - الصف الأول الثانوي",
-        description: "Math for 1st Secondary Grade - Full Curriculum coverage.",
-        price: "600 ج.م",
-        duration: "55 ساعة",
-        students: "850",
-        image: "/course-math.png"
-    },
-    {
-        id: 3,
-        title: "العلوم - الصف السادس الابتدائي",
-        description: "منهج العلوم الجديد بأسلوب مبسط وتجارب عملية.",
-        price: "300 ج.م",
-        duration: "30 ساعة",
-        students: "2,000",
-        image: "/course-science.png"
-    },
-    {
-        id: 4,
-        title: "اللغة الإنجليزية - تأسيس شامل",
-        description: "كورس تأسيس في قواعد اللغة الإنجليزية لجميع المراحل.",
-        price: "350 ج.م",
-        duration: "25 ساعة",
-        students: "3,500",
-        image: "/course-math.png" // Fallback/Reuse
-    },
-    {
-        id: 5,
-        title: "الدراسات الاجتماعية - الصف الرابع",
-        description: "رحلة ممتعة في تاريخ وجغرافيا مصر.",
-        price: "250 ج.م",
-        duration: "20 ساعة",
-        students: "1,500",
-        image: "/course-arabic.png" // Fallback/Reuse
-    },
-    {
-        id: 6,
-        title: "الفيزياء - الصف الثالث الثانوي",
-        description: "أقوى شرح لمنهج الفيزياء للثانوية العامة مع حل مسائل.",
-        price: "850 ج.م",
-        duration: "80 ساعة",
-        students: "5,000",
-        image: "/course-science.png" // Fallback/Reuse
-    }
-];
-
 function SearchResults() {
     const searchParams = useSearchParams();
     const query = searchParams.get("q") || "";

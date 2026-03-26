@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';

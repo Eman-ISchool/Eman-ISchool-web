@@ -4,26 +4,17 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
     Users,
     Search,
-    Filter,
     ChevronLeft,
     ChevronRight,
-    Shield,
-    BookOpen,
-    GraduationCap,
-    MoreVertical,
-    Mail,
-    Phone,
-    Calendar,
     CheckCircle,
     XCircle,
     Edit,
-    Trash2,
     ArrowLeft,
 } from 'lucide-react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
@@ -54,8 +45,6 @@ export default function AdminUsersPage() {
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-
     const limit = 20;
 
     useEffect(() => {
@@ -143,25 +132,6 @@ export default function AdminUsersPage() {
             }
         } catch (error) {
             console.error('Error toggling active status:', error);
-        }
-    };
-
-    const getRoleIcon = (role: string) => {
-        switch (role) {
-            case 'admin':
-                return <Shield className="h-4 w-4 text-purple-500" />;
-            case 'teacher':
-                return <BookOpen className="h-4 w-4 text-green-500" />;
-            default:
-                return <GraduationCap className="h-4 w-4 text-blue-500" />;
-        }
-    };
-
-    const getRoleName = (role: string) => {
-        switch (role) {
-            case 'admin': return 'مدير';
-            case 'teacher': return 'معلم';
-            default: return 'طالب';
         }
     };
 

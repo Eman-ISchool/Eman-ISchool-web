@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { StudentSideNav } from '@/components/student/StudentSideNav';
 import { MobileDrawerNav, NavItem } from '@/components/layout/MobileDrawerNav';

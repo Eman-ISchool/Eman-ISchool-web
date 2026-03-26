@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
-import { validateVideoFile, validateDocumentFile, validateFileByType, checkFileSizeLimit } from '@/lib/file-validation';
+import { validateFileByType } from '@/lib/file-validation';
 import { computeFileHash } from '@/lib/content-hash';
 import type { SourceContentType, SourceStatus } from '@/types/database';
-import { startPipeline } from '@/lib/reel-pipeline';
 import { parseDocument, validatePageCount } from '@/lib/document-parser';
 
 const supabase = createClient(

@@ -8,15 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowLeft,
-  Info,
   Award,
-  Clock,
   Play,
   Pause,
   Maximize2,
   Minimize2,
-  Zap,
-  ZapOff,
   Languages,
   HelpCircle,
   CheckCircle2,
@@ -36,14 +32,6 @@ const SolarSystemScene = dynamic(
   () =>
     import('@/components/vr/experiences/SolarSystemScene').then(
       (mod) => mod.SolarSystemScene
-    ),
-  { ssr: false }
-);
-
-const PLANETS_DATA = dynamic(
-  () =>
-    import('@/components/vr/experiences/SolarSystemScene').then(
-      (mod) => mod.PLANETS_DATA
     ),
   { ssr: false }
 );

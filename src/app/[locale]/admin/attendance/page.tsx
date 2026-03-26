@@ -4,13 +4,10 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    FileText,
-    Search,
-    Filter,
     ChevronLeft,
     ChevronRight,
     CheckCircle,
@@ -302,7 +299,6 @@ export default function AdminAttendancePage() {
                                 <tbody>
                                     {attendance.map((record) => {
                                         const statusInfo = getStatusInfo(record.status);
-                                        const StatusIcon = statusInfo.icon;
 
                                         return (
                                             <tr key={record.id} className="border-b hover:bg-gray-50">

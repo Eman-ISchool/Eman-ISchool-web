@@ -92,8 +92,6 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
   const description = String(body.description || '').trim();
   const startDateTime = body.start_date_time || body.startDateTime;
   const endDateTime = body.end_date_time || body.endDateTime;
-  const providedMeetLink = String(body.meet_link || body.meetLink || '').trim();
-
   if (!title || !startDateTime || !endDateTime) {
     return jsonWithRequestId(
       { error: 'Missing required fields: title, start_date_time, end_date_time', code: 'VALIDATION_ERROR', requestId },

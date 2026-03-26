@@ -12,7 +12,7 @@ import { AlertCircle } from 'lucide-react';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
 export default function CheckoutPage() {
-    const { data: session, status } = useSession();
+    const { status } = useSession();
     const router = useRouter();
     const pathname = usePathname();
     const locale = getLocaleFromPathname(pathname);
