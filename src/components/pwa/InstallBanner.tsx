@@ -37,7 +37,11 @@ export default function InstallBanner({ locale }: InstallBannerProps) {
     } else {
       // Fallback: guide user to browser menu (iOS Safari, Firefox, etc.)
       // Use the same pattern as the reference site
-      if (typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      const isIOS =
+        typeof navigator !== 'undefined' &&
+        (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
+      if (isIOS) {
         // iOS: Safari Add to Home Screen
         window.alert(
           isArabic
