@@ -293,8 +293,8 @@ export default function ReferenceDashboardShell({
 
   return (
     <div className="min-h-screen bg-[#f6f6f7]" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="flex min-h-screen md:flex-row-reverse">
-        <aside className="hidden min-h-screen w-[252px] shrink-0 border-l border-slate-200 bg-white md:block">
+      <div className="flex min-h-screen ltr:md:flex-row-reverse">
+        <aside className="hidden min-h-screen w-[252px] shrink-0 border-s border-slate-200 bg-white md:block">
           {sidebar}
         </aside>
 

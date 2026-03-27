@@ -1,8 +1,13 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-import ReferenceFinanceWorkspace from '@/components/dashboard/ReferenceFinanceWorkspace';
 import { useLocale } from 'next-intl';
+
+const ReferenceFinanceWorkspace = dynamic(
+  () => import('@/components/dashboard/ReferenceFinanceWorkspace'),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-gray-100 rounded-xl" /> }
+);
 
 export default function DashboardFeesPage() {
   const locale = useLocale();

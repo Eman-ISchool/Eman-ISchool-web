@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { colors, spacing, typography } from '@/theme';
 
 export interface EmptyStateProps {
@@ -27,15 +27,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <View style={styles.iconContainer}>
         <Text style={styles.icon}>📭</Text>
       </View>
-      <View style={styles.content}>
-        {title && <Text style={styles.title}>{title}</Text>}
-        {message && <Text style={styles.message}>{message}</Text>}
-        {onAction && (
-          <TouchableOpacity onPress={onAction} style={styles.actionButton}>
-            <Text style={styles.actionText}>{actionLabel}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      {title && <Text style={styles.title}>{title}</Text>}
+      {message && <Text style={styles.message}>{message}</Text>}
+      {onAction && (
+        <TouchableOpacity onPress={onAction} style={styles.actionButton}>
+          <Text style={styles.actionText}>{actionLabel}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

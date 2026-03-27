@@ -6,7 +6,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Video, { Slider } from 'react-native-video';
+import Video from 'react-native-video';
 import { spacing, colors, typography } from '@/theme';
 import type { ReelDetailResponse } from '@/types/api';
 
@@ -20,12 +20,11 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const videoRef = useRef<Video>(null);
+  const videoRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const duration = reel.progress.durationSeconds || 0;
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [duration, setDuration] = useState(reel.durationSeconds || 0);
 
   const handleLoad = (meta: any) => {
     if (meta.duration) {
@@ -43,28 +42,12 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
     setIsPlaying(false);
   };
 
-  const handlePlaybackRateChange = useCallback((rate: number) => {
-    // TODO: Implement playback rate change
-    console.log('Playback rate:', rate);
-  }, []);
-
   const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pauseAsync();
-      } else {
-        videoRef.current.playAsync();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
   };
 
   const handleSeek = (value: number) => {
@@ -75,14 +58,8 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    if (minutes > 0) {
-      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    } else if (remainingSeconds > 0) {
-      return `0:${remainingSeconds.toString().padStart(2, '0')}`;
-    } else {
-      return `0:${seconds.toString().padStart(2, '0')}`;
-    }
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const getProgressPercentage = () => {
@@ -94,7 +71,6 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Video Player */}
       <View style={styles.videoContainer}>
         <Video
           ref={videoRef}
@@ -110,46 +86,25 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
           controls={false}
           repeat={false}
         />
+      </View>
 
-        {/* Controls Overlay */}
-        <Pressable 
+      {/* Controls */}
+      <View style={styles.controlsRow}>
+        <Pressable
           onPress={togglePlayPause}
-          style={styles.playPauseButton}
+          style={styles.controlButton}
           testID="video-play-pause"
         >
           <Text style={styles.controlIcon}>{isPlaying ? '⏸' : '▶'}</Text>
         </Pressable>
 
-        <Pressable 
+        <Pressable
           onPress={toggleMute}
           style={styles.controlButton}
           testID="video-mute"
         >
           <Text style={styles.controlIcon}>{isMuted ? '🔇' : '🔊'}</Text>
         </Pressable>
-
-        <Pressable 
-          onPress={toggleFullscreen}
-          style={styles.controlButton}
-          testID="video-fullscreen"
-        >
-          <Text style={styles.controlIcon}>{isFullscreen ? '⛶' : '⛶'}</Text>
-        </Pressable>
-
-        {/* Progress Slider */}
-        <View style={styles.sliderContainer}>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={currentTime}
-            onSlidingComplete={handleSeek}
-            minimumTrackTintColor={colors.backgroundSecondary}
-            maximumTrackTintColor={colors.primary}
-            thumbTintColor={colors.primary}
-            testID="video-seek-slider"
-          />
-        </View>
 
         {/* Time Display */}
         <View style={styles.timeContainer}>
@@ -158,20 +113,20 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({
           <Text style={styles.time}>{formatTime(duration)}</Text>
         </View>
 
-        {/* Progress Bar */}
+        {/* Progress */}
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBarFill, { width: `${getProgressPercentage()}%` }]} />
-          <Text style={styles.progressText}>{getProgressPercentage()}%</Text>
         </View>
 
-        {/* Close Button */}
-        <Pressable
-          onPress={onClose}
-          style={styles.closeButton}
-          testID="video-close"
-        >
-          <Text style={styles.closeButtonText}>{t('reels.close')}</Text>
-        </Pressable>
+        {onClose && (
+          <Pressable
+            onPress={onClose}
+            style={styles.controlButton}
+            testID="video-close"
+          >
+            <Text style={styles.closeButtonText}>✕</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -192,6 +147,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+  },
   controlButton: {
     width: 44,
     height: 44,
@@ -199,58 +159,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: spacing.sm,
+    marginHorizontal: spacing.xs,
   },
   controlIcon: {
     fontSize: 20,
   },
-  playPauseButton: {
-    backgroundColor: colors.primary,
-  },
-  sliderContainer: {
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.md,
-  },
-  slider: {
-    height: 40,
-  },
   timeContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.md,
+    marginHorizontal: spacing.sm,
   },
   time: {
     ...typography.textStyles.caption,
-    color: colors.textInverse,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 4,
+    color: colors.textSecondary,
   },
   timeSeparator: {
     color: colors.textSecondary,
-    marginHorizontal: spacing.xs,
+    marginHorizontal: 2,
   },
   progressBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  progressBarFill: {
+    flex: 1,
     height: 4,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 2,
-    flex: 1,
+    overflow: 'hidden',
+    marginHorizontal: spacing.sm,
   },
-  progressText: {
-    ...typography.textStyles.caption,
-    color: colors.textPrimary,
-    marginLeft: spacing.sm,
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
   },
   closeButtonText: {
-    ...typography.textStyles.button,
-    color: colors.textInverse,
+    fontSize: 18,
+    color: colors.textPrimary,
+    fontWeight: '600' as const,
   },
 });
 

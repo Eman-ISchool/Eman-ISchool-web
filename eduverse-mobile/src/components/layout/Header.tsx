@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography } from '@/theme';
-import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
   title?: string;
@@ -33,11 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
               style={styles.backButton}
               testID="header-back-button"
             >
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={colors.text.primary}
-              />
+              <Text style={styles.backIcon}>{'<'}</Text>
             </TouchableOpacity>
           )}
           {title && (
@@ -54,9 +49,9 @@ export const Header: React.FC<HeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    borderBottomColor: colors.borderLight,
   },
   content: {
     flexDirection: 'row',
@@ -74,9 +69,14 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     padding: spacing.xs,
   },
+  backIcon: {
+    fontSize: 20,
+    color: colors.textPrimary,
+    fontWeight: '600' as const,
+  },
   title: {
-    ...typography.h6,
-    color: colors.text.primary,
+    ...typography.textStyles.h3,
+    color: colors.textPrimary,
     flex: 1,
   },
   rightContainer: {

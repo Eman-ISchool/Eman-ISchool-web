@@ -27,7 +27,7 @@ export function CourseStatusTabs({
       onValueChange={(newValue) => onChange(newValue as CourseStatusFilter)}
       className={className}
     >
-      <TabsList className="w-full sm:w-auto">
+      <TabsList className="tabs-pill-active w-full sm:w-auto">
         <TabsTrigger value="all">{STATUS_LABELS.all}</TabsTrigger>
         <TabsTrigger value="active">{STATUS_LABELS.active}</TabsTrigger>
         <TabsTrigger value="upcoming">{STATUS_LABELS.upcoming}</TabsTrigger>

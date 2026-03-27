@@ -255,6 +255,15 @@ body {
 }
 
 /* ================================================
+   Radix Tabs – Active tab pill indicator
+   Applied to TabsList containers that use the pill style (bg-[#f4f4f4])
+   ================================================ */
+.tabs-pill-active [data-state="active"] {
+  border: 1px solid #1e293b !important;
+  background-color: #fff !important;
+}
+
+/* ================================================
    Admin Portal Design System
    ================================================ */
 

@@ -72,8 +72,17 @@ export default function SourceUploader({
     if (mimeType.includes('word') || mimeType.includes('document')) {
       return 'document';
     }
-    if (mimeType === 'text/plain') {
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) {
       return 'document';
+    }
+    if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) {
+      return 'document';
+    }
+    if (mimeType === 'text/plain' || mimeType === 'text/csv') {
+      return 'document';
+    }
+    if (mimeType.startsWith('audio/')) {
+      return 'recording';
     }
     
     // Default to video for recordings
@@ -158,13 +167,23 @@ export default function SourceUploader({
     const types: string[] = [];
     
     if (acceptedTypes.includes('video')) {
-      types.push('video/mp4', 'video/quicktime', 'video/webm');
+      types.push('video/mp4', 'video/quicktime', 'video/webm', 'video/x-matroska', 'video/x-msvideo', 'video/3gpp', 'video/x-flv', 'video/x-ms-wmv', 'video/mpeg');
     }
     if (acceptedTypes.includes('document')) {
-      types.push('application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain');
+      types.push(
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'text/csv',
+      );
     }
     if (acceptedTypes.includes('recording')) {
-      types.push('video/mp4', 'video/webm');
+      types.push('video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm');
     }
     
     return types.join(',');

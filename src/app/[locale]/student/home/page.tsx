@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck } from 'lucide-react';
+import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck, AlertTriangle } from 'lucide-react';
 import { AnnouncementCard } from '@/components/student/AnnouncementCard';
 import { AnnouncementBar } from '@/components/teacher/AnnouncementBar';
 import { LessonCarousel } from '@/components/student/LessonCarousel';
@@ -12,6 +12,8 @@ import { TeacherCardList } from '@/components/student/TeacherCardList';
 import { SubjectGrid } from '@/components/student/SubjectGrid';
 import { PaymentList } from '@/components/student/PaymentList';
 import { PageError } from '@/components/ui/page-error';
+import { EnrollmentStatusCard } from '@/components/student/EnrollmentStatusCard';
+import type { EnrollmentStatusData } from '@/components/student/EnrollmentStatusCard';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 import { DataState, createIdleState, createLoadingState, createErrorState, createSuccessState } from '@/types/page-state';
@@ -39,6 +41,7 @@ export default function StudentHomePage() {
     const { t, language } = useLanguage();
     const isRTL = language === 'ar';
     const [announcementState, setAnnouncementState] = useState<DataState<ApiAnnouncement[]>>(createIdleState());
+    const [enrollmentData, setEnrollmentData] = useState<EnrollmentStatusData | null>(null);
 
     useEffect(() => {
         const fetchAnnouncements = async () => {
@@ -62,11 +65,32 @@ export default function StudentHomePage() {
         fetchAnnouncements();
     }, []);
 
-    const handleUpload = async (assignmentId: string, file: File) => {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    };
+    // Fetch enrollment data for current student
+    useEffect(() => {
+        const fetchEnrollment = async () => {
+            try {
+                // In production: GET /api/enrollment/onboarding
+                // For now, use mock data to demonstrate the integration
+                setEnrollmentData({
+                    applicationId: 'app-001',
+                    applicationNumber: 'APP-2026-0001',
+                    status: 'provisionally_accepted',
+                    pendingItemsCount: 3,
+                    lastUpdateDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                });
+            } catch {
+                // Silently fail - enrollment card is optional
+                setEnrollmentData(null);
+            }
+        };
+        fetchEnrollment();
+    }, []);
 
-    const greeting = useCallback(() => {
+    const handleUpload = useCallback(async (assignmentId: string, file: File) => {
+        // TODO: implement actual file upload via API
+    }, []);
+
+    const greetingText = useMemo(() => {
         const hour = new Date().getHours();
         if (isRTL) {
             if (hour < 12) return 'صباح الخير';
@@ -78,7 +102,7 @@ export default function StudentHomePage() {
         return 'Good evening';
     }, [isRTL]);
 
-    const mockAnnouncement = {
+    const mockAnnouncement = useMemo(() => ({
         id: '1',
         title: isRTL ? 'تنبيه: غياب المعلم' : 'Notice: Teacher Absence',
         body: isRTL
@@ -86,7 +110,7 @@ export default function StudentHomePage() {
             : 'The teacher will be absent today. Please check your schedule for any changes or make-up classes.',
         priority: 'high' as const,
         createdAt: new Date().toISOString(),
-    };
+    }), [isRTL]);
 
     const mockLessons = useMemo(() => isRTL ? [
         {
@@ -236,7 +260,7 @@ export default function StudentHomePage() {
                 {/* Greeting row */}
                 <div className="relative flex items-start justify-between mb-5">
                     <div>
-                        <p className="text-teal-100 text-sm font-medium tracking-wide">{greeting()}</p>
+                        <p className="text-teal-100 text-sm font-medium tracking-wide">{greetingText}</p>
                         <h1 className="text-2xl font-extrabold mt-0.5 leading-tight">
                             {session?.user?.name || (isRTL ? 'طالب' : 'Student')}
                         </h1>
@@ -317,6 +341,28 @@ export default function StudentHomePage() {
                     </p>
                 </div>
             </div>
+
+            {/* ── Enrollment Status Card ─────────────────────────────── */}
+            {enrollmentData && (
+                <>
+                    {enrollmentData.status === 'provisionally_accepted' && (
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 flex items-center gap-3">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                            <p className="text-sm text-amber-800 font-medium">
+                                {isRTL
+                                    ? 'قبولك مشروط. أكمل العناصر المعلقة في صفحة الإعداد.'
+                                    : 'Your enrollment is provisional. Complete pending items in Onboarding.'}
+                            </p>
+                        </div>
+                    )}
+                    <EnrollmentStatusCard
+                        data={enrollmentData}
+                        compact
+                        locale={locale}
+                        localizedOnboardingHref={withLocalePrefix('/student/onboarding', locale)}
+                    />
+                </>
+            )}
 
             {/* ── Announcement Card ─────────────────────────────────── */}
             {mockAnnouncement && (

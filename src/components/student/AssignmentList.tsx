@@ -50,9 +50,32 @@ export function AssignmentList({ assignments, title, onSeeAll, onUpload }: Assig
         if (!file || !uploadModal || !onUpload) return;
 
         // Validate file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/png', 'image/jpeg', 'application/zip'];
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'text/plain',
+            'text/csv',
+            'image/png',
+            'image/jpeg',
+            'image/gif',
+            'image/webp',
+            'image/svg+xml',
+            'image/bmp',
+            'application/zip',
+            'application/x-rar-compressed',
+            'application/x-7z-compressed',
+            'video/mp4',
+            'video/webm',
+            'audio/mpeg',
+            'audio/wav',
+        ];
         if (!allowedTypes.includes(file.type)) {
-            alert('Invalid file type. Please upload PDF, DOCX, PNG, JPG, or ZIP files.');
+            alert('Invalid file type. Supported: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, images, ZIP, RAR, 7Z, MP4, WebM, MP3, WAV.');
             return;
         }
 
@@ -177,7 +200,7 @@ export function AssignmentList({ assignments, title, onSeeAll, onUpload }: Assig
                                 {uploadingId ? 'Uploading...' : 'Click or drag to upload'}
                             </p>
                             <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                                PDF, DOCX, PNG, JPG, ZIP (max 10MB)
+                                PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, Images, ZIP, RAR, 7Z, MP4, MP3 (max 10MB)
                             </p>
                         </div>
 
@@ -185,7 +208,7 @@ export function AssignmentList({ assignments, title, onSeeAll, onUpload }: Assig
                             ref={fileInputRef}
                             type="file"
                             className="hidden"
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.zip,.rar,.7z,.mp4,.webm,.mp3,.wav"
                             onChange={handleFileSelect}
                         />
                     </div>

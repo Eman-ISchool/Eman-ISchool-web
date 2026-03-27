@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, Text, Pressable, Slider } from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { spacing, colors, typography } from '@/theme';
 
@@ -74,6 +74,7 @@ export const ReelControls: React.FC<ReelControlsProps> = ({
           >
             <Text style={styles.controlIcon}>{isMuted ? '🔇' : '🔊'}</Text>
           </Pressable>
+        </View>
       </View>
 
       {/* Right Controls */}
@@ -156,6 +157,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     flex: 1,
     overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
   },
   progressText: {
     ...typography.textStyles.caption,

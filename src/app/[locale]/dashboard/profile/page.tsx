@@ -50,7 +50,7 @@ export default function DashboardProfilePage() {
           <Tabs defaultValue="personal" className="w-full" dir={isArabic ? 'rtl' : 'ltr'}>
             <div className="relative flex items-center mb-6">
               <div className="overflow-x-auto scrollbar-hide grid w-full grid-cols-3">
-                <TabsList className="items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid grid-cols-3 w-full">
+                <TabsList className="tabs-pill-active items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid grid-cols-3 w-full">
                   <TabsTrigger value="personal" className="whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-[...state=active]:bg-white dark:data-[state=active]:bg-slate-900 flex items-center gap-2">
                     <User className="h-4 w-4 shrink-0" />
                     <span className="truncate">{isArabic ? 'المعلومات الشخصية' : 'Personal info'}</span>

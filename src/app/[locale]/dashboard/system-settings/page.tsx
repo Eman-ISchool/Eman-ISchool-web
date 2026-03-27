@@ -117,7 +117,7 @@ export default function DashboardSystemSettingsPage() {
             dir={isArabic ? 'rtl' : 'ltr'}
           >
             <div className="w-full md:w-64 flex-shrink-0">
-              <TabsList className="flex flex-col h-fit p-1 space-y-1 bg-transparent w-full text-left justify-start rtl:text-right">
+              <TabsList className="tabs-pill-active flex flex-col h-fit p-1 space-y-1 bg-transparent w-full text-left justify-start rtl:text-right">
                 {tabs.map((tab) => (
                   <TabsTrigger
                     key={tab.id}

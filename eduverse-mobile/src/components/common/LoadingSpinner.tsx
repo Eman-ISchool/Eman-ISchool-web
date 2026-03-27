@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors } from '@/theme';
 
 export interface LoadingSpinnerProps {

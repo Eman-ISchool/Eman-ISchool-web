@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { getAuth, storeAuth, clearAuth } from '@/services/storage';
+import { zustandMMKVStorage } from '@/utils/mmkv-storage';
 import { AuthState, User } from '@/types/models';
 
 interface AuthStore extends AuthState {
@@ -16,24 +17,8 @@ interface AuthStore extends AuthState {
   refreshUser: () => Promise<void>;
 }
 
-// Create persist storage for Zustand
-const storage = createJSONStorage(() => ({
-  getItem: (name) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve(null);
-  },
-  setItem: (name, value) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve();
-  },
-  removeItem: (name) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve();
-  },
-}));
+// MMKV-backed persist storage for Zustand
+const storage = createJSONStorage(() => zustandMMKVStorage);
 
 // Create auth store
 export const useAuthStore = create<AuthStore>()(

@@ -4,8 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useLocale } from 'next-intl';
+import dynamic from 'next/dynamic';
 
-import ReferenceDashboardOverview from '@/components/dashboard/ReferenceDashboardOverview';
+const ReferenceDashboardOverview = dynamic(
+  () => import('@/components/dashboard/ReferenceDashboardOverview'),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-gray-100 rounded-xl" /> }
+);
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
 import { withLocalePrefix } from '@/lib/locale-path';
 

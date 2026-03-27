@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { dashboardApi } from '@/api';
@@ -15,30 +15,15 @@ import { spacing, colors, typography } from '@/theme';
 
 export const StudentHomeScreen: React.FC = () => {
   const { t } = useTranslation();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = React.useState<DashboardStatsResponse | null>(null);
-  const [announcements, setAnnouncements] = React.useState<any[]>([]);
-  const [upcomingLessons, setUpcomingLessons] = React.useState<any[]>([]);
-  const [assignments, setAssignments] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
-      // Fetch all data in parallel
-      const [statsResponse, announcementsResponse, lessonsResponse, assignmentsResponse] = await Promise.all([
-        dashboardApi.getStats(),
-        dashboardApi.getAnnouncements({ limit: 5 }),
-        dashboardApi.getLessons({ upcoming: true, limit: 5 }),
-        dashboardApi.getAssignments({ due: 'upcoming', limit: 5 }),
-      ]);
-      
-      setStats(statsResponse);
-      setAnnouncements(announcementsResponse.data);
-      setUpcomingLessons(lessonsResponse.data);
-      setAssignments(assignmentsResponse.data);
-      
+      const response = await dashboardApi.getStudentDashboard();
+      setStats(response);
     } catch (err: any) {
       console.error('Failed to fetch dashboard data:', err);
     } finally {
@@ -48,17 +33,17 @@ export const StudentHomeScreen: React.FC = () => {
 
   const handleRefresh = useCallback(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   return (
     <View style={styles.container}>
       <Header title={t('student.home')} />
-      
-      <ScrollView 
+
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={null}
-      refreshing={isLoading}
-        onRefresh={handleRefresh}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />
+        }
       >
         {/* Stats Section */}
         {stats && (
@@ -82,68 +67,11 @@ export const StudentHomeScreen: React.FC = () => {
                 <Text style={styles.statValue}>{stats?.activeEnrollments || 0}</Text>
               </View>
             </View>
-          )}
-          
-          {/* Announcements Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('student.announcements')}</Text>
-            {announcements.length > 0 ? (
-              announcements.map((announcement, index) => (
-                <AnnouncementCard
-                  key={announcement.id}
-                  announcement={announcement}
-                  onPress={() => console.log('View announcement:', announcement.id)}
-                  onMarkAsRead={() => console.log('Mark as read:', announcement.id)}
-                />
-              ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>{t('student.noAnnouncements')}</Text>
-                <Text style={styles.emptySubtext}>{t('student.noAnnouncementsSubtext')}</Text>
-              </View>
-            )}
           </View>
-          
-          {/* Upcoming Lessons Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('student.upcomingLessons')}</Text>
-            {upcomingLessons.length > 0 ? (
-              upcomingLessons.map((lesson, index) => (
-                <LessonCard
-                  key={lesson.id}
-                  lesson={lesson}
-                  onPress={() => console.log('View lesson:', lesson.id)}
-                />
-              ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>{t('student.noUpcomingLessons')}</Text>
-                <Text style={styles.emptySubtext}>{t('student.noUpcomingLessonsSubtext')}</Text>
-              </View>
-            )}
-          </View>
-          
-          {/* Assignments Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('student.assignments')}</Text>
-            {assignments.length > 0 ? (
-              assignments.map((assignment, index) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                  onPress={() => console.log('View assignment:', assignment.id)}
-                />
-              ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>{t('student.noAssignments')}</Text>
-                <Text style={styles.emptySubtext}>{t('student.noAssignmentsSubtext')}</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </View>
-    );
+        )}
+      </ScrollView>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

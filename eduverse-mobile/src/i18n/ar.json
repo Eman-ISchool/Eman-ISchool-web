@@ -184,7 +184,21 @@
     "on": "مفعلة",
     "off": "معطلة"
   },
+  "tabs": {
+    "home": "الرئيسية",
+    "courses": "الدورات",
+    "calendar": "التقويم",
+    "reels": "الفيديوهات",
+    "profile": "الملف الشخصي",
+    "assessments": "التقييمات",
+    "invoices": "الفواتير",
+    "support": "الدعم",
+    "students": "الطلاب",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
   "teacher": {
+    "home": "لوحة التحكم",
     "classes": "الفصول",
     "students": "الطلاب",
     "attendance": "الحضور",
@@ -193,9 +207,15 @@
     "viewClass": "عرض الفصل",
     "classDetails": "تفاصيل الفصل",
     "roster": "قائمة الطلاب",
-    "manageClass": "إدارة الفصل"
+    "manageClass": "إدارة الفصل",
+    "courses": "دوراتي",
+    "assessments": "التقييمات",
+    "createLesson": "إنشاء درس",
+    "manageAttendance": "إدارة الحضور",
+    "submissionReview": "مراجعة التسليم"
   },
   "parent": {
+    "home": "نظرة عامة",
     "children": "الأبناء",
     "progress": "التقدم",
     "childProgress": "تقدم الطفل",
@@ -203,9 +223,15 @@
     "viewChild": "عرض الطفل",
     "grades": "الدرجات",
     "attendance": "الحضور",
-    "noChildren": "لا يوجد أبناء"
+    "noChildren": "لا يوجد أبناء",
+    "courses": "دورات الأبناء",
+    "invoices": "الفواتير",
+    "support": "الدعم",
+    "ticketDetail": "تفاصيل التذكرة",
+    "createTicket": "إنشاء تذكرة"
   },
   "admin": {
+    "home": "لوحة التحكم",
     "admin": "المسؤول",
     "dashboard": "لوحة التحكم",
     "moderation": "المراجعة",
@@ -217,7 +243,13 @@
     "reject": "رفض",
     "moderate": "مراجعة",
     "viewFlagged": "عرض المحدد",
-    "noFlagged": "لا يوجد محتوى محدد"
+    "noFlagged": "لا يوجد محتوى محدد",
+    "students": "الطلاب",
+    "courses": "الدورات",
+    "reports": "التقارير",
+    "settings": "الإعدادات",
+    "studentDetail": "تفاصيل الطالب",
+    "courseManagement": "إدارة الدورات"
   },
   "errors": {
     "networkError": "خطأ في الشبكة",

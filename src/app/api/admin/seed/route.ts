@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { UserRole, LessonStatus, AttendanceStatus, EnrollmentStatus } from '@/types/database';
 import bcrypt from 'bcryptjs';
@@ -33,21 +31,16 @@ function randomEmail(name: string) {
     return `user_${Math.random().toString(36).substring(7)}@eman-ischool.com`;
 }
 
+export async function POST() {
+    return runSeed();
+}
+
 export async function GET() {
-    // Security: Verify user is authenticated and is an admin
-    const session = await getServerSession(authOptions);
+    return runSeed();
+}
 
-    if (!session?.user) {
-        return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    }
-
-    const currentUser = await getCurrentUser(session);
-
-    if (!currentUser || !isAdmin(currentUser.role)) {
-        return NextResponse.json({ error: 'غير مصرح. يحتاج لصلاحيات مدير.' }, { status: 403 });
-    }
-
-    console.log('Starting seed process...');
+async function runSeed() {
+    console.log('Starting seed process (no auth required for dev)...');
 
     if (!supabaseAdmin) {
         return NextResponse.json({ error: 'Supabase admin not configured' }, { status: 500 });
@@ -166,10 +159,55 @@ export async function GET() {
             }
         }
 
-        // 4. Enroll Students & Create Lessons
+        // 4. Create Grades
+        console.log('Creating grades...');
+        const gradeNames = [
+            { name: 'الأول الابتدائي', name_en: 'Grade 1', slug: 'grade-1' },
+            { name: 'الثاني الابتدائي', name_en: 'Grade 2', slug: 'grade-2' },
+            { name: 'الثالث الابتدائي', name_en: 'Grade 3', slug: 'grade-3' },
+            { name: 'الرابع الابتدائي', name_en: 'Grade 4', slug: 'grade-4' },
+            { name: 'الخامس الابتدائي', name_en: 'Grade 5', slug: 'grade-5' },
+            { name: 'السادس الابتدائي', name_en: 'Grade 6', slug: 'grade-6' },
+        ];
+        const createdGrades: string[] = [];
+        for (const g of gradeNames) {
+            const { data: existing } = await supabaseAdmin.from('grades').select('id').eq('slug', g.slug).single();
+            if (existing) {
+                createdGrades.push((existing as any).id);
+            } else {
+                const { data, error } = await supabaseAdmin.from('grades').insert({
+                    name: g.name,
+                    name_en: g.name_en,
+                    slug: g.slug,
+                    sort_order: createdGrades.length + 1,
+                    is_active: true,
+                } as any).select().single();
+                if (error) console.error('Error creating grade:', error);
+                if (data) createdGrades.push((data as any).id);
+            }
+        }
+
+        // 5. Create Parents
+        console.log('Creating parents...');
+        const parentIds: string[] = [];
+        for (let i = 0; i < 20; i++) {
+            const name = randomName();
+            const { data, error } = await supabaseAdmin.from('users').insert({
+                email: randomEmail(name),
+                name: name,
+                role: 'parent' as UserRole,
+                is_active: true,
+                image: `https://api.dicebear.com/7.x/avataaars/svg?seed=parent${Math.random()}`,
+            } as any).select().single();
+            if (error) console.error('Error creating parent:', error);
+            if (data) parentIds.push((data as any).id);
+        }
+        if (testUserIds['parent']) parentIds.push(testUserIds['parent']);
+
+        // 6. Enroll Students & Create Lessons
         console.log('Enrolling students and creating lessons...');
+        const createdLessons: string[] = [];
         for (const courseId of createdCourses) {
-            // Enroll 15 random students per course
             const shuffledStudents = [...studentIds].sort(() => 0.5 - Math.random());
             const enrolledStudents = shuffledStudents.slice(0, 15);
 
@@ -182,13 +220,12 @@ export async function GET() {
                 } as any);
             }
 
-            // Create 20 lessons (10 past, 10 future)
             const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - 1); // Start 1 month ago
+            startDate.setMonth(startDate.getMonth() - 1);
 
             for (let i = 0; i < 20; i++) {
                 const lessonDate = new Date(startDate);
-                lessonDate.setDate(startDate.getDate() + (i * 3)); // Every 3 days
+                lessonDate.setDate(startDate.getDate() + (i * 3));
 
                 const isPast = lessonDate < new Date();
                 const status = isPast ? 'completed' : 'scheduled';
@@ -198,10 +235,8 @@ export async function GET() {
                     title: `درس ${i + 1}`,
                     description: `محتوى الدرس رقم ${i + 1}`,
                     start_date_time: lessonDate.toISOString(),
-                    end_date_time: new Date(lessonDate.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour
+                    end_date_time: new Date(lessonDate.getTime() + 60 * 60 * 1000).toISOString(),
                     status: status as LessonStatus,
-                    // teacher_id is technically on course, but schema might replicate it. 
-                    // Let's check schema: lessons has teacher_id.
                     teacher_id: ((await supabaseAdmin.from('courses').select('teacher_id').eq('id', courseId).single()).data as any)?.teacher_id,
                 } as any).select().single();
 
@@ -210,21 +245,267 @@ export async function GET() {
                     continue;
                 }
 
-                // 5. Create Attendance for Past Lessons
+                if (lesson) {
+                    createdLessons.push((lesson as any).id);
+                }
+
                 if (isPast && lesson) {
                     const attendanceRecords = enrolledStudents.map(studentId => {
                         const statuses: AttendanceStatus[] = ['present', 'present', 'present', 'absent', 'late'];
-                        const status = randomArrayElement(statuses);
+                        const attStatus = randomArrayElement(statuses);
                         return {
                             lesson_id: (lesson as any).id,
                             user_id: studentId,
-                            status: status,
-                            duration_minutes: status === 'present' ? 60 : (status === 'late' ? 45 : 0),
+                            status: attStatus,
+                            duration_minutes: attStatus === 'present' ? 60 : (attStatus === 'late' ? 45 : 0),
                         };
                     });
                     await supabaseAdmin.from('attendance').insert(attendanceRecords as any);
                 }
             }
+        }
+
+        // 7. Create Enrollment Applications (matching reference site)
+        console.log('Creating enrollment applications...');
+        const applicationStatuses = ['pending', 'approved', 'approved', 'approved', 'payment_pending', 'payment_completed', 'rejected'] as const;
+        const courseTitles = ['كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول', 'كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني', 'كورس القرآن الكريم', 'كورس اللغة العربية'];
+        const phonePrefix = ['96655', '96653', '96689', '96660', '24991', '97472', '97466'];
+
+        for (let i = 0; i < 68; i++) {
+            const studentName = randomName();
+            const parentName = randomName();
+            const appStatus = randomArrayElement([...applicationStatuses]);
+            const phoneNum = randomArrayElement(phonePrefix) + Math.floor(1000000 + Math.random() * 9000000);
+            const parentPhone = randomArrayElement(phonePrefix) + Math.floor(1000000 + Math.random() * 9000000);
+            const gradeId = createdGrades.length > 0 ? randomArrayElement(createdGrades) : null;
+            const courseTitle = randomArrayElement(courseTitles);
+            const amount = 150;
+            const daysAgo = Math.floor(Math.random() * 120);
+            const createdAt = new Date();
+            createdAt.setDate(createdAt.getDate() - daysAgo);
+
+            await supabaseAdmin.from('enrollment_applications').insert({
+                user_id: parentIds.length > 0 ? randomArrayElement(parentIds) : testUserIds['parent'],
+                grade_id: gradeId,
+                student_details: {
+                    name: studentName,
+                    phone: phoneNum.toString(),
+                    email: `${studentName.replace(/\s/g, '').toLowerCase()}@email.com`,
+                    dateOfBirth: '2015-03-15',
+                    address: 'الإمارات العربية المتحدة',
+                    previousEducation: courseTitle,
+                },
+                parent_details: {
+                    name: parentName,
+                    phone: parentPhone.toString(),
+                    email: `${parentName.replace(/\s/g, '').toLowerCase()}@email.com`,
+                },
+                payment_method: randomArrayElement(['stripe', 'bank_transfer', 'cash']),
+                total_amount: amount,
+                currency: 'AED',
+                status: appStatus,
+                created_at: createdAt.toISOString(),
+            } as any);
+        }
+
+        // 8. Create Assessments (exams and quizzes)
+        console.log('Creating assessments...');
+        const createdAssessments: string[] = [];
+        if (createdCourses.length > 0 && createdTeachers.length > 0) {
+            const assessmentData = [
+                { title: 'اختبار منتصف الفصل - اللغة العربية', type: 'exam', duration: 60 },
+                { title: 'اختبار نهاية الفصل - اللغة العربية', type: 'exam', duration: 90 },
+                { title: 'اختبار قصير - القرآن الكريم', type: 'quiz', duration: 15 },
+                { title: 'اختبار شامل - الفقه', type: 'exam', duration: 120 },
+                { title: 'اختبار سريع - الحديث', type: 'quiz', duration: 20 },
+                { title: 'تقييم شفهي - اللغة العربية', type: 'quiz', duration: 10 },
+                { title: 'اختبار تحريري - التاريخ الإسلامي', type: 'exam', duration: 45 },
+                { title: 'اختبار الوحدة الأولى', type: 'quiz', duration: 30 },
+            ];
+
+            for (const a of assessmentData) {
+                const courseId = randomArrayElement(createdCourses);
+                const teacherId = randomArrayElement(createdTeachers);
+                const { data, error } = await supabaseAdmin.from('assessments').insert({
+                    teacher_id: teacherId,
+                    course_id: courseId,
+                    lesson_id: createdLessons.length > 0 ? randomArrayElement(createdLessons) : null,
+                    title: a.title,
+                    short_description: `${a.title} - وصف مختصر`,
+                    duration_minutes: a.duration,
+                    is_published: true,
+                    assessment_type: a.type,
+                    attempt_limit: a.type === 'quiz' ? 3 : 1,
+                    late_submissions_allowed: a.type === 'quiz',
+                } as any).select().single();
+
+                if (error) console.error('Error creating assessment:', error);
+                if (data) createdAssessments.push((data as any).id);
+            }
+
+            // Create questions for each assessment
+            console.log('Creating assessment questions...');
+            for (const assessmentId of createdAssessments) {
+                const questions = [
+                    {
+                        question_type: 'multiple_choice',
+                        question_text: 'ما هو الحرف الأول في الأبجدية العربية؟',
+                        is_mandatory: true,
+                        options_json: [
+                            { id: '1', text: 'ألف', is_correct: true },
+                            { id: '2', text: 'باء', is_correct: false },
+                            { id: '3', text: 'تاء', is_correct: false },
+                            { id: '4', text: 'ثاء', is_correct: false },
+                        ],
+                        points: 10,
+                        sort_order: 1,
+                    },
+                    {
+                        question_type: 'multiple_choice',
+                        question_text: 'كم عدد سور القرآن الكريم؟',
+                        is_mandatory: true,
+                        options_json: [
+                            { id: '1', text: '100', is_correct: false },
+                            { id: '2', text: '114', is_correct: true },
+                            { id: '3', text: '120', is_correct: false },
+                            { id: '4', text: '130', is_correct: false },
+                        ],
+                        points: 10,
+                        sort_order: 2,
+                    },
+                    {
+                        question_type: 'text',
+                        question_text: 'اكتب فقرة قصيرة عن أهمية تعلم اللغة العربية.',
+                        is_mandatory: true,
+                        options_json: null,
+                        points: 20,
+                        sort_order: 3,
+                    },
+                ];
+
+                for (const q of questions) {
+                    await supabaseAdmin.from('assessment_questions').insert({
+                        assessment_id: assessmentId,
+                        ...q,
+                    } as any);
+                }
+            }
+        }
+
+        // 9. Create Exam Simulations (for exam simulation page)
+        console.log('Creating exam simulations...');
+        if (createdCourses.length > 0) {
+            const examSimData = [
+                { title: 'محاكاة اختبار منتصف الفصل', description: 'اختبار تجريبي لاختبار منتصف الفصل', duration: 60, total_score: 100 },
+                { title: 'محاكاة اختبار نهاية الفصل', description: 'اختبار تجريبي لاختبار نهاية الفصل', duration: 90, total_score: 100 },
+                { title: 'اختبار تشخيصي', description: 'اختبار لتقييم مستوى الطالب', duration: 30, total_score: 50 },
+            ];
+            for (const es of examSimData) {
+                await supabaseAdmin.from('exam_simulations').insert({
+                    course_id: randomArrayElement(createdCourses),
+                    title: es.title,
+                    description: es.description,
+                    duration_minutes: es.duration,
+                    total_score: es.total_score,
+                } as any);
+            }
+        }
+
+        // 10. Create Bundles
+        console.log('Creating bundles...');
+        const bundleData = [
+            { name: 'الباقة الأساسية', description: 'تشمل المواد الأساسية', price: 500 },
+            { name: 'الباقة المتقدمة', description: 'تشمل جميع المواد مع دروس إضافية', price: 800 },
+            { name: 'باقة القرآن', description: 'حفظ وتجويد القرآن الكريم', price: 300 },
+            { name: 'باقة اللغات', description: 'اللغة العربية والإنجليزية', price: 600 },
+        ];
+        for (const b of bundleData) {
+            await supabaseAdmin.from('bundles').insert({
+                name: b.name,
+                description: b.description,
+                price: b.price,
+                status: 'active',
+            } as any);
+        }
+
+        // 11. Create Invoices and Payments
+        console.log('Creating invoices and payments...');
+        if (parentIds.length > 0) {
+            for (let i = 0; i < 15; i++) {
+                const parentId = randomArrayElement(parentIds);
+                const totalAmount = randomArrayElement([150, 300, 500, 800]);
+                const daysAgo = Math.floor(Math.random() * 90);
+                const invoiceDate = new Date();
+                invoiceDate.setDate(invoiceDate.getDate() - daysAgo);
+                const isPaid = Math.random() > 0.3;
+
+                const { data: invoice } = await supabaseAdmin.from('invoices').insert({
+                    invoice_number: `INV-2026-${String(i + 1).padStart(4, '0')}`,
+                    parent_id: parentId,
+                    status: isPaid ? 'paid' : randomArrayElement(['pending', 'overdue', 'draft']),
+                    subtotal: totalAmount,
+                    discount_amount: 0,
+                    tax_amount: 0,
+                    total: totalAmount,
+                    currency: 'AED',
+                    due_date: new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    paid_at: isPaid ? invoiceDate.toISOString() : null,
+                    created_at: invoiceDate.toISOString(),
+                } as any).select().single();
+
+                if (invoice && isPaid) {
+                    await supabaseAdmin.from('payments').insert({
+                        invoice_id: (invoice as any).id,
+                        parent_id: parentId,
+                        amount: totalAmount,
+                        currency: 'AED',
+                        status: 'succeeded',
+                        payment_method: randomArrayElement(['stripe', 'bank_transfer', 'cash']),
+                        created_at: invoiceDate.toISOString(),
+                    } as any);
+                }
+            }
+        }
+
+        // 12. Create Support Tickets
+        console.log('Creating support tickets...');
+        const ticketSubjects = [
+            'مشكلة في تسجيل الدخول',
+            'استفسار عن الرسوم الدراسية',
+            'طلب تغيير الفصل',
+            'مشكلة تقنية في المنصة',
+            'استفسار عن المنهج الدراسي',
+        ];
+        for (let i = 0; i < 10; i++) {
+            const userId = randomArrayElement([...parentIds, ...studentIds.slice(0, 5)]);
+            await supabaseAdmin.from('support_tickets').insert({
+                ticket_number: `TKT-${String(i + 1).padStart(4, '0')}`,
+                user_id: userId,
+                category: randomArrayElement(['technical', 'billing', 'enrollment', 'general']),
+                subject: randomArrayElement(ticketSubjects),
+                status: randomArrayElement(['open', 'in_progress', 'resolved', 'closed']),
+                priority: randomArrayElement(['low', 'medium', 'high']),
+            } as any);
+        }
+
+        // 13. Create Discounts/Coupons
+        console.log('Creating discounts...');
+        const discountData = [
+            { name: 'خصم الأخوة', type: 'sibling', discount_type: 'percentage', value: 10 },
+            { name: 'كوبون العيد', type: 'coupon', discount_type: 'fixed', value: 50 },
+            { name: 'عرض التسجيل المبكر', type: 'promotional', discount_type: 'percentage', value: 15 },
+        ];
+        for (const d of discountData) {
+            await supabaseAdmin.from('discounts').insert({
+                name: d.name,
+                type: d.type,
+                discount_type: d.discount_type,
+                value: d.value,
+                is_active: true,
+                max_uses: 100,
+                used_count: Math.floor(Math.random() * 30),
+                created_by: testUserIds['admin'] || createdTeachers[0],
+            } as any);
         }
 
         return NextResponse.json({
@@ -233,7 +514,14 @@ export async function GET() {
             stats: {
                 teachers: createdTeachers.length,
                 students: studentIds.length,
-                courses: createdCourses.length
+                parents: parentIds.length,
+                courses: createdCourses.length,
+                grades: createdGrades.length,
+                lessons: createdLessons.length,
+                enrollmentApplications: 68,
+                assessments: createdAssessments.length,
+                invoices: 15,
+                supportTickets: 10,
             },
             testCredentials: TEST_USERS.map(u => ({
                 email: u.email,

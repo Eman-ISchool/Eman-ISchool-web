@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Calendar, UserCheck, HelpCircle, ClipboardCheck } from 'lucide-react';
+import { Home, BookOpen, Calendar, UserCheck, HelpCircle, ClipboardCheck, ClipboardList, FolderOpen } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale-path';
 
@@ -19,9 +19,11 @@ export function StudentSideNav() {
 
     const navItems: NavItem[] = [
         { href: '/student/home', icon: <Home className="w-5 h-5" />, label: t('home') },
+        { href: '/student/onboarding', icon: <ClipboardList className="w-5 h-5" />, label: 'Onboarding' },
         { href: '/e2e-flow', icon: <BookOpen className="w-5 h-5 text-indigo-500" />, label: 'E2E Flow' },
         { href: '/student/courses', icon: <BookOpen className="w-5 h-5" />, label: t('myCourses') },
         { href: '/student/assessments', icon: <ClipboardCheck className="w-5 h-5" />, label: 'Assessments' },
+        { href: '/student/documents', icon: <FolderOpen className="w-5 h-5" />, label: 'Documents' },
         { href: '/student/calendar', icon: <Calendar className="w-5 h-5" />, label: t('calendar') },
         { href: '/student/attendance', icon: <UserCheck className="w-5 h-5" />, label: t('attendance') },
         { href: '/student/support', icon: <HelpCircle className="w-5 h-5" />, label: t('support') },

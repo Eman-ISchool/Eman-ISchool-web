@@ -1,25 +1,32 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { BookOpen, BarChart3, TrendingUp, CheckCircle, Download } from 'lucide-react';
-import { LoadingState } from '@/components/admin/StateComponents';
-import { useLocale } from 'next-intl';
+import { getServerSession } from 'next-auth';
+import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getLocale } from 'next-intl/server';
 
-export default function CourseReportsPage() {
-    const locale = useLocale();
+async function getStats() {
+    if (!supabaseAdmin) return null;
+    const [
+        { count: totalCourses },
+        { count: publishedCourses },
+        { count: completedLessons },
+        { count: upcomingLessons },
+    ] = await Promise.all([
+        supabaseAdmin.from('courses').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('courses').select('id', { count: 'exact', head: true }).eq('is_published', true),
+        supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+        supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }).eq('status', 'scheduled').gte('start_date_time', new Date().toISOString()),
+    ]);
+    return {
+        courses: { total: totalCourses || 0, published: publishedCourses || 0 },
+        lessons: { completed: completedLessons || 0, upcoming: upcomingLessons || 0 },
+    };
+}
+
+export default async function CourseReportsPage() {
+    const locale = await getLocale();
     const isAr = locale === 'ar';
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
-
-    useEffect(() => {
-        fetch('/api/admin/stats?period=month')
-            .then(r => r.ok ? r.json() : Promise.resolve({}))
-            .then(data => setStats(data))
-            .catch(() => setStats({}))
-            .finally(() => setLoading(false));
-    }, []);
-
-    if (loading) return <LoadingState message={isAr ? 'جاري تحميل تقارير الدورات...' : 'Loading course reports...'} />;
+    const stats = await getStats();
 
     const kpis = [
         {

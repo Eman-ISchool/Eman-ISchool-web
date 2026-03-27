@@ -11,6 +11,7 @@ export interface ApplicationRecord {
   created_at: string;
   status: ApplicationStatus;
   total_amount?: number | null;
+  paid_amount?: number | null;
   currency?: string | null;
   student_details?: {
     name?: string;
@@ -41,28 +42,28 @@ export function getApplicationStatusMeta(status: ApplicationStatus, isArabic: bo
   switch (status) {
     case 'pending':
       return {
-        label: isArabic ? 'قيد المراجعة' : 'Pending',
-        className: 'bg-amber-100 text-amber-800',
+        label: isArabic ? 'قيد الانتظار' : 'Pending',
+        className: 'bg-amber-500 text-white',
       };
     case 'payment_pending':
       return {
         label: isArabic ? 'بانتظار الدفع' : 'Payment pending',
-        className: 'bg-orange-100 text-orange-800',
+        className: 'bg-orange-500 text-white',
       };
     case 'payment_completed':
       return {
         label: isArabic ? 'تم الدفع' : 'Payment completed',
-        className: 'bg-sky-100 text-sky-800',
+        className: 'bg-sky-500 text-white',
       };
     case 'approved':
       return {
-        label: isArabic ? 'مقبول' : 'Approved',
-        className: 'bg-emerald-100 text-emerald-800',
+        label: isArabic ? 'تمت الموافقة' : 'Approved',
+        className: 'bg-emerald-500 text-white',
       };
     case 'rejected':
       return {
         label: isArabic ? 'مرفوض' : 'Rejected',
-        className: 'bg-rose-100 text-rose-800',
+        className: 'bg-rose-500 text-white',
       };
     default:
       return {

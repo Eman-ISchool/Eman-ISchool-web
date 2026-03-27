@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Activity,
@@ -71,6 +71,8 @@ function formatToday(): string {
   });
 }
 
+const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#e2e8f0'];
+
 export default function ReferenceDashboardOverview() {
   const locale = useLocale();
   const isArabic = locale === 'ar';
@@ -108,35 +110,36 @@ export default function ReferenceDashboardOverview() {
   const completedLessons = stats?.lessons?.completed ?? 0;
   const completionRate =
     totalLessons > 0 ? ((completedLessons / totalLessons) * 100).toFixed(1) : '0.0';
-  // Build chart data from coursesWithEnrollments (enrollment counts per course over time)
-  const chartData =
+  // Memoize derived data to avoid recomputation on every render
+  const chartData = useMemo(() =>
     stats?.coursesWithEnrollments?.map((c) => ({
       name: c.title?.substring(0, 12) || '—',
       uv: c.enrollments?.[0]?.count ?? 0,
-    })) ?? [];
+    })) ?? []
+  , [stats?.coursesWithEnrollments]);
 
-  const pieData =
+  const pieData = useMemo(() =>
     stats && stats.attendance.total > 0
       ? [
           { name: isArabic ? 'حاضر' : 'Present', value: stats.attendance.present },
           { name: isArabic ? 'غائب' : 'Absent', value: stats.attendance.absent },
           { name: isArabic ? 'متأخر' : 'Late', value: stats.attendance.late },
         ]
-      : [{ name: 'No data', value: 1 }];
+      : [{ name: 'No data', value: 1 }]
+  , [stats?.attendance, isArabic]);
 
-  const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#e2e8f0'];
+  // PIE_COLORS extracted to module level — see top of file
 
-  // Build activeBundles from coursesWithEnrollments
-  const activeBundles =
+  const activeBundles = useMemo(() =>
     stats?.coursesWithEnrollments?.map((c) => ({
       title: c.title || '—',
       students: c.enrollments?.[0]?.count ?? 0,
       paid: `AED ${(c.enrollments?.[0]?.count ?? 0) * 50}`,
       completion: '0.0%',
-    })) ?? [];
+    })) ?? []
+  , [stats?.coursesWithEnrollments]);
 
-  // Build teacherPerformance from API data
-  const teachers =
+  const teachers = useMemo(() =>
     stats?.teacherPerformance?.map((t) => {
       const lessonCount = t.lessons?.[0]?.count ?? 0;
       const courseCount = t.courses?.[0]?.count ?? 0;
@@ -147,7 +150,8 @@ export default function ReferenceDashboardOverview() {
         ratio: courseCount > 0 ? `${Math.min(Math.round((lessonCount / courseCount) * 10), 100)}%` : '0%',
         note: isArabic ? 'نشط' : 'Active',
       };
-    }) ?? [];
+    }) ?? []
+  , [stats?.teacherPerformance, isArabic]);
 
   if (loading) {
     return (

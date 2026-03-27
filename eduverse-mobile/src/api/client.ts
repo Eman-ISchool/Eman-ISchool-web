@@ -4,8 +4,9 @@
  */
 
 import { getAuth, storeAuth, clearAuth } from '@/services/storage';
+import { API_CONFIG } from '@/constants/config';
 
-const API_BASE_URL = 'https://your-domain.com/api';
+const API_BASE_URL = API_CONFIG.baseUrl;
 
 // Sleep utility for exponential backoff
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));

@@ -4,9 +4,9 @@
  */
 
 import React, { useCallback } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, Text, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useReels, useIsLoadingReels, fetchReels } from '@/store/reelsStore';
+import { useReels, useIsLoadingReels, useHasMoreReels, useReelsStore } from '@/store/reelsStore';
 import { ReelCard } from './ReelCard';
 import { spacing, colors, typography } from '@/theme';
 
@@ -14,27 +14,27 @@ export const ReelFeed: React.FC = () => {
   const { t } = useTranslation();
   const reels = useReels();
   const isLoading = useIsLoadingReels();
-  const hasMore = useReels(state => state.hasMore);
-  
-  const { fetchReels } = useReels();
+  const hasMore = useHasMoreReels();
+  const fetchReels = useReelsStore(state => state.fetchReels);
+  const fetchMoreReels = useReelsStore(state => state.fetchMoreReels);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
-    fetchReels().finally(() => {
+    fetchReels(true).finally(() => {
       setIsRefreshing(false);
     });
-  }, [fetchReels, hasMore]);
+  }, [fetchReels]);
 
   const handleEndReached = useCallback(() => {
     if (!isLoading && !isRefreshing && hasMore) {
-      fetchReels();
+      fetchMoreReels();
     }
-  }, [fetchReels, hasMore]);
+  }, [fetchMoreReels, isLoading, isRefreshing, hasMore]);
 
   const renderReelItem = ({ item }: { item: any }) => {
     return (
-      <ReelCard 
+      <ReelCard
         reel={item}
         onPress={() => console.log('Open reel:', item.id)}
         onBookmark={() => console.log('Bookmark reel:', item.id)}
@@ -52,40 +52,33 @@ export const ReelFeed: React.FC = () => {
   };
 
   const renderFooter = () => {
-    if (isLoading) {
+    if (isLoading && !isRefreshing) {
       return (
         <View style={styles.footerLoading}>
           <ActivityIndicator size="small" color={colors.primary} />
         </View>
       );
     }
+    return null;
+  };
 
-    if (hasMore) {
-      return (
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>{t('reels.loadMore')}</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.container}>
-        <FlatList
-          data={reels}
-          renderItem={renderReelItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.listContent}
-          ListFooterComponent={renderFooter}
-          onEndReached={handleEndReached}
-          onRefresh={handleRefresh}
-          refreshing={isRefreshing}
-          refreshControl={null}
-        />
-
-        {reels.length === 0 && isLoading && !isRefreshing && renderEmptyState()}
-      </View>
-    );
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={reels}
+        renderItem={renderReelItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContent}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={!isLoading ? renderEmptyState : undefined}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

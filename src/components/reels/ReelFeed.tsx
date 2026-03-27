@@ -41,26 +41,29 @@ export default function ReelFeed({
   const [touchEnd, setTouchEnd] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const currentIndexRef = useRef(currentIndex);
+  currentIndexRef.current = currentIndex;
 
   const currentReel = reels[currentIndex];
 
-  // Handle reel change
+  // Handle reel change — uses ref to avoid stale closure and unnecessary re-creation
   const handleReelChange = useCallback((index: number) => {
     if (index < 0 || index >= reels.length) return;
-    
+
+    // Pause previous video using ref (avoids stale closure)
+    const prevIndex = currentIndexRef.current;
+    if (videoRefs.current[prevIndex]) {
+      videoRefs.current[prevIndex]?.pause();
+    }
+
     setCurrentIndex(index);
     onReelChange?.(reels[index].id, index);
-
-    // Pause previous video
-    if (videoRefs.current[currentIndex]) {
-      videoRefs.current[currentIndex]?.pause();
-    }
 
     // Play new video
     if (videoRefs.current[index]) {
       videoRefs.current[index]?.play();
     }
-  }, [currentIndex, reels, onReelChange]);
+  }, [reels, onReelChange]);
 
   // Handle swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {

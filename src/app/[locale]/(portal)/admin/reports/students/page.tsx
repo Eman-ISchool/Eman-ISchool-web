@@ -1,25 +1,34 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { GraduationCap, Users, TrendingUp, UserCheck, Clock, Download } from 'lucide-react';
-import { LoadingState } from '@/components/admin/StateComponents';
-import { useLocale } from 'next-intl';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getLocale } from 'next-intl/server';
 
-export default function StudentReportsPage() {
-    const locale = useLocale();
+async function getStats() {
+    if (!supabaseAdmin) return null;
+    const [
+        { count: studentCount },
+        { count: activeEnrollments },
+        { count: pendingEnrollments },
+        { count: presentCount },
+        { count: totalAttendance },
+    ] = await Promise.all([
+        supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('role', 'student'),
+        supabaseAdmin.from('enrollments').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabaseAdmin.from('enrollments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabaseAdmin.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'present'),
+        supabaseAdmin.from('attendance').select('id', { count: 'exact', head: true }),
+    ]);
+    const rate = totalAttendance && presentCount ? Math.round((presentCount / totalAttendance) * 100) : 0;
+    return {
+        users: { students: studentCount || 0 },
+        enrollments: { active: activeEnrollments || 0, pending: pendingEnrollments || 0 },
+        attendance: { rate },
+    };
+}
+
+export default async function StudentReportsPage() {
+    const locale = await getLocale();
     const isAr = locale === 'ar';
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
-
-    useEffect(() => {
-        fetch('/api/admin/stats?period=month')
-            .then(r => r.ok ? r.json() : Promise.resolve({}))
-            .then(data => setStats(data))
-            .catch(() => setStats({}))
-            .finally(() => setLoading(false));
-    }, []);
-
-    if (loading) return <LoadingState message={isAr ? 'جاري تحميل تقارير الطلاب...' : 'Loading student reports...'} />;
+    const stats = await getStats();
 
     const kpis = [
         {

@@ -1,48 +1,28 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, CreditCard, CheckCircle, TrendingUp } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
-export default function EnrollmentReports() {
-    const [stats, setStats] = useState({
-        total: 0,
-        approved: 0,
-        paymentPending: 0,
-        pending: 0,
-        totalRevenue: 0
-    });
-    const [loading, setLoading] = useState(true);
+async function getStats() {
+    if (!supabaseAdmin) return { total: 0, approved: 0, paymentPending: 0, pending: 0, totalRevenue: 0 };
+    const { data: apps } = await supabaseAdmin.from('enrollment_applications').select('status, total_amount');
+    if (!apps) return { total: 0, approved: 0, paymentPending: 0, pending: 0, totalRevenue: 0 };
 
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    const fetchStats = async () => {
-        setLoading(true);
-        const { data: apps } = await supabase.from('enrollment_applications').select('status, total_amount');
-
-        if (apps) {
-            let total = apps.length;
-            let approved = apps.filter(a => a.status === 'approved').length;
-            let paymentPending = apps.filter(a => a.status === 'payment_pending').length;
-            let pending = apps.filter(a => a.status === 'pending').length;
-
-            let revenue = apps.reduce((acc, app) => {
-                // Let's assume approved or payment_completed means revenue generated (simplified)
-                if (app.status === 'approved' || app.status === 'payment_completed') {
-                    return acc + (Number(app.total_amount) || 0);
-                }
-                return acc;
-            }, 0);
-
-            setStats({ total, approved, paymentPending, pending, totalRevenue: revenue });
+    const total = apps.length;
+    const approved = apps.filter(a => a.status === 'approved').length;
+    const paymentPending = apps.filter(a => a.status === 'payment_pending').length;
+    const pending = apps.filter(a => a.status === 'pending').length;
+    const totalRevenue = apps.reduce((acc, app) => {
+        if (app.status === 'approved' || app.status === 'payment_completed') {
+            return acc + (Number(app.total_amount) || 0);
         }
-        setLoading(false);
-    };
+        return acc;
+    }, 0);
 
-    if (loading) return <div className="p-8">Loading reports...</div>;
+    return { total, approved, paymentPending, pending, totalRevenue };
+}
+
+export default async function EnrollmentReports() {
+    const stats = await getStats();
 
     return (
         <div className="space-y-6">

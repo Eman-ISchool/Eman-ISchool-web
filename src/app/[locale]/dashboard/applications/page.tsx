@@ -227,11 +227,16 @@ export default function DashboardApplicationsPage() {
                                 {statusDetails.label}
                               </span>
                             </ReferenceTableCell>
-                            <ReferenceTableCell className="font-medium">
-                              {application.total_amount || '0.00'} {currency}
+                            <ReferenceTableCell>
+                              <span className="inline-flex items-center rounded-md bg-red-100 px-2.5 py-1 text-sm font-bold text-red-700">
+                                {Number(application.total_amount || 0).toFixed(2)} {currency}
+                              </span>
                             </ReferenceTableCell>
                             <ReferenceTableCell className="font-medium">
-                              {application.paid_amount || '0.00'} {currency}
+                              {(application.status === 'approved' || application.status === 'payment_completed')
+                                ? `${application.total_amount || '0.00'} ${currency}`
+                                : `0.00 ${currency}`
+                              }
                             </ReferenceTableCell>
                             <ReferenceTableCell className="text-left rtl:text-right">
                               <div className="flex items-center gap-1">

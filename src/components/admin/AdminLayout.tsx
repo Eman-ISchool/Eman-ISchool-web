@@ -14,6 +14,7 @@ import {
     ChartNoAxesColumn,
     Database,
     Settings,
+    ShieldCheck,
     ChevronLeft,
     Menu,
     X,
@@ -26,15 +27,28 @@ interface AdminLayoutProps {
     children: ReactNode;
 }
 
+interface NavGroup {
+    key: string;
+    label: string;
+    icon: React.ReactNode;
+    items: Array<{ label: string; href: string }>;
+}
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const { data: session, status } = useSession();
     const pathname = usePathname();
     const locale = useLocale();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+    const [supervisorAllowed, setSupervisorAllowed] = useState<Set<string>>(new Set(['academic']));
 
-    const navGroups = [
+    const userRole = ((session?.user as any)?.role || '').toLowerCase();
+    const isSupervisorRole = userRole === 'supervisor';
+    const isAdminRole = userRole === 'admin';
+
+    const allNavGroups: NavGroup[] = [
         {
+            key: 'academic',
             label: 'الأكاديمي',
             icon: <BookOpen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -46,15 +60,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
+            key: 'admin',
             label: 'الإدارة',
             icon: <Users className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
                 { label: 'المستخدمون', href: '/dashboard/users' },
+                { label: 'القبول والتسجيل', href: '/admin/admissions' },
                 { label: 'الطلبات', href: '/dashboard/applications' },
                 { label: 'البيانات المرجعية', href: '/dashboard/lookups' },
             ]
         },
         {
+            key: 'finance',
             label: 'المالية',
             icon: <CreditCard className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -68,6 +85,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
+            key: 'communication',
             label: 'التواصل',
             icon: <MessageSquare className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -76,6 +94,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
+            key: 'content',
             label: 'المحتوى',
             icon: <FilePen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -84,6 +103,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
+            key: 'analytics',
             label: 'التحليلات',
             icon: <ChartNoAxesColumn className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -91,6 +111,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         },
         {
+            key: 'data',
             label: 'إدارة البيانات',
             icon: <Database className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
             items: [
@@ -98,6 +119,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ]
         }
     ];
+
+    // Fetch supervisor allowed sections
+    useEffect(() => {
+        if (!isSupervisorRole && !isAdminRole) return;
+        fetch('/api/admin/supervisor-permissions')
+            .then(res => res.json())
+            .then(data => {
+                if (data.sections) {
+                    const allowed = new Set<string>(
+                        data.sections
+                            .filter((s: any) => s.is_allowed)
+                            .map((s: any) => s.section_key)
+                    );
+                    setSupervisorAllowed(allowed);
+                }
+            })
+            .catch(() => { /* keep defaults */ });
+    }, [isSupervisorRole, isAdminRole]);
+
+    // Filter nav groups: admin sees everything, supervisor sees only allowed sections
+    const navGroups = isAdminRole
+        ? allNavGroups
+        : isSupervisorRole
+            ? allNavGroups.filter(g => supervisorAllowed.has(g.key))
+            : allNavGroups;
 
     useEffect(() => {
         const newExpanded: Record<string, boolean> = { ...expandedGroups };
@@ -206,6 +252,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                     </div>
                                 )
                             })}
+
+                            {isAdminRole && (
+                                <Link href={withLocalePrefix('/dashboard/role-management', locale)} className={navItemClass('/dashboard/role-management')} onClick={() => setMobileOpen(false)}>
+                                    <ShieldCheck className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                    <span className="w-full rtl:text-right">إدارة الصلاحيات</span>
+                                </Link>
+                            )}
 
                             <Link href={withLocalePrefix('/dashboard/system-settings', locale)} className={navItemClass('/dashboard/system-settings')} onClick={() => setMobileOpen(false)}>
                                 <Settings className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />

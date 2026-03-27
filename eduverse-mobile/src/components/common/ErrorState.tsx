@@ -27,7 +27,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       </View>
       <View style={styles.content}>
         {title && <Text style={styles.title}>{title}</Text>}
-        <Text style={styles.message}>{message}</Text>}
+        <Text style={styles.message}>{message}</Text>
         {onRetry && (
           <TouchableOpacity onPress={onRetry} style={styles.retryButton}>
             <Text style={styles.retryText}>Retry</Text>

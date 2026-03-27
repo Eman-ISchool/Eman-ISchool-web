@@ -5,6 +5,8 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { zustandMMKVStorage } from '@/utils/mmkv-storage';
+import { getReelsFeed } from '@/api/reels';
 import type { ReelFeedItem } from '@/types/api';
 
 interface ReelsStore {
@@ -17,7 +19,7 @@ interface ReelsStore {
   hasMore: boolean;
   page: number;
   limit: number;
-  
+
   // Actions
   setReels: (reels: ReelFeedItem[]) => void;
   setCurrentReel: (reelId: string | null) => void;
@@ -31,24 +33,8 @@ interface ReelsStore {
   fetchMoreReels: () => Promise<void>;
 }
 
-// Create persist storage for Zustand
-const storage = createJSONStorage(() => ({
-  getItem: (name) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve(null);
-  },
-  setItem: (name, value) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve();
-  },
-  removeItem: (name) => {
-    // For now, use a simple storage approach
-    // In production, this would use AsyncStorage
-    return Promise.resolve();
-  },
-}));
+// MMKV-backed persist storage for Zustand
+const storage = createJSONStorage(() => zustandMMKVStorage);
 
 // Create reels store
 export const useReelsStore = create<ReelsStore>()(
@@ -65,43 +51,43 @@ export const useReelsStore = create<ReelsStore>()(
       limit: 20,
 
       setReels: (reels) => set({ reels }),
-      
+
       setCurrentReel: (reelId) => set({ currentReelId: reelId }),
-      
+
       addWatchedReel: (reelId) => {
         const watched = get().watchedReels;
         const newWatched = new Set(watched);
         newWatched.add(reelId);
         set({ watchedReels: newWatched });
       },
-      
+
       addBookmarkedReel: (reelId) => {
         const bookmarked = get().bookmarkedReels;
         const newBookmarked = new Set(bookmarked);
         newBookmarked.add(reelId);
         set({ bookmarkedReels: newBookmarked });
       },
-      
+
       setLoading: (loading) => set({ isLoading: loading }),
-      
+
       setError: (error) => set({ error }),
-      
+
       setHasMore: (hasMore) => set({ hasMore }),
-      
+
       setPage: (page) => set({ page }),
-      
+
       fetchReels: async (refresh = false) => {
         set({ isLoading: true, error: null });
-        
+
         try {
-          // This will be implemented when API is ready
-          // For now, just simulate a fetch
-          await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-          
-          // TODO: Call reels API to fetch reels
-          // const response = await reelsApi.getFeed({ page: get().page, limit: get().limit });
-          // setReels(response.data);
-          // setHasMore(response.pagination.hasMore);
+          const page = refresh ? 1 : get().page;
+          const response = await getReelsFeed({ page, limit: get().limit });
+
+          set({
+            reels: refresh ? response.data : response.data,
+            hasMore: response.pagination?.hasMore ?? false,
+            page,
+          });
         } catch (err: any) {
           console.error('Failed to fetch reels:', err);
           set({ error: err.message || 'Failed to load reels' });
@@ -109,22 +95,23 @@ export const useReelsStore = create<ReelsStore>()(
           set({ isLoading: false });
         }
       },
-      
+
       fetchMoreReels: async () => {
-        if (get().isLoading || get().hasMore) {
+        if (get().isLoading || !get().hasMore) {
           return;
         }
-        
+
         set({ isLoading: true });
-        
+
         try {
           const nextPage = get().page + 1;
-          // TODO: Call reels API to fetch more reels
-          // const response = await reelsApi.getFeed({ page: nextPage, limit: get().limit });
-          // setReels([...get().reels, ...response.data]);
-          // setHasMore(response.pagination.hasMore);
-          // setPage(nextPage);
-          await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+          const response = await getReelsFeed({ page: nextPage, limit: get().limit });
+
+          set({
+            reels: [...get().reels, ...response.data],
+            hasMore: response.pagination?.hasMore ?? false,
+            page: nextPage,
+          });
         } catch (err: any) {
           console.error('Failed to fetch more reels:', err);
           set({ error: err.message || 'Failed to load more reels' });

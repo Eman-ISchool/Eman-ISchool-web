@@ -12,6 +12,8 @@ import {
   EyeOff,
   GraduationCap,
   Loader2,
+  Mail,
+  Phone,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
@@ -46,9 +48,11 @@ export default function ReferenceAuthCard({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
   const [loginCountryCode, setLoginCountryCode] = useState('962');
   const [loginPhone, setLoginPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
 
   const [joinCountryCode, setJoinCountryCode] = useState('962');
   const [joinFullName, setJoinFullName] = useState('');
@@ -88,6 +92,9 @@ export default function ReferenceAuthCard({
     passwordMismatch: isArabic ? 'كلمتا المرور غير متطابقتين.' : 'Passwords do not match.',
     fillRequired: isArabic ? 'يرجى تعبئة جميع الحقول المطلوبة.' : 'Please complete all required fields.',
     consentRequired: isArabic ? 'يجب الموافقة للمتابعة.' : 'You must accept the consent notice.',
+    emailLabel: isArabic ? 'البريد الإلكتروني' : 'Email address',
+    usePhone: isArabic ? 'الدخول برقم الجوال' : 'Sign in with phone',
+    useEmail: isArabic ? 'الدخول بالبريد الإلكتروني' : 'Sign in with email',
     phoneHint: isArabic ? 'نستخدم رقم الجوال للدخول كما في المرجع.' : 'Phone-based sign-in matches the reference flow.',
     featureOne: isArabic ? 'واجهة عامة مبسطة مع تبديل لغة فعلي' : 'Simplified public shell with real locale switching',
     featureTwo: isArabic ? 'نموذج موحّد لتسجيل الدخول والانضمام' : 'Unified login and join experience',
@@ -116,13 +123,11 @@ export default function ReferenceAuthCard({
     setLoginPending(true);
 
     try {
-      const result = await signIn('credentials', {
-        identifier: loginPhone,
-        phone: loginPhone,
-        countryCode: loginCountryCode,
-        password: loginPassword,
-        redirect: false,
-      });
+      const credentialPayload = loginMethod === 'email'
+        ? { identifier: loginEmail, email: loginEmail, password: loginPassword, redirect: false }
+        : { identifier: loginPhone, phone: loginPhone, countryCode: loginCountryCode, password: loginPassword, redirect: false };
+
+      const result = await signIn('credentials', credentialPayload);
 
       if (result?.error) {
         setError(copy.invalidCredentials);
@@ -297,7 +302,7 @@ export default function ReferenceAuthCard({
                 }}
                 className="space-y-6"
               >
-                <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm">
+                <TabsList className="tabs-pill-active grid w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm">
                   <TabsTrigger value="login" className="rounded-xl">
                     {copy.loginTab}
                   </TabsTrigger>
@@ -311,16 +316,60 @@ export default function ReferenceAuthCard({
                     <h2 className="text-2xl font-bold text-slate-950">{copy.loginTitle}</h2>
                   </div>
 
+                  {/* Login method toggle */}
+                  <div className="flex rounded-xl bg-white p-1 shadow-sm border border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod('phone')}
+                      className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                        loginMethod === 'phone'
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Phone className="h-4 w-4" />
+                      {copy.usePhone}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod('email')}
+                      className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                        loginMethod === 'email'
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Mail className="h-4 w-4" />
+                      {copy.useEmail}
+                    </button>
+                  </div>
+
                   <form className="space-y-4" onSubmit={handleLogin}>
-                    <PhoneField
-                      countryCode={loginCountryCode}
-                      onCountryCodeChange={setLoginCountryCode}
-                      onPhoneChange={setLoginPhone}
-                      phone={loginPhone}
-                      locale={locale}
-                      label={copy.phone}
-                      disabled={loginPending}
-                    />
+                    {loginMethod === 'phone' ? (
+                      <PhoneField
+                        countryCode={loginCountryCode}
+                        onCountryCodeChange={setLoginCountryCode}
+                        onPhoneChange={setLoginPhone}
+                        phone={loginPhone}
+                        locale={locale}
+                        label={copy.phone}
+                        disabled={loginPending}
+                      />
+                    ) : (
+                      <div className="space-y-1.5">
+                        <Label className="text-sm font-medium text-slate-700">{copy.emailLabel}</Label>
+                        <Input
+                          type="email"
+                          dir="ltr"
+                          value={loginEmail}
+                          onChange={(event) => setLoginEmail(event.target.value)}
+                          placeholder="email@example.com"
+                          className="h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20"
+                          disabled={loginPending}
+                          required
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">

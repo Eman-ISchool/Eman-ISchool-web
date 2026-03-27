@@ -56,13 +56,7 @@ export async function GET(req: Request) {
             query = query.eq('student_id', studentId);
         }
 
-        // Fetch enrollments with related data
-        const { data: enrollments, error } = await query
-            .range(offset, offset + limit - 1);
-
-        if (error) throw error;
-
-        // Get total count with same filters
+        // Build count query with same filters (run in parallel with data fetch)
         let countQuery = supabaseAdmin
             .from('enrollments')
             .select('*', { count: 'exact', head: true })
@@ -78,7 +72,13 @@ export async function GET(req: Request) {
             countQuery = countQuery.eq('student_id', studentId);
         }
 
-        const { count } = await countQuery;
+        // Fetch data and count in parallel instead of sequentially
+        const [{ data: enrollments, error }, { count }] = await Promise.all([
+            query.range(offset, offset + limit - 1),
+            countQuery,
+        ]);
+
+        if (error) throw error;
 
         const response = NextResponse.json({
             enrollments,
@@ -115,33 +115,31 @@ export async function POST(req: Request) {
         // Teacher/Admin enrollment flow (teacher-owned course)
         if (user.role === 'teacher' || isAdmin(user.role)) {
             let resolvedStudentId = studentId;
-            if (!resolvedStudentId && studentEmail) {
-                const { data: studentLookup, error: studentLookupError } = await supabaseAdmin
-                    .from('users')
-                    .select('id, role')
-                    .eq('email', studentEmail)
-                    .single();
 
-                if (studentLookupError || !studentLookup) {
+            // Parallelize student lookup and course lookup (independent queries)
+            const [studentResult, courseResult] = await Promise.all([
+                !resolvedStudentId && studentEmail
+                    ? supabaseAdmin.from('users').select('id, role').eq('email', studentEmail).single()
+                    : Promise.resolve({ data: null, error: null }),
+                supabaseAdmin.from('courses').select('id, grade_id, teacher_id').eq('id', courseId).single(),
+            ]);
+
+            if (!resolvedStudentId && studentEmail) {
+                if (studentResult.error || !studentResult.data) {
                     return withRequestId(NextResponse.json({ error: 'User not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
                 }
-                if (studentLookup.role !== 'student') {
+                if (studentResult.data.role !== 'student') {
                     return withRequestId(NextResponse.json({ error: 'Target user is not a student account', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
                 }
-                resolvedStudentId = studentLookup.id;
+                resolvedStudentId = studentResult.data.id;
             }
 
             if (!resolvedStudentId) {
                 return withRequestId(NextResponse.json({ error: 'student_email or student_id is required', code: 'VALIDATION_ERROR', requestId }, { status: 400 }), requestId);
             }
 
-            const { data: course, error: courseError } = await supabaseAdmin
-                .from('courses')
-                .select('id, grade_id, teacher_id')
-                .eq('id', courseId)
-                .single();
-
-            if (courseError || !course) {
+            const course = courseResult.data;
+            if (courseResult.error || !course) {
                 return withRequestId(NextResponse.json({ error: 'Course not found', code: 'NOT_FOUND', requestId }, { status: 404 }), requestId);
             }
 
@@ -168,7 +166,7 @@ export async function POST(req: Request) {
                     course_id: courseId,
                     grade_id: course.grade_id,
                     status: 'active',
-                    enrollment_date: new Date().toISOString(),
+                    enrolled_at: new Date().toISOString(),
                 })
                 .select()
                 .single();

@@ -1,115 +1,119 @@
 /**
- * TeacherTabNavigator component
- * Bottom tab navigation for teacher screens
+ * TeacherTabNavigator
+ * Bottom tab navigation for teacher role
+ * Tabs: Home, Courses, Calendar, Assessments, Profile
  */
 
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { TeacherTabParamList, TeacherStackParamList } from './types';
+import { useTranslation } from 'react-i18next';
+import type {
+  TeacherTabParamList,
+  TeacherHomeStackParamList,
+  TeacherCoursesStackParamList,
+  TeacherAssessmentsStackParamList,
+} from './types';
+import { getTabScreenOptions, getStackScreenOptions } from './tabBarConfig';
+import { TabIcon } from '@/components/navigation/TabIcon';
+import { createPlaceholderScreen } from '@/screens/shared/PlaceholderScreen';
+
+// Import real screens where available
+import { TeacherHomeScreen } from '@/screens/teacher/TeacherHomeScreen';
+import { TeacherCoursesScreen } from '@/screens/teacher/TeacherCoursesScreen';
+import { CreateCourseScreen } from '@/screens/teacher/CreateCourseScreen';
+
+// Placeholder screens for flows not yet fully implemented
+const CourseDetailScreen = createPlaceholderScreen('Course Detail', 'Course management & lessons');
+const LessonDetailScreen = createPlaceholderScreen('Lesson Detail', 'Lesson content & attendance');
+const CreateLessonScreen = createPlaceholderScreen('Create Lesson', 'Schedule a new lesson');
+const ManageAttendanceScreen = createPlaceholderScreen('Attendance', 'Mark student attendance');
+const TeacherCalendarScreen = createPlaceholderScreen('Calendar', 'Your teaching schedule');
+const AssessmentListScreen = createPlaceholderScreen('Assessments', 'Manage assessments');
+const AssessmentDetailScreen = createPlaceholderScreen('Assessment Detail', 'Assessment results');
+const SubmissionReviewScreen = createPlaceholderScreen('Submission', 'Review student submission');
+const TeacherProfileScreen = createPlaceholderScreen('Profile', 'Your teacher profile');
 
 const Tab = createBottomTabNavigator<TeacherTabParamList>();
-const Stack = createNativeStackNavigator<TeacherStackParamList>();
+const HomeStack = createNativeStackNavigator<TeacherHomeStackParamList>();
+const CoursesStack = createNativeStackNavigator<TeacherCoursesStackParamList>();
+const AssessmentsStack = createNativeStackNavigator<TeacherAssessmentsStackParamList>();
 
-function TeacherStack() {
+function TeacherHomeStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen
-        name="TeacherHome"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="TeacherClasses"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ClassDetail"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="TeacherAttendance"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="TeacherSubmissions"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="TeacherProfile"
-        component={() => null}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
+    <HomeStack.Navigator screenOptions={getStackScreenOptions()}>
+      <HomeStack.Screen name="TeacherHome" component={TeacherHomeScreen} />
+      <HomeStack.Screen name="CourseDetail" component={CourseDetailScreen} />
+    </HomeStack.Navigator>
+  );
+}
+
+function TeacherCoursesStack() {
+  return (
+    <CoursesStack.Navigator screenOptions={getStackScreenOptions()}>
+      <CoursesStack.Screen name="TeacherCoursesList" component={TeacherCoursesScreen} />
+      <CoursesStack.Screen name="CourseDetail" component={CourseDetailScreen} />
+      <CoursesStack.Screen name="LessonDetail" component={LessonDetailScreen} />
+      <CoursesStack.Screen name="CreateLesson" component={CreateLessonScreen} />
+      <CoursesStack.Screen name="ManageAttendance" component={ManageAttendanceScreen} />
+    </CoursesStack.Navigator>
+  );
+}
+
+function TeacherAssessmentsStack() {
+  return (
+    <AssessmentsStack.Navigator screenOptions={getStackScreenOptions()}>
+      <AssessmentsStack.Screen name="AssessmentList" component={AssessmentListScreen} />
+      <AssessmentsStack.Screen name="AssessmentDetail" component={AssessmentDetailScreen} />
+      <AssessmentsStack.Screen name="SubmissionReview" component={SubmissionReviewScreen} />
+    </AssessmentsStack.Navigator>
   );
 }
 
 export function TeacherTabNavigator() {
+  const { t } = useTranslation();
+  const tabOptions = getTabScreenOptions();
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#0D9488',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
-      }}
-    >
+    <Tab.Navigator screenOptions={tabOptions}>
       <Tab.Screen
         name="Home"
-        component={TeacherStack}
+        component={TeacherHomeStack}
         options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🏠</Text>,
+          tabBarLabel: t('tabs.home'),
+          tabBarIcon: ({ color, size }) => <TabIcon name="home" color={color} size={size} />,
         }}
       />
       <Tab.Screen
-        name="Classes"
-        component={() => null}
+        name="Courses"
+        component={TeacherCoursesStack}
         options={{
-          tabBarLabel: 'Classes',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>📚</Text>,
+          tabBarLabel: t('tabs.courses'),
+          tabBarIcon: ({ color, size }) => <TabIcon name="courses" color={color} size={size} />,
         }}
       />
       <Tab.Screen
-        name="Attendance"
-        component={() => null}
+        name="Calendar"
+        component={TeacherCalendarScreen}
         options={{
-          tabBarLabel: 'Attendance',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>📊</Text>,
+          tabBarLabel: t('tabs.calendar'),
+          tabBarIcon: ({ color, size }) => <TabIcon name="calendar" color={color} size={size} />,
         }}
       />
       <Tab.Screen
-        name="Submissions"
-        component={() => null}
+        name="Assessments"
+        component={TeacherAssessmentsStack}
         options={{
-          tabBarLabel: 'Submissions',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>📝</Text>,
+          tabBarLabel: t('tabs.assessments', 'Assessments'),
+          tabBarIcon: ({ color, size }) => <TabIcon name="assessments" color={color} size={size} />,
         }}
       />
       <Tab.Screen
         name="Profile"
-        component={() => null}
+        component={TeacherProfileScreen}
         options={{
-          tabBarLabel: 'Profile',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>👤</Text>,
+          tabBarLabel: t('tabs.profile'),
+          tabBarIcon: ({ color, size }) => <TabIcon name="profile" color={color} size={size} />,
         }}
       />
     </Tab.Navigator>

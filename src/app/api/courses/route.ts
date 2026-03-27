@@ -34,38 +34,17 @@ export async function GET(req: Request) {
             );
         }
 
-        // Try full query with joins; fall back to basic query if FK relationships are missing
+        // Build query with joins — select only needed fields for list view
         let query = supabaseAdmin
             .from('courses')
             .select(`
                 *,
                 teacher:users!courses_teacher_id_fkey(id, name, email, image),
                 grade:grades(id, name, slug),
-                subject:subjects(id, title, slug),
                 enrollments:enrollments(count)
             `, { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
-
-        // Pre-check: test if the join query works; if not, fall back to simple select
-        const testResult = await supabaseAdmin
-            .from('courses')
-            .select(`
-                *,
-                teacher:users!courses_teacher_id_fkey(id, name, email, image),
-                grade:grades(id, name, slug),
-                subject:subjects(id, title, slug),
-                enrollments:enrollments(count)
-            `, { count: 'exact', head: true });
-
-        if (testResult.error) {
-            console.warn('Courses join query failed, using basic query:', testResult.error.message);
-            query = supabaseAdmin
-                .from('courses')
-                .select('*', { count: 'exact' })
-                .order('created_at', { ascending: false })
-                .range(offset, offset + limit - 1);
-        }
 
         if (currentUser?.role === 'teacher') {
             query = query.eq('teacher_id', currentUser.id);
@@ -93,7 +72,7 @@ export async function GET(req: Request) {
         // Support both 'subject' and 'subjectId' parameters
         const subjectFilter = subjectId || subject;
         if (subjectFilter) {
-            query = query.eq('subject_id', subjectFilter);
+            query = query.eq('subject', subjectFilter);
         }
 
         if (gradeId) {
@@ -131,7 +110,7 @@ export async function GET(req: Request) {
         if (error) {
             console.error('Error fetching courses:', error);
             return NextResponse.json(
-                { error: 'Failed to fetch courses', code: 'COURSES_FETCH_ERROR', requestId },
+                { error: 'Failed to fetch courses', code: 'COURSES_FETCH_ERROR', requestId, details: error.message, hint: error.hint },
                 { status: 500 }
             );
         }
@@ -265,10 +244,8 @@ export async function POST(req: Request) {
                 price: price || 0,
                 duration_hours: durationHours,
                 image_url: imageUrl,
-                thumbnail_url: thumbnailUrl,
-                subject_id: subject_id || body.subject,
+                subject: subject_id || body.subject || '',
                 grade_level: grade_id,
-                grade_id: grade_id,
                 teacher_id: currentUser.id,
                 max_students: maxStudents || 30,
                 is_published: false,
@@ -408,9 +385,8 @@ export async function PATCH(req: Request) {
         if (updates.price !== undefined) dbUpdates.price = updates.price;
         if (updates.durationHours !== undefined) dbUpdates.duration_hours = updates.durationHours;
         if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
-        if (updates.thumbnailUrl !== undefined) dbUpdates.thumbnail_url = updates.thumbnailUrl;
-        if (updates.subject !== undefined) dbUpdates.subject_id = updates.subject;
-        if (updates.subject_id !== undefined) dbUpdates.subject_id = updates.subject_id;
+        if (updates.subject !== undefined) dbUpdates.subject = updates.subject;
+        if (updates.subject_id !== undefined) dbUpdates.subject = updates.subject_id;
         if (updates.gradeLevel !== undefined) dbUpdates.grade_level = updates.gradeLevel;
         if (updates.grade_id !== undefined) dbUpdates.grade_id = updates.grade_id;
         if (updates.isPublished !== undefined) dbUpdates.is_published = updates.isPublished;

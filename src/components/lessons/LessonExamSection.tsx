@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 interface Assessment {
   id: string;
@@ -35,6 +37,8 @@ export default function LessonExamSection({
   userId,
 }: LessonExamSectionProps) {
   const t = useTranslations('lessons');
+  const router = useRouter();
+  const locale = useLocale();
   useSession();
   const [examList, setExamList] = useState<Assessment[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, AssessmentSubmission[]>>({});
@@ -396,10 +400,9 @@ export default function LessonExamSection({
               </button>
               <button
                 onClick={() => {
-                  // TODO: Navigate to exam taking page
-                  alert('Exam taking functionality to be implemented');
                   setShowTakeExamModal(null);
                   setSelectedExam(null);
+                  router.push(`/${locale}/student/assessments/${selectedExam.id}/take`);
                 }}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >

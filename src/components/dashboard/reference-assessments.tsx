@@ -207,14 +207,14 @@ export function ReferenceExamsPage() {
     fetchExamGroups();
   }, [fetchExamGroups]);
 
-  const [name, setName] = useState('مثال: اختبارات منتصف الفصل');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [schedule, setSchedule] = useState('مثال: ربيع 2024');
+  const [schedule, setSchedule] = useState('');
   const [active, setActive] = useState(true);
   const filtered = rows.filter((row) => [row.id, row.name].join(' ').toLowerCase().includes(query.toLowerCase()));
 
   const handleCreate = async () => {
-    if (!name.trim() || name.startsWith('مثال:')) return;
+    if (!name.trim()) return;
     setCreating(true);
     try {
       const res = await fetch('/api/assessments', {
@@ -231,9 +231,9 @@ export function ReferenceExamsPage() {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `HTTP ${res.status}`);
       }
-      setName('مثال: اختبارات منتصف الفصل');
+      setName('');
       setDescription('');
-      setSchedule('مثال: ربيع 2024');
+      setSchedule('');
       setShowModal(false);
       await fetchExamGroups();
     } catch (err: any) {
@@ -537,11 +537,11 @@ export function ReferenceQuizzesPage() {
         <div className="flex flex-col-reverse gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-center">
             <Tabs dir="ltr" value={view} onValueChange={(value) => setView(value as 'cards' | 'table')}>
-              <TabsList className="h-auto rounded-[1.1rem] border border-slate-200 bg-[#f4f4f4] p-1">
-                <TabsTrigger value="cards" className="rounded-[0.9rem] px-4 py-2 data-[state=active]:shadow-none">
+              <TabsList className="tabs-pill-active h-auto rounded-[1.1rem] border border-slate-200 bg-[#f4f4f4] p-1">
+                <TabsTrigger value="cards" className="rounded-[0.9rem] border border-transparent px-4 py-2 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
                   Cards
                 </TabsTrigger>
-                <TabsTrigger value="table" className="rounded-[0.9rem] px-4 py-2 data-[state=active]:shadow-none">
+                <TabsTrigger value="table" className="rounded-[0.9rem] border border-transparent px-4 py-2 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
                   Table
                 </TabsTrigger>
               </TabsList>
@@ -808,7 +808,7 @@ export function ReferenceQuizManagePage() {
         </div>
 
         {loading ? <LoadingSkeleton rows={2} /> : error ? <ErrorState message={error} /> : (
-        <div className="grid gap-6 xl:grid-cols-[1fr,340px]">
+        <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
           <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <div className="relative">

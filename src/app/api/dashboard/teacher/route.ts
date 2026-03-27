@@ -48,12 +48,12 @@ export async function GET() {
                 pendingGradingRes,
                 enrollmentsRes
             ] = await Promise.all([
-                supabaseAdmin.from('courses').select('*', { count: 'exact', head: true }).eq('teacher_id', currentUser.id),
-                supabaseAdmin.from('subjects').select('*', { count: 'exact', head: true }).eq('teacher_id', currentUser.id),
-                supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('teacher_id', currentUser.id).gte('start_date_time', todayStart.toISOString()).lte('start_date_time', todayEnd.toISOString()),
-                supabaseAdmin.from('lessons').select('*', { count: 'exact', head: true }).eq('teacher_id', currentUser.id).gte('end_date_time', new Date().toISOString()),
-                safeQuery(supabaseAdmin.from('assessment_submissions').select('*, assessment:assessments!inner(teacher_id)', { count: 'exact', head: true }).eq('assessments.teacher_id', currentUser.id).eq('status', 'submitted')),
-                safeQuery(supabaseAdmin.from('enrollments').select('student_id, course:courses!inner(teacher_id)').eq('courses.teacher_id', currentUser.id).eq('status', 'active'))
+                supabaseAdmin.from('courses').select('id', { count: 'exact', head: true }).eq('teacher_id', currentUser.id),
+                supabaseAdmin.from('subjects').select('id', { count: 'exact', head: true }).eq('teacher_id', currentUser.id),
+                supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }).eq('teacher_id', currentUser.id).gte('start_date_time', todayStart.toISOString()).lte('start_date_time', todayEnd.toISOString()),
+                supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }).eq('teacher_id', currentUser.id).gte('end_date_time', new Date().toISOString()),
+                safeQuery(supabaseAdmin.from('assessment_submissions').select('id, assessment:assessments!inner(teacher_id)', { count: 'exact', head: true }).eq('assessments.teacher_id', currentUser.id).eq('status', 'submitted')),
+                safeQuery(supabaseAdmin.from('enrollments').select('student_id, course:courses!inner(teacher_id)').eq('courses.teacher_id', currentUser.id).eq('status', 'active').limit(5000))
             ]);
 
             stats.totalCourses = courseCount || 0;
@@ -68,7 +68,9 @@ export async function GET() {
             }
         }
 
-        return NextResponse.json(stats);
+        const response = NextResponse.json(stats);
+        response.headers.set('Cache-Control', 'private, s-maxage=30, stale-while-revalidate=120');
+        return response;
     } catch (error: any) {
         console.error('Dashboard stats error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

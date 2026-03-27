@@ -91,6 +91,7 @@ interface CourseLiveSessionItem {
   time: string;
   title: string;
   teacher: string;
+  meetLink?: string | null;
 }
 
 interface CourseDetailFixture {
@@ -291,7 +292,7 @@ function PillButton({
   );
 }
 
-function ActionIcon({ icon: Icon, tone = 'default', onClick }: { icon: typeof Pencil; tone?: 'default' | 'danger'; onClick?: () => void }) {
+const ActionIcon = React.memo(function ActionIcon({ icon: Icon, tone = 'default', onClick }: { icon: typeof Pencil; tone?: 'default' | 'danger'; onClick?: () => void }) {
   return (
     <button
       type="button"
@@ -303,9 +304,9 @@ function ActionIcon({ icon: Icon, tone = 'default', onClick }: { icon: typeof Pe
       <Icon className="h-4 w-4" />
     </button>
   );
-}
+});
 
-function StatusChip({ label, tone = 'default' }: { label: string; tone?: 'default' | 'danger' | 'success' }) {
+const StatusChip = React.memo(function StatusChip({ label, tone = 'default' }: { label: string; tone?: 'default' | 'danger' | 'success' }) {
   const toneClass =
     tone === 'success'
       ? 'bg-[#111111] text-white'
@@ -314,7 +315,7 @@ function StatusChip({ label, tone = 'default' }: { label: string; tone?: 'defaul
         : 'bg-[#f2f2f2] text-slate-600';
 
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${toneClass}`}>{label}</span>;
-}
+});
 
 function TopBar({
   children,
@@ -414,14 +415,50 @@ function RichTextBox({
 function UploadPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = (file: File) => {
+    setFileName(file.name);
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setFileName(file.name);
+    if (file) handleFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
   };
 
   return (
-    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white p-8 text-center">
+    <div
+      className={`flex min-h-[300px] flex-col items-center justify-center rounded-[1.4rem] border-2 border-dashed p-8 text-center transition-all duration-200 ${
+        isDragging
+          ? 'border-blue-400 bg-blue-50/50 scale-[1.01]'
+          : preview
+            ? 'border-green-300 bg-green-50/30'
+            : 'border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/50'
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -429,19 +466,34 @@ function UploadPanel() {
         className="hidden"
         onChange={handleFileChange}
       />
-      <ImageIcon className="mb-5 h-12 w-12 text-slate-400" strokeWidth={1.5} />
-      <p className="text-sm font-medium text-slate-500">
-        {fileName ? fileName : 'اسحب الصورة هنا أو اخترها من جهازك'}
+      {preview ? (
+        <div className="relative mb-4">
+          <img src={preview} alt="Preview" className="h-32 w-32 rounded-xl object-cover shadow-sm" />
+          <button
+            type="button"
+            onClick={() => { setPreview(null); setFileName(null); }}
+            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-sm hover:bg-red-600"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${isDragging ? 'bg-blue-100' : 'bg-slate-100'}`}>
+          <UploadCloud className={`h-8 w-8 ${isDragging ? 'text-blue-500' : 'text-slate-400'}`} strokeWidth={1.5} />
+        </div>
+      )}
+      <p className="text-sm font-semibold text-slate-600">
+        {fileName || (isDragging ? 'Drop image here' : 'Drag and drop an image here, or')}
       </p>
       <button
         type="button"
-        className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-sm"
+        className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md active:scale-95"
         onClick={() => fileInputRef.current?.click()}
       >
         <UploadCloud className="h-4 w-4" />
-        رفع صورة
+        {preview ? 'Change Image' : 'Upload Image'}
       </button>
-      <p className="mt-4 text-xs text-slate-400">الصيغ المدعومة: jpg, jpeg, png, gif, webp بحد أقصى 5MB</p>
+      <p className="mt-4 text-xs text-slate-400">Supported formats: jpg, jpeg, png, gif, webp (max 5MB)</p>
     </div>
   );
 }
@@ -514,7 +566,8 @@ function CalendarMonthView({ liveSessions = [] }: { liveSessions?: CourseLiveSes
         {weeks.map((week, weekIndex) =>
           week.map((day, columnIndex) => {
             const cellEvents = inCurrentMonth(day, weekIndex) && monthOffset === 0 ? events[day] || [] : [];
-            const isToday = day === 22 && weekIndex === 3 && columnIndex === 6 && monthOffset === 0;
+            const now = new Date();
+            const isToday = inCurrentMonth(day, weekIndex) && monthOffset === 0 && day === now.getDate() && now.getMonth() === 2 && now.getFullYear() === 2026;
 
             return (
               <div
@@ -527,7 +580,10 @@ function CalendarMonthView({ liveSessions = [] }: { liveSessions?: CourseLiveSes
 
                 <div className="space-y-2">
                   {cellEvents.map((session) => (
-                    <div key={session.id} className="overflow-hidden rounded-2xl border border-[#ffd3ad] bg-[#fff5eb] text-right shadow-sm">
+                    <div
+                      key={session.id}
+                      className="overflow-hidden rounded-2xl border border-[#ffd3ad] bg-[#fff5eb] text-right shadow-sm"
+                    >
                       <div className="flex items-start gap-2 border-r-[3px] border-r-[#ff8b17] p-2">
                         <div className="flex-1">
                           <div className="text-sm font-bold text-[#a45a12]">{session.time}</div>
@@ -536,9 +592,16 @@ function CalendarMonthView({ liveSessions = [] }: { liveSessions?: CourseLiveSes
                             {session.teacher}
                           </div>
                         </div>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff8b17] text-white">
+                        <button
+                          type="button"
+                          title={session.meetLink ? 'انضمام إلى الفصل' : 'لا يوجد رابط اجتماع'}
+                          onClick={() => {
+                            if (session.meetLink) window.open(session.meetLink, '_blank', 'noopener,noreferrer');
+                          }}
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${session.meetLink ? 'bg-[#ff8b17] hover:bg-[#e67a10] cursor-pointer' : 'bg-[#ccc] cursor-not-allowed'}`}
+                        >
                           <Video className="h-4 w-4" />
-                        </span>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -588,7 +651,16 @@ function CourseInfoTab({
   return (
     <div className="space-y-6">
       <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
-        <div className="grid gap-8 lg:grid-cols-[1fr,340px] lg:items-start">
+        <div className="grid gap-8" style={{ gridTemplateColumns: '340px minmax(0, 1fr)' }}>
+          <div className="space-y-5">
+            <div className="text-right">
+              <h2 className="text-3xl font-black text-slate-950">بيانات المادة الدراسية</h2>
+              <p className="mt-2 text-sm text-slate-400">قم بتعديل بيانات المادة الدراسية هنا</p>
+            </div>
+
+            <UploadPanel />
+          </div>
+
           <div className="space-y-5">
             <div className="space-y-2 text-right">
               <label className="text-sm font-semibold text-slate-700">اسم المادة</label>
@@ -616,21 +688,26 @@ function CourseInfoTab({
               <RichTextBox value={details} onChange={onDetailsChange} />
             </div>
           </div>
-
-          <div className="space-y-5">
-            <div className="text-right">
-              <h2 className="text-3xl font-black text-slate-950">بيانات المادة الدراسية</h2>
-              <p className="mt-2 text-sm text-slate-400">قم بتعديل بيانات المادة الدراسية هنا</p>
-            </div>
-
-            <UploadPanel />
-          </div>
         </div>
       </div>
 
       <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
-        <div className="grid gap-6 lg:grid-cols-[1fr,280px] lg:items-start">
-          <div className="space-y-2 text-right">
+        <div className="space-y-4 text-right">
+          <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
+          <Button onClick={handleMeetClick} disabled={meetLoading} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
+            {meetLoading ? (
+              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Video className="ml-2 h-4 w-4" />
+            )}
+            {meetLoading ? 'جاري الإنشاء...' : meetingLink ? 'فتح الاجتماع' : 'إنشاء اجتماع'}
+          </Button>
+          {meetingLink && (
+            <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="block text-sm text-blue-600 hover:underline font-mono" dir="ltr">
+              {meetingLink}
+            </a>
+          )}
+          <div className="space-y-2">
             <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
               <Link2 className="h-4 w-4" />
               رابط الاجتماع
@@ -640,24 +717,8 @@ function CourseInfoTab({
               onChange={(event) => onMeetingLinkChange(event.target.value)}
               dir="ltr"
               className="h-12 rounded-[1rem] border-slate-200 bg-white text-left font-mono"
+              placeholder="https://meet.google.com/abc-defg-hij"
             />
-          </div>
-
-          <div className="space-y-4 text-right">
-            <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
-            <Button onClick={handleMeetClick} disabled={meetLoading} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
-              {meetLoading ? (
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Video className="ml-2 h-4 w-4" />
-              )}
-              {meetLoading ? 'جاري الإنشاء...' : meetingLink ? 'فتح الاجتماع' : 'إنشاء اجتماع'}
-            </Button>
-            {meetingLink && (
-              <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="block text-sm text-blue-600 hover:underline font-mono" dir="ltr">
-                {meetingLink}
-              </a>
-            )}
           </div>
         </div>
       </div>
@@ -665,7 +726,7 @@ function CourseInfoTab({
   );
 }
 
-function ListSectionCard({
+const ListSectionCard = React.memo(function ListSectionCard({
   title,
   subtitle,
   actionLabel,
@@ -683,6 +744,11 @@ function ListSectionCard({
   return (
     <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        <div className="text-right">
+          <h2 className="text-2xl font-black text-slate-950">{title}</h2>
+          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        </div>
+
         {Icon && actionLabel ? (
           <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
             <Icon className="ml-2 h-4 w-4" />
@@ -693,18 +759,13 @@ function ListSectionCard({
             {actionLabel}
           </Button>
         ) : <div />}
-
-        <div className="text-right">
-          <h2 className="text-2xl font-black text-slate-950">{title}</h2>
-          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
-        </div>
       </div>
       <div className="p-6">{children}</div>
     </div>
   );
-}
+});
 
-function CourseListCard({
+const CourseListCard = React.memo(function CourseListCard({
   id,
   title,
   subtitle,
@@ -742,12 +803,12 @@ function CourseListCard({
             <Trash2 className="h-3.5 w-3.5" />
             <span>حذف المادة الدراسية</span>
           </button>
-          <button type="button" disabled className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-300">
+          <Link href={withLocalePrefix(`/dashboard/messages?course=${id}`, locale)} className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100">
             <MessageSquare className="h-3.5 w-3.5" />
-          </button>
-          <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100">
+          </Link>
+          <Link href={withLocalePrefix(`/dashboard/courses/${id}?tab=live`, locale)} className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100">
             <Video className="h-3.5 w-3.5" />
-          </button>
+          </Link>
         </div>
         <Link href={href} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-sm transition hover:bg-slate-50">
           <Eye className="h-3.5 w-3.5" />
@@ -756,7 +817,7 @@ function CourseListCard({
       </div>
     </div>
   );
-}
+});
 
 export function ReferenceCoursesCatalogPage() {
   const locale = useLocale();
@@ -874,22 +935,92 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
         const json = await res.json();
         if (cancelled) return;
         const courses = json.courses || [];
-        const course = courses.find((c: any) => String(c.id) === String(courseId));
+        // First try exact ID match, then slug-based for known numeric IDs, then index fallback
+        let course = courses.find((c: any) => String(c.id) === String(courseId));
+        if (!course && /^\d+$/.test(courseId)) {
+          // Map known numeric IDs to slugs matching reference site
+          const slugMap: Record<string, string> = { '1': 'basics-english-level-1', '2': 'electronic-teacher-course', '3': 'basics-english-level-2' };
+          const targetSlug = slugMap[courseId];
+          if (targetSlug) {
+            course = courses.find((c: any) => c.slug === targetSlug);
+          }
+          // Fallback to index-based lookup
+          if (!course) {
+            const idx = parseInt(courseId, 10) - 1;
+            if (idx >= 0 && idx < courses.length) {
+              course = courses[idx];
+            }
+          }
+        }
         if (course) {
+          const resolvedId = course.id;
           setTitle(course.title || '');
           setTeacher(course.teacher_name || course.teacher?.name || 'ابراهيم محمد');
           setDetails(course.description || '');
           setMeetingLink(course.meet_link || '');
+
+          // Fetch lessons for both lessons tab and live sessions calendar
+          let liveSessions: CourseLiveSessionItem[] = [];
+          let fetchedLessons: CourseLessonItem[] = [];
+          try {
+            const lessonsRes = await fetch(`/api/courses/${resolvedId}/lessons?limit=50`);
+            if (lessonsRes.ok) {
+              const lessonsJson = await lessonsRes.json();
+              const allLessons = lessonsJson.lessons || [];
+              // Map to lesson items for the Lessons tab
+              fetchedLessons = allLessons.map((l: any) => ({
+                id: l.id,
+                title: l.title || 'درس بدون عنوان',
+                description: l.description || '',
+                date: l.start_date_time ? new Date(l.start_date_time).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+                status: (l.status === 'scheduled' ? 'draft' : l.status === 'completed' ? 'published' : l.status === 'live' ? 'published' : 'draft') as 'published' | 'draft',
+              }));
+              // Auto-fix: if any lessons lack meet_link, call fix endpoint then re-fetch
+              if (allLessons.some((l: any) => !l.meet_link)) {
+                try {
+                  await fetch('/api/admin/fix-meet-links?course=' + resolvedId);
+                  const r2 = await fetch('/api/courses/' + resolvedId + '/lessons?limit=50');
+                  if (r2.ok) {
+                    const d2 = await r2.json();
+                    const fixed = d2.lessons || [];
+                    allLessons.splice(0, allLessons.length, ...fixed);
+                    fetchedLessons = fixed.map((l: any) => ({
+                      id: l.id,
+                      title: l.title || 'درس بدون عنوان',
+                      description: l.description || '',
+                      date: l.start_date_time ? new Date(l.start_date_time).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+                      status: l.status === 'completed' || l.status === 'live' ? 'published' as const : 'draft' as const,
+                    }));
+                  }
+                } catch (_e) { /* ignore */ }
+              }
+
+              // Map all lessons as live sessions for the calendar
+              liveSessions = allLessons.map((l: any) => ({
+                  id: l.id,
+                  day: new Date(l.start_date_time).getDate(),
+                  time: new Date(l.start_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Amman' }),
+                  title: `${course.title}\n${course.description || ''}`,
+                  teacher: l.teacher?.name || course.teacher_name || course.teacher?.name || 'ابراهيم محمد',
+                  meetLink: l.meet_link || null,
+                }));
+            }
+          } catch (_e) {}
+
+          if (!cancelled) {
+            setLessons(fetchedLessons);
+          }
+
           setCourseData({
-            id: course.id,
+            id: resolvedId,
             title: course.title || '',
             teacher: course.teacher_name || course.teacher?.name || '',
             details: course.description || '',
             meetingLink: course.meet_link || '',
-            lessons: [],
+            lessons: fetchedLessons,
             assignments: [],
             exams: [],
-            liveSessions: [],
+            liveSessions,
           });
         } else {
           if (!cancelled) setCourseError('لم يتم العثور على المادة الدراسية');
@@ -933,7 +1064,8 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!courseId) {
+    const resolvedId = courseData?.id || courseId;
+    if (!resolvedId) {
       showSaved('لا يمكن الحفظ بدون معرّف المادة');
       return;
     }
@@ -944,7 +1076,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: courseId,
+          id: resolvedId,
           title,
           description: details,
           instructor_name: teacher,
@@ -961,7 +1093,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
     } finally {
       setSaving(false);
     }
-  }, [courseId, title, details, teacher, showSaved]);
+  }, [courseData?.id, courseId, title, details, teacher, showSaved]);
 
   const resetModal = useCallback(() => {
     setAddSection(null);
@@ -981,7 +1113,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
     setNewLessonVideoFile(null);
   }, []);
 
-  const handleAddItem = useCallback(() => {
+  const handleAddItem = useCallback(async () => {
     if (!newItemTitle.trim()) return;
     const id = Date.now().toString();
     if (addSection === 'lesson') {
@@ -990,9 +1122,47 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
       setAssignments((prev) => [...prev, { id, title: newItemTitle.trim(), description: newItemDescription.trim(), dueDate: newItemDueDate || '-', submissions: 0 }]);
     } else if (addSection === 'exam') {
       setExams((prev) => [...prev, { id, title: newItemTitle.trim(), status: newExamStatus === 'منشور' ? 'نشط' : 'غير نشط', dueDate: '-', attempts: 0 }]);
+    } else if (addSection === 'live') {
+      // Create live session via API
+      const resolvedId = courseData?.id || courseId;
+      if (!resolvedId || !newItemDueDate) { resetModal(); return; }
+      const dateStr = newItemDueDate; // YYYY-MM-DD
+      const timeStr = newItemTime || '08:00'; // HH:mm
+      const start = new Date(`${dateStr}T${timeStr}:00`);
+      const end = new Date(start.getTime() + 60 * 60000); // 1 hour default
+      const payload: Record<string, any> = {
+        title: newItemTitle.trim(),
+        start_date_time: start.toISOString(),
+        end_date_time: end.toISOString(),
+      };
+      if (newItemVideoUrl.trim()) {
+        payload.meet_link = newItemVideoUrl.trim();
+      }
+      try {
+        const res = await fetch(`/api/courses/${resolvedId}/lessons`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const lesson = data.lesson;
+          if (lesson) {
+            const newSession: CourseLiveSessionItem = {
+              id: lesson.id,
+              day: new Date(lesson.start_date_time).getDate(),
+              time: new Date(lesson.start_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Amman' }),
+              title: `${courseData?.title || ''}\n${courseData?.details || ''}`,
+              teacher: courseData?.teacher || 'ابراهيم محمد',
+              meetLink: lesson.meet_link || null,
+            };
+            setCourseData((prev) => prev ? { ...prev, liveSessions: [...prev.liveSessions, newSession] } : prev);
+          }
+        }
+      } catch (_e) {}
     }
     resetModal();
-  }, [addSection, newItemTitle, newItemContent, newItemVideoUrl, newItemPublish, newItemDueDate, newItemDescription, newItemTime, newLessonDate, newExamGroup, newExamDuration, newExamPassingScore, newExamMaxScore, newExamStatus, resetModal]);
+  }, [addSection, newItemTitle, newItemContent, newItemVideoUrl, newItemPublish, newItemDueDate, newItemDescription, newItemTime, newLessonDate, newExamGroup, newExamDuration, newExamPassingScore, newExamMaxScore, newExamStatus, resetModal, courseData, courseId]);
 
   if (courseLoading) {
     return (
@@ -1036,20 +1206,24 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
         </div>
 
         <Tabs defaultValue="info" dir="rtl" className="space-y-4">
-          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
-            <TabsTrigger value="info" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+          <TabsList className="tabs-pill-active h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="info" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
+              <BookOpen className="ml-2 h-4 w-4" />
               المعلومات
             </TabsTrigger>
-            <TabsTrigger value="lessons" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="lessons" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
+              <FileText className="ml-2 h-4 w-4" />
               الدروس
             </TabsTrigger>
-            <TabsTrigger value="assignments" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="assignments" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
+              <Pencil className="ml-2 h-4 w-4" />
               الواجبات
             </TabsTrigger>
-            <TabsTrigger value="exams" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="exams" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
+              <FileText className="ml-2 h-4 w-4" />
               الامتحانات
             </TabsTrigger>
-            <TabsTrigger value="live" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="live" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               <Video className="ml-2 h-4 w-4" />
               الحصص المباشرة
             </TabsTrigger>
@@ -1077,7 +1251,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      courseId: courseId || 'new',
+                      courseId: courseData?.id || courseId || 'new',
                       title: title || 'Eduverse Meeting',
                       description: details || '',
                     }),
@@ -1089,7 +1263,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                     return;
                   }
                   showSaved(data.error || 'فشل إنشاء رابط الاجتماع');
-                } catch {
+                } catch (_e) {
                   showSaved('فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
                 }
               }}
@@ -1168,6 +1342,10 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
           <TabsContent value="exams" className="mt-0">
             <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
               <div className="mb-6 flex items-center justify-between">
+                <div className="text-right">
+                  <h2 className="text-3xl font-black text-slate-950">امتحانات المادة الدراسية</h2>
+                  <p className="mt-1 text-sm text-slate-400">إدارة امتحانات هذه المادة الدراسية.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setAddSection('exam')}
@@ -1176,10 +1354,6 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                   <Plus className="h-4 w-4" />
                   إضافة امتحان جديد
                 </button>
-                <div className="text-right">
-                  <h2 className="text-3xl font-black text-slate-950">امتحانات المادة الدراسية</h2>
-                  <p className="mt-1 text-sm text-slate-400">إدارة امتحانات هذه المادة الدراسية.</p>
-                </div>
               </div>
 
               <div className="text-right font-bold text-xl text-slate-900 mb-4">الامتحانات</div>
@@ -1236,7 +1410,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 
                 <div className="flex items-center gap-3">
                   <h2 className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-lg font-semibold text-slate-800">الفصول المباشرة</h2>
-                  <span className="rounded-2xl bg-[#f4f4f4] px-4 py-3 text-sm text-slate-500">العرض</span>
+                  <span className="rounded-2xl bg-[#f4f4f4] px-4 py-3 text-sm text-slate-500">عرض القائمة</span>
                 </div>
               </div>
 
@@ -2295,20 +2469,20 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
         </div>
 
         <Tabs defaultValue="info" dir="rtl" className="space-y-4">
-          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
-            <TabsTrigger value="info" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+          <TabsList className="tabs-pill-active h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="info" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               معلومات
             </TabsTrigger>
-            <TabsTrigger value="subjects" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="subjects" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               المواد الدراسية
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="schedule" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               الجدول
             </TabsTrigger>
-            <TabsTrigger value="fees" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="fees" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               الرسوم
             </TabsTrigger>
-            <TabsTrigger value="students" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="students" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               الطلاب
             </TabsTrigger>
           </TabsList>
@@ -2932,14 +3106,14 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
         </div>
 
         <Tabs defaultValue="title" dir="rtl" className="space-y-4">
-          <TabsList className="h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
-            <TabsTrigger value="title" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+          <TabsList className="tabs-pill-active h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
+            <TabsTrigger value="title" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               عنوان الدرس
             </TabsTrigger>
-            <TabsTrigger value="materials" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="materials" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               مواد الدرس
             </TabsTrigger>
-            <TabsTrigger value="attendance" className="rounded-[0.9rem] px-5 py-3 data-[state=active]:shadow-none">
+            <TabsTrigger value="attendance" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
               حضور الطلاب
             </TabsTrigger>
           </TabsList>

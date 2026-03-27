@@ -33,6 +33,22 @@ interface DashboardChartProps {
     showLegend?: boolean;
 }
 
+function CustomTooltip({ active, payload }: any) {
+    if (active && payload && payload.length) {
+        return (
+            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                <p className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
+                    {payload[0].payload.name}
+                </p>
+                <p className="text-base font-bold text-blue-600 dark:text-blue-400">
+                    {payload[0].payload.value.toLocaleString()}
+                </p>
+            </div>
+        );
+    }
+    return null;
+}
+
 export default function DashboardChart({
     title,
     type,
@@ -49,22 +65,6 @@ export default function DashboardChart({
             value: point.value,
         }));
     }, [data]);
-
-    const CustomTooltip = ({ active, payload }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                    <p className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
-                        {payload[0].payload.name}
-                    </p>
-                    <p className="text-base font-bold text-blue-600 dark:text-blue-400">
-                        {payload[0].payload.value.toLocaleString()}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     const renderChart = () => {
         const commonProps = {

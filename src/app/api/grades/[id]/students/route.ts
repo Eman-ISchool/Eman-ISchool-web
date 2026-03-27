@@ -73,26 +73,31 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
     );
   }
 
-  const { data: enrollments, error: enrollmentsError } = await supabaseAdmin
-    .from('enrollments')
-    .select(`
-      id,
-      student_id,
-      course_id,
-      status,
-      enrollment_date,
-      student:users!enrollments_student_id_fkey(id, name, email)
-    `)
-    .in('course_id', courseIds);
+  // Fetch enrollments and invoice items in parallel (independent queries)
+  const [enrollmentsResult, invoiceItemsResult] = await Promise.all([
+    supabaseAdmin
+      .from('enrollments')
+      .select(`
+        id,
+        student_id,
+        course_id,
+        status,
+        enrollment_date,
+        student:users!enrollments_student_id_fkey(id, name, email)
+      `)
+      .in('course_id', courseIds),
+    supabaseAdmin
+      .from('invoice_items')
+      .select('student_id, invoice_id, total, course_id')
+      .in('course_id', courseIds),
+  ]);
 
+  const { data: enrollments, error: enrollmentsError } = enrollmentsResult;
   if (enrollmentsError) {
     return jsonWithRequestId({ error: 'Failed to fetch students', code: 'FETCH_ERROR', requestId }, 500, requestId);
   }
 
-  const { data: invoiceItems } = await supabaseAdmin
-    .from('invoice_items')
-    .select('student_id, invoice_id, total, course_id')
-    .in('course_id', courseIds);
+  const invoiceItems = invoiceItemsResult.data;
 
   const invoiceIds = [...new Set((invoiceItems || []).map((item: any) => item.invoice_id).filter(Boolean))];
   const { data: payments } = invoiceIds.length

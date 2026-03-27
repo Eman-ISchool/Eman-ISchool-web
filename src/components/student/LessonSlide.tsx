@@ -70,8 +70,10 @@ export function LessonSlide({ lesson }: LessonSlideProps) {
         cancelled: 'badge-completed',
     };
 
+    const [joinError, setJoinError] = useState<string | null>(null);
+
     const handleJoin = () => {
-        // Use meeting feasibility check
+        setJoinError(null);
         const lessonInfo: LessonInfo = {
             id: lesson.id,
             title: lesson.title,
@@ -86,8 +88,8 @@ export function LessonSlide({ lesson }: LessonSlideProps) {
         if (feasibility.canJoin && feasibility.meetLink) {
             window.open(feasibility.meetLink, '_blank');
         } else {
-            // Could show a toast or alert here with feasibility.reason
-            console.warn('Cannot join meeting:', feasibility.reason);
+            setJoinError(feasibility.reason || 'لا يمكن الانضمام للاجتماع حالياً');
+            setTimeout(() => setJoinError(null), 4000);
         }
     };
 
@@ -142,16 +144,28 @@ export function LessonSlide({ lesson }: LessonSlideProps) {
                 </span>
             </div>
 
+            {/* Join Error */}
+            {joinError && (
+                <p className="text-xs text-red-500 mt-2 text-center">{joinError}</p>
+            )}
+
             {/* Join Button */}
-            {lesson.meetLink && (
+            {lesson.meetLink ? (
                 <button
                     onClick={handleJoin}
-                    disabled={!canJoin}
-                    className="btn-primary w-full mt-4 flex items-center justify-center gap-2 text-sm"
+                    className={`w-full mt-3 flex items-center justify-center gap-2 text-sm py-2.5 rounded-xl font-semibold transition ${
+                        canJoin
+                            ? 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
+                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200 cursor-pointer'
+                    }`}
                 >
                     <Video className="w-4 h-4" />
-                    {canJoin ? 'Join Now' : timeUntil}
+                    {canJoin ? 'انضم الآن' : timeUntil}
                 </button>
+            ) : (
+                <div className="mt-3 text-center text-xs text-slate-400 py-2">
+                    لا يوجد رابط اجتماع
+                </div>
             )}
         </div>
     );

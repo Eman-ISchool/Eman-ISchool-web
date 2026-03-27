@@ -184,7 +184,21 @@
     "on": "On",
     "off": "Off"
   },
+  "tabs": {
+    "home": "Home",
+    "courses": "Courses",
+    "calendar": "Calendar",
+    "reels": "Reels",
+    "profile": "Profile",
+    "assessments": "Assessments",
+    "invoices": "Invoices",
+    "support": "Support",
+    "students": "Students",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
   "teacher": {
+    "home": "Dashboard",
     "classes": "Classes",
     "students": "Students",
     "attendance": "Attendance",
@@ -193,9 +207,15 @@
     "viewClass": "View Class",
     "classDetails": "Class Details",
     "roster": "Roster",
-    "manageClass": "Manage Class"
+    "manageClass": "Manage Class",
+    "courses": "My Courses",
+    "assessments": "Assessments",
+    "createLesson": "Create Lesson",
+    "manageAttendance": "Manage Attendance",
+    "submissionReview": "Review Submission"
   },
   "parent": {
+    "home": "Overview",
     "children": "Children",
     "progress": "Progress",
     "childProgress": "Child Progress",
@@ -203,9 +223,15 @@
     "viewChild": "View Child",
     "grades": "Grades",
     "attendance": "Attendance",
-    "noChildren": "No children yet"
+    "noChildren": "No children yet",
+    "courses": "Children's Courses",
+    "invoices": "Invoices",
+    "support": "Support",
+    "ticketDetail": "Ticket Detail",
+    "createTicket": "Create Ticket"
   },
   "admin": {
+    "home": "Dashboard",
     "admin": "Admin",
     "dashboard": "Dashboard",
     "moderation": "Moderation",
@@ -217,7 +243,13 @@
     "reject": "Reject",
     "moderate": "Moderate",
     "viewFlagged": "View Flagged",
-    "noFlagged": "No flagged content"
+    "noFlagged": "No flagged content",
+    "students": "Students",
+    "courses": "Courses",
+    "reports": "Reports",
+    "settings": "Settings",
+    "studentDetail": "Student Detail",
+    "courseManagement": "Course Management"
   },
   "errors": {
     "networkError": "Network Error",

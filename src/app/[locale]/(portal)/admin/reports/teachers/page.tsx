@@ -1,25 +1,28 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { Users, BookOpen, TrendingUp, Award, Download } from 'lucide-react';
-import { LoadingState } from '@/components/admin/StateComponents';
-import { useLocale } from 'next-intl';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getLocale } from 'next-intl/server';
 
-export default function TeacherReportsPage() {
-    const locale = useLocale();
+async function getStats() {
+    if (!supabaseAdmin) return null;
+    const [
+        { count: teacherCount },
+        { count: totalLessons },
+        { count: completedLessons },
+    ] = await Promise.all([
+        supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('role', 'teacher'),
+        supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('lessons').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+    ]);
+    return {
+        users: { teachers: teacherCount || 0 },
+        lessons: { total: totalLessons || 0, completed: completedLessons || 0 },
+    };
+}
+
+export default async function TeacherReportsPage() {
+    const locale = await getLocale();
     const isAr = locale === 'ar';
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
-
-    useEffect(() => {
-        fetch('/api/admin/stats?period=month')
-            .then(r => r.ok ? r.json() : Promise.resolve({}))
-            .then(data => setStats(data))
-            .catch(() => setStats({}))
-            .finally(() => setLoading(false));
-    }, []);
-
-    if (loading) return <LoadingState message={isAr ? 'جاري تحميل تقارير المعلمين...' : 'Loading teacher reports...'} />;
+    const stats = await getStats();
 
     const kpis = [
         {
@@ -43,7 +46,7 @@ export default function TeacherReportsPage() {
         {
             label: isAr ? 'متوسط الإنجاز' : 'Avg Completion',
             value: stats?.lessons?.total
-                ? `${Math.round((stats.lessons.completed / stats.lessons.total) * 100)}%`
+                ? `${Math.round(((stats.lessons.completed || 0) / stats.lessons.total) * 100)}%`
                 : '—',
             icon: TrendingUp,
             bg: 'bg-teal-500',

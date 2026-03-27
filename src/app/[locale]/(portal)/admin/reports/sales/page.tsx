@@ -1,48 +1,32 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { DollarSign, CreditCard, TrendingUp, Wallet, Download } from 'lucide-react';
-import { LoadingState } from '@/components/admin/StateComponents';
-import { useLocale } from 'next-intl';
+import { getLocale } from 'next-intl/server';
 
-export default function SalesReportsPage() {
-    const locale = useLocale();
+export default async function SalesReportsPage() {
+    const locale = await getLocale();
     const isAr = locale === 'ar';
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
-
-    useEffect(() => {
-        fetch('/api/admin/stats?period=month')
-            .then(r => r.ok ? r.json() : Promise.resolve({}))
-            .then(data => setStats(data))
-            .catch(() => setStats({}))
-            .finally(() => setLoading(false));
-    }, []);
-
-    if (loading) return <LoadingState message={isAr ? 'جاري تحميل تقارير المبيعات...' : 'Loading sales reports...'} />;
 
     const kpis = [
         {
             label: isAr ? 'إجمالي الإيرادات' : 'Total Revenue',
-            value: `${(stats?.revenue?.total || 0).toLocaleString()} AED`,
+            value: '0 AED',
             icon: DollarSign,
             bg: 'bg-green-500',
         },
         {
             label: isAr ? 'المحصّل' : 'Collected',
-            value: `${(stats?.revenue?.collected || 0).toLocaleString()} AED`,
+            value: '0 AED',
             icon: CreditCard,
             bg: 'bg-blue-500',
         },
         {
             label: isAr ? 'معلق' : 'Pending',
-            value: `${(stats?.revenue?.pending || 0).toLocaleString()} AED`,
+            value: '0 AED',
             icon: Wallet,
             bg: 'bg-amber-500',
         },
         {
             label: isAr ? 'النمو' : 'Growth',
-            value: `${stats?.revenue?.growth || 0}%`,
+            value: '0%',
             icon: TrendingUp,
             bg: 'bg-teal-500',
         },

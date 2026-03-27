@@ -1384,6 +1384,111 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            // ── Enrollment System v2 tables ──────────────────────
+            enrollment_applications_v2: {
+                Row: {
+                    id: string;
+                    application_number: string;
+                    parent_user_id: string;
+                    academic_year: string;
+                    status: string;
+                    completeness_score: number;
+                    current_step: number;
+                    steps_completed: Json;
+                    submitted_at: string | null;
+                    assigned_reviewer_id: string | null;
+                    reviewed_at: string | null;
+                    review_decision: string | null;
+                    activated_at: string | null;
+                    linked_student_user_id: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    application_number?: string;
+                    parent_user_id: string;
+                    academic_year: string;
+                    status?: string;
+                    completeness_score?: number;
+                    current_step?: number;
+                    steps_completed?: Json;
+                    submitted_at?: string | null;
+                    assigned_reviewer_id?: string | null;
+                    reviewed_at?: string | null;
+                    review_decision?: string | null;
+                    activated_at?: string | null;
+                    linked_student_user_id?: string | null;
+                };
+                Update: {
+                    status?: string;
+                    completeness_score?: number;
+                    current_step?: number;
+                    steps_completed?: Json;
+                    submitted_at?: string | null;
+                    assigned_reviewer_id?: string | null;
+                    reviewed_at?: string | null;
+                    review_decision?: string | null;
+                    activated_at?: string | null;
+                    linked_student_user_id?: string | null;
+                    updated_at?: string;
+                };
+            };
+            enrollment_student_details: {
+                Row: { id: string; application_id: string; full_name_en: string | null; full_name_ar: string | null; date_of_birth: string | null; gender: string | null; nationality: string | null; religion: string | null; mother_tongue: string | null; place_of_birth: string | null; secondary_nationality: string | null; preferred_language: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; full_name_en?: string | null; full_name_ar?: string | null; date_of_birth?: string | null; gender?: string | null; nationality?: string | null; religion?: string | null; mother_tongue?: string | null; place_of_birth?: string | null; secondary_nationality?: string | null; preferred_language?: string | null; };
+                Update: { full_name_en?: string | null; full_name_ar?: string | null; date_of_birth?: string | null; gender?: string | null; nationality?: string | null; religion?: string | null; mother_tongue?: string | null; place_of_birth?: string | null; secondary_nationality?: string | null; preferred_language?: string | null; };
+            };
+            enrollment_academic_details: {
+                Row: { id: string; application_id: string; enrollment_type: string | null; applying_grade_id: string | null; applying_grade_name: string | null; academic_year: string | null; curriculum: string | null; previous_school_name: string | null; previous_school_country: string | null; previous_school_emirate: string | null; previous_grade_completed: string | null; is_mid_year_transfer: boolean; transfer_source: string | null; last_report_card_year: string | null; transcript_available: boolean; transfer_certificate_available: boolean; transfer_reason: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; enrollment_type?: string | null; applying_grade_id?: string | null; applying_grade_name?: string | null; academic_year?: string | null; curriculum?: string | null; previous_school_name?: string | null; previous_school_country?: string | null; previous_school_emirate?: string | null; previous_grade_completed?: string | null; is_mid_year_transfer?: boolean; transfer_source?: string | null; last_report_card_year?: string | null; transcript_available?: boolean; transfer_certificate_available?: boolean; transfer_reason?: string | null; };
+                Update: { enrollment_type?: string | null; applying_grade_id?: string | null; applying_grade_name?: string | null; academic_year?: string | null; curriculum?: string | null; previous_school_name?: string | null; previous_school_country?: string | null; previous_school_emirate?: string | null; previous_grade_completed?: string | null; is_mid_year_transfer?: boolean; transfer_source?: string | null; last_report_card_year?: string | null; transcript_available?: boolean; transfer_certificate_available?: boolean; transfer_reason?: string | null; };
+            };
+            enrollment_guardian_details: {
+                Row: { id: string; application_id: string; contact_type: string; relationship: string | null; full_name_en: string | null; full_name_ar: string | null; mobile: string | null; email: string | null; uae_address: string | null; emirate: string | null; area_city_district: string | null; emirates_id_number: string | null; passport_number: string | null; visa_number: string | null; is_legal_guardian: boolean; custody_case: boolean; guardian_authorization_notes: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; contact_type?: string; relationship?: string | null; full_name_en?: string | null; full_name_ar?: string | null; mobile?: string | null; email?: string | null; uae_address?: string | null; emirate?: string | null; area_city_district?: string | null; emirates_id_number?: string | null; passport_number?: string | null; visa_number?: string | null; is_legal_guardian?: boolean; custody_case?: boolean; guardian_authorization_notes?: string | null; };
+                Update: { contact_type?: string; relationship?: string | null; full_name_en?: string | null; full_name_ar?: string | null; mobile?: string | null; email?: string | null; uae_address?: string | null; emirate?: string | null; area_city_district?: string | null; emirates_id_number?: string | null; passport_number?: string | null; visa_number?: string | null; is_legal_guardian?: boolean; custody_case?: boolean; guardian_authorization_notes?: string | null; };
+            };
+            enrollment_identity_details: {
+                Row: { id: string; application_id: string; emirates_id_available: boolean; emirates_id_number: string | null; student_passport_number: string | null; student_passport_expiry: string | null; residence_visa_number: string | null; residence_visa_expiry: string | null; residency_status: string | null; country_of_residence: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; emirates_id_available?: boolean; emirates_id_number?: string | null; student_passport_number?: string | null; student_passport_expiry?: string | null; residence_visa_number?: string | null; residence_visa_expiry?: string | null; residency_status?: string | null; country_of_residence?: string | null; };
+                Update: { emirates_id_available?: boolean; emirates_id_number?: string | null; student_passport_number?: string | null; student_passport_expiry?: string | null; residence_visa_number?: string | null; residence_visa_expiry?: string | null; residency_status?: string | null; country_of_residence?: string | null; };
+            };
+            enrollment_medical_details: {
+                Row: { id: string; application_id: string; has_medical_condition: boolean; medical_condition_details: string | null; has_sen: boolean; sen_details: string | null; vaccination_record_available: boolean; allergies: string | null; medication_notes: string | null; health_notes: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; has_medical_condition?: boolean; medical_condition_details?: string | null; has_sen?: boolean; sen_details?: string | null; vaccination_record_available?: boolean; allergies?: string | null; medication_notes?: string | null; health_notes?: string | null; };
+                Update: { has_medical_condition?: boolean; medical_condition_details?: string | null; has_sen?: boolean; sen_details?: string | null; vaccination_record_available?: boolean; allergies?: string | null; medication_notes?: string | null; health_notes?: string | null; };
+            };
+            enrollment_documents: {
+                Row: { id: string; application_id: string; document_type: string; label: string | null; is_required: boolean; is_conditional: boolean; condition_rule: string | null; file_url: string | null; file_name: string | null; file_size: number | null; file_mime_type: string | null; storage_path: string | null; status: string; reviewed_by: string | null; reviewed_at: string | null; rejection_reason: string | null; issuing_country: string | null; document_language: string | null; attestation_required: boolean; attestation_status: string; translation_required: boolean; translation_status: string; translation_document_id: string | null; upload_count: number; last_uploaded_at: string | null; expiry_date: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; document_type: string; label?: string | null; is_required?: boolean; is_conditional?: boolean; condition_rule?: string | null; file_url?: string | null; file_name?: string | null; file_size?: number | null; file_mime_type?: string | null; storage_path?: string | null; status?: string; reviewed_by?: string | null; reviewed_at?: string | null; rejection_reason?: string | null; issuing_country?: string | null; document_language?: string | null; attestation_required?: boolean; attestation_status?: string; translation_required?: boolean; translation_status?: string; translation_document_id?: string | null; upload_count?: number; last_uploaded_at?: string | null; expiry_date?: string | null; };
+                Update: { status?: string; reviewed_by?: string | null; reviewed_at?: string | null; rejection_reason?: string | null; issuing_country?: string | null; document_language?: string | null; attestation_required?: boolean; attestation_status?: string; translation_required?: boolean; translation_status?: string; translation_document_id?: string | null; file_url?: string | null; file_name?: string | null; file_size?: number | null; file_mime_type?: string | null; storage_path?: string | null; upload_count?: number; last_uploaded_at?: string | null; expiry_date?: string | null; };
+            };
+            enrollment_status_history: {
+                Row: { id: string; application_id: string; previous_status: string | null; new_status: string; changed_by: string | null; reason: string | null; notes: string | null; created_at: string; };
+                Insert: { application_id: string; previous_status?: string | null; new_status: string; changed_by?: string | null; reason?: string | null; notes?: string | null; };
+                Update: never;
+            };
+            enrollment_review_notes: {
+                Row: { id: string; application_id: string; author_id: string; note_type: string; content: string; is_visible_to_parent: boolean; created_at: string; };
+                Insert: { application_id: string; author_id: string; note_type?: string; content: string; is_visible_to_parent?: boolean; };
+                Update: never;
+            };
+            student_onboarding_tasks: {
+                Row: { id: string; application_id: string; student_user_id: string | null; task_key: string; title_en: string; title_ar: string; description_en: string | null; description_ar: string | null; is_required: boolean; is_completed: boolean; completed_at: string | null; completed_by: string | null; sort_order: number; due_date: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; student_user_id?: string | null; task_key: string; title_en: string; title_ar: string; description_en?: string | null; description_ar?: string | null; is_required?: boolean; is_completed?: boolean; completed_at?: string | null; completed_by?: string | null; sort_order?: number; due_date?: string | null; };
+                Update: { is_completed?: boolean; completed_at?: string | null; completed_by?: string | null; sort_order?: number; due_date?: string | null; };
+            };
+            enrollment_audit_log: {
+                Row: { id: string; application_id: string | null; document_id: string | null; actor_id: string | null; action: string; target_entity: string; target_id: string | null; previous_state: Json | null; new_state: Json | null; reason: string | null; created_at: string; };
+                Insert: { application_id?: string | null; document_id?: string | null; actor_id?: string | null; action: string; target_entity: string; target_id?: string | null; previous_state?: Json | null; new_state?: Json | null; reason?: string | null; };
+                Update: never;
+            };
+            enrollment_declarations: {
+                Row: { id: string; application_id: string; info_correct: boolean; docs_authentic: boolean; accepts_verification: boolean; acknowledges_attestation: boolean; acknowledges_missing_delays: boolean; privacy_policy_accepted: boolean; medical_emergency_consent: boolean | null; communications_consent: boolean | null; marketing_consent: boolean | null; digital_platform_consent: boolean | null; declared_at: string | null; created_at: string; updated_at: string; };
+                Insert: { application_id: string; info_correct?: boolean; docs_authentic?: boolean; accepts_verification?: boolean; acknowledges_attestation?: boolean; acknowledges_missing_delays?: boolean; privacy_policy_accepted?: boolean; medical_emergency_consent?: boolean | null; communications_consent?: boolean | null; marketing_consent?: boolean | null; digital_platform_consent?: boolean | null; declared_at?: string | null; };
+                Update: { info_correct?: boolean; docs_authentic?: boolean; accepts_verification?: boolean; acknowledges_attestation?: boolean; acknowledges_missing_delays?: boolean; privacy_policy_accepted?: boolean; medical_emergency_consent?: boolean | null; communications_consent?: boolean | null; marketing_consent?: boolean | null; digital_platform_consent?: boolean | null; declared_at?: string | null; };
+            };
         };
         Views: {
             lesson_stats: {

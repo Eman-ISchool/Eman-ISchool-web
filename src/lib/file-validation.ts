@@ -21,14 +21,25 @@ const ALLOWED_VIDEO_MIME_TYPES = [
   'video/quicktime',
   'video/webm',
   'video/x-m4v',
+  'video/x-matroska',
+  'video/x-msvideo',
+  'video/3gpp',
+  'video/x-flv',
+  'video/x-ms-wmv',
+  'video/mpeg',
 ];
 
 // Allowed document MIME types
 const ALLOWED_DOCUMENT_MIME_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-  'text/plain',
   'application/msword', // DOC
+  'application/vnd.ms-excel', // XLS
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+  'application/vnd.ms-powerpoint', // PPT
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PPTX
+  'text/plain',
+  'text/csv',
 ];
 
 export interface ValidationResult {

@@ -50,7 +50,7 @@ export const GET = withAuth(async (req, { user, requestId }, { params }) => {
 
   let listQuery = supabaseAdmin
     .from('lessons')
-    .select('id, title, description, start_date_time, end_date_time, status, meet_link, teacher_id')
+    .select('id, title, description, start_date_time, end_date_time, status, meet_link, teacher_id, teacher:users!lessons_teacher_id_fkey(id, name, image)')
     .eq('course_id', courseId)
     .order('start_date_time', { ascending: true })
     .range(offset, offset + limit - 1);
@@ -92,6 +92,7 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
   const description = String(body.description || '').trim();
   const startDateTime = body.start_date_time || body.startDateTime;
   const endDateTime = body.end_date_time || body.endDateTime;
+  const providedMeetLink = String(body.meet_link || body.meetLink || '').trim() || null;
   if (!title || !startDateTime || !endDateTime) {
     return jsonWithRequestId(
       { error: 'Missing required fields: title, start_date_time, end_date_time', code: 'VALIDATION_ERROR', requestId },
@@ -112,6 +113,32 @@ export const POST = withAuth(async (req, { user, requestId }, { params }) => {
 
   if (user.role === 'teacher' && course.teacher_id !== user.id) {
     return jsonWithRequestId({ error: 'Forbidden', code: 'FORBIDDEN', requestId }, 403, requestId);
+  }
+
+  // If user provided a meet link, use it directly; otherwise auto-generate via Google Meet
+  if (providedMeetLink) {
+    const { data: lesson, error: lessonError } = await supabaseAdmin
+      .from('lessons')
+      .insert({
+        title,
+        description: description || null,
+        course_id: courseId,
+        teacher_id: course.teacher_id || user.id,
+        start_date_time: startDateTime,
+        end_date_time: endDateTime,
+        status: 'scheduled',
+        meet_link: providedMeetLink,
+        meeting_provider: 'google_meet',
+        google_event_id: null,
+      })
+      .select()
+      .single();
+
+    if (lessonError || !lesson) {
+      return jsonWithRequestId({ error: 'Failed to create lesson', code: 'CREATE_ERROR', requestId }, 500, requestId);
+    }
+
+    return jsonWithRequestId({ lesson, requestId }, 201, requestId);
   }
 
   // Step 1: Insert lesson first (without meet link)

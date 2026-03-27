@@ -3,13 +3,14 @@ import "./globals.css";
 import { Tajawal } from 'next/font/google';
 import { defaultLocale } from '@/i18n/config';
 import { cookies } from 'next/headers';
-import '@/lib/init'; // Initialize application configuration
+// E2E rebuild trigger
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '700', '800', '900'],
+  weight: ['400', '700', '800'],
   variable: '--font-tajawal',
   display: 'swap',
+  preload: true,
 });
 
 // Since Geist might not be available from next/font/google directly in this version,

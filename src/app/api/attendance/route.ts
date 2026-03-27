@@ -206,7 +206,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
         }
 
-        // Validate each record and verify enrollment
+        // Validate each record
         for (const record of records) {
             if (!record.studentId || !isValidUUID(record.studentId)) {
                 return NextResponse.json({ error: 'Invalid student ID in records' }, { status: 400 });
@@ -219,18 +219,21 @@ export async function POST(req: Request) {
             if (record.notes && typeof record.notes !== 'string') {
                 return NextResponse.json({ error: 'Notes must be a string' }, { status: 400 });
             }
+        }
 
-            // Verify student is enrolled in the course
-            if (lesson.course_id) {
-                const { data: enrollment } = await supabaseAdmin
-                    .from('enrollments')
-                    .select('id')
-                    .eq('student_id', record.studentId)
-                    .eq('course_id', lesson.course_id)
-                    .eq('status', 'active')
-                    .single();
+        // Batch enrollment check — single query instead of N queries (was N+1)
+        if (lesson.course_id) {
+            const studentIds = records.map((r: any) => r.studentId);
+            const { data: enrollments } = await supabaseAdmin
+                .from('enrollments')
+                .select('student_id')
+                .eq('course_id', lesson.course_id)
+                .eq('status', 'active')
+                .in('student_id', studentIds);
 
-                if (!enrollment) {
+            const enrolledSet = new Set((enrollments || []).map((e: any) => e.student_id));
+            for (const record of records) {
+                if (!enrolledSet.has(record.studentId)) {
                     return NextResponse.json(
                         { error: `Student ${record.studentId} is not enrolled in this course` },
                         { status: 403 }

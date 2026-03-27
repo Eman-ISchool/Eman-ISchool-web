@@ -32,7 +32,24 @@ const nextConfig = {
         minimumCacheTTL: 60 * 60 * 24, // 24 hours
     },
     experimental: {
-        optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-tabs', '@radix-ui/react-label', '@radix-ui/react-slot'],
+        optimizePackageImports: [
+            'lucide-react',
+            'recharts',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-label',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tooltip',
+            'date-fns',
+            'clsx',
+            'three',
+            '@react-three/fiber',
+            '@react-three/drei',
+            '@react-three/xr',
+        ],
     },
     webpack: (config, { isServer }) => {
         // Mark pdf-parse as external to avoid ESM/worker issues in static export
@@ -43,10 +60,14 @@ const nextConfig = {
                 path: false,
                 canvas: false,
             };
-            // Exclude pdf-parse from client bundle
+            // Exclude server-only packages from client bundle
             config.externals = config.externals || [];
             config.externals.push('pdf-parse');
             config.externals.push('pdfjs-dist');
+            config.externals.push('googleapis');
+            config.externals.push('openai');
+            config.externals.push('mammoth');
+            config.externals.push('bcryptjs');
 
             // Split heavy libraries into separate chunks so they're only loaded when needed
             config.optimization = {

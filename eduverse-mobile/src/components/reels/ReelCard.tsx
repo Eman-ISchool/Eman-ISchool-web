@@ -36,8 +36,8 @@ export const ReelCard: React.FC<ReelCardProps> = ({
   };
 
   const getProgressPercentage = () => {
-    if (reel.progress.durationSeconds > 0) {
-      return Math.round((reel.progress.watchedSeconds / reel.progress.durationSeconds) * 100);
+    if (reel.durationSeconds > 0) {
+      return Math.round((reel.progress.watchedSeconds / reel.durationSeconds) * 100);
     }
     return 0;
   };
@@ -81,7 +81,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
             <Text style={styles.statValue}>{reel.viewCount}</Text>
           </View>
           
-          {reel.progress.durationSeconds > 0 && (
+          {reel.durationSeconds > 0 && (
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>{t('reels.duration')}</Text>
               <Text style={styles.statValue}>{formatDuration(reel.progress.watchedSeconds)}</Text>
@@ -109,6 +109,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
             </Text>
           </Pressable>
         </View>
+      </View>
     </Card>
   );
 };

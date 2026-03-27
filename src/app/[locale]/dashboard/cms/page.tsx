@@ -164,7 +164,7 @@ export default function DashboardCmsPage() {
           <Tabs defaultValue="pages" className="space-y-6" dir={isArabic ? 'rtl' : 'ltr'}>
             <div className="relative flex items-center">
               <div className="overflow-x-auto scrollbar-hide">
-                <TabsList className="inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-nowrap min-w-max">
+                <TabsList className="tabs-pill-active inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-nowrap min-w-max">
                   <TabsTrigger value="pages" className="inline-flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all hover:text-foreground">
                     <FileText className="h-4 w-4" />
                     {isArabic ? 'أقسام الصفحات' : 'Page Sections'}
