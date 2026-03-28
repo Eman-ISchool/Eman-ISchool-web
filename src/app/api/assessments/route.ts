@@ -21,6 +21,7 @@ export async function GET(req: Request) {
 
         const { searchParams } = new URL(req.url);
         const teacherId = searchParams.get('teacherId');
+        const courseId = searchParams.get('courseId');
 
         let query = supabaseAdmin
             .from('assessments')
@@ -32,6 +33,11 @@ export async function GET(req: Request) {
             `)
             .order('created_at', { ascending: false })
             .limit(100);
+
+        // Filter by course if specified
+        if (courseId) {
+            query = query.eq('course_id', courseId);
+        }
 
         // Admins see all assessments; teachers see only their own
         if (currentUser.role === 'admin') {

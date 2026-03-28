@@ -57,6 +57,7 @@
     "nextjs-toploader": "^3.9.17",
     "openai": "^6.16.0",
     "pdf-parse": "^2.4.5",
+    "pg": "^8.20.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-is": "^19.2.3",

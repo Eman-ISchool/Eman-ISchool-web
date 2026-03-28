@@ -1011,6 +1011,39 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
             setLessons(fetchedLessons);
           }
 
+          // Fetch assessments (assignments + exams) for this course
+          let fetchedAssignments: CourseAssignmentItem[] = [];
+          let fetchedExams: CourseExamItem[] = [];
+          try {
+            const aRes = await fetch(`/api/assessments?courseId=${resolvedId}`);
+            if (aRes.ok) {
+              const courseAssessments = await aRes.json() || [];
+              fetchedAssignments = courseAssessments
+                .filter((a: any) => a.assessment_type === 'quiz')
+                .map((a: any) => ({
+                  id: a.id,
+                  title: a.title || 'واجب بدون عنوان',
+                  dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+                  description: a.short_description || a.title || '',
+                  submissions: a.assessment_submissions?.[0]?.count || 0,
+                }));
+              fetchedExams = courseAssessments
+                .filter((a: any) => a.assessment_type === 'exam')
+                .map((a: any) => ({
+                  id: a.id,
+                  title: a.title || 'اختبار بدون عنوان',
+                  dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+                  attempts: a.attempt_limit || 1,
+                  status: a.is_published ? 'نشط' : 'مسودة',
+                }));
+            }
+          } catch (_e) {}
+
+          if (!cancelled) {
+            setAssignments(fetchedAssignments);
+            setExams(fetchedExams);
+          }
+
           setCourseData({
             id: resolvedId,
             title: course.title || '',
@@ -1018,8 +1051,8 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
             details: course.description || '',
             meetingLink: course.meet_link || '',
             lessons: fetchedLessons,
-            assignments: [],
-            exams: [],
+            assignments: fetchedAssignments,
+            exams: fetchedExams,
             liveSessions,
           });
         } else {

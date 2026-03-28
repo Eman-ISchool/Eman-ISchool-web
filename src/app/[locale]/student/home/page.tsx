@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Bell, Settings, BookOpen, Calendar, ChevronRight, Clock, UserCheck, AlertTriangle } from 'lucide-react';
@@ -28,91 +28,49 @@ interface ApiAnnouncement {
     isPinned: boolean;
 }
 
-function Skeleton({ className }: { className?: string }) {
-    return <div className={`animate-pulse bg-teal-100/70 rounded-2xl ${className}`} />;
-}
-
-
-export default function StudentHomePage() {
-    const router = useRouter();
-    const pathname = usePathname();
-    const locale = getLocaleFromPathname(pathname);
-    const { data: session } = useSession();
-    const { t, language } = useLanguage();
-    const isRTL = language === 'ar';
-    const [announcementState, setAnnouncementState] = useState<DataState<ApiAnnouncement[]>>(createIdleState());
-    const [enrollmentData, setEnrollmentData] = useState<EnrollmentStatusData | null>(null);
-
-    useEffect(() => {
-        const fetchAnnouncements = async () => {
-            setAnnouncementState(createLoadingState());
-            try {
-                const response = await fetch('/api/announcements?role=student');
-                const data = await response.json();
-                if (data.success && data.data.length > 0) {
-                    setAnnouncementState(createSuccessState(data.data));
-                } else {
-                    setAnnouncementState(createSuccessState([]));
-                }
-            } catch (error) {
-                console.error('Failed to fetch announcements:', error);
-                setAnnouncementState(createErrorState(
-                    'Failed to load announcements',
-                    () => fetchAnnouncements()
-                ));
-            }
-        };
-        fetchAnnouncements();
-    }, []);
-
-    // Fetch enrollment data for current student
-    useEffect(() => {
-        const fetchEnrollment = async () => {
-            try {
-                // In production: GET /api/enrollment/onboarding
-                // For now, use mock data to demonstrate the integration
-                setEnrollmentData({
-                    applicationId: 'app-001',
-                    applicationNumber: 'APP-2026-0001',
-                    status: 'provisionally_accepted',
-                    pendingItemsCount: 3,
-                    lastUpdateDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-                });
-            } catch {
-                // Silently fail - enrollment card is optional
-                setEnrollmentData(null);
-            }
-        };
-        fetchEnrollment();
-    }, []);
-
-    const handleUpload = useCallback(async (assignmentId: string, file: File) => {
-        // TODO: implement actual file upload via API
-    }, []);
-
-    const greetingText = useMemo(() => {
-        const hour = new Date().getHours();
-        if (isRTL) {
-            if (hour < 12) return 'صباح الخير';
-            if (hour < 17) return 'طاب يومك';
-            return 'مساء الخير';
-        }
-        if (hour < 12) return 'Good morning';
-        if (hour < 17) return 'Good afternoon';
-        return 'Good evening';
-    }, [isRTL]);
-
-    const mockAnnouncement = useMemo(() => ({
+// Static mock data — moved outside component to avoid recreation on every render
+const MOCK_DATA_AR = {
+    announcement: {
         id: '1',
-        title: isRTL ? 'تنبيه: غياب المعلم' : 'Notice: Teacher Absence',
-        body: isRTL
-            ? 'سيكون المعلم غائباً اليوم. يرجى مراجعة الجدول الدراسي لأي تغييرات أو دروس بديلة.'
-            : 'The teacher will be absent today. Please check your schedule for any changes or make-up classes.',
+        title: 'تنبيه: غياب المعلم',
+        body: 'سيكون المعلم غائباً اليوم. يرجى مراجعة الجدول الدراسي لأي تغييرات أو دروس بديلة.',
         priority: 'high' as const,
         createdAt: new Date().toISOString(),
-    }), [isRTL]);
+    },
+    teachers: [
+        { id: '1', name: 'د. أحمد حسن', subjects: ['رياضيات', 'فيزياء'] },
+        { id: '2', name: 'أ. سارة جونسون', subjects: ['لغة إنجليزية', 'أدب'] },
+    ],
+    subjects: [
+        { id: '1', name: 'رياضيات' },
+        { id: '2', name: 'علوم' },
+        { id: '3', name: 'لغة إنجليزية' },
+        { id: '4', name: 'لغة عربية' },
+    ],
+} as const;
 
-    const mockLessons = useMemo(() => isRTL ? [
+const MOCK_DATA_EN = {
+    announcement: {
+        id: '1',
+        title: 'Notice: Teacher Absence',
+        body: 'The teacher will be absent today. Please check your schedule for any changes or make-up classes.',
+        priority: 'high' as const,
+        createdAt: new Date().toISOString(),
+    },
+    teachers: [
+        { id: '1', name: 'Dr. Ahmed Hassan', subjects: ['Mathematics', 'Physics'] },
+        { id: '2', name: 'Ms. Sarah Johnson', subjects: ['English', 'Literature'] },
+    ],
+    subjects: [
+        { id: '1', name: 'Math' },
+        { id: '2', name: 'Science' },
+        { id: '3', name: 'English' },
+        { id: '4', name: 'Arabic' },
+    ],
+} as const;
+
+function getMockLessons(isRTL: boolean) {
+    return isRTL ? [
         {
             id: '1',
             title: 'مقدمة في الجبر',
@@ -154,9 +112,11 @@ export default function StudentHomePage() {
             status: 'scheduled' as const,
             teacher: { name: 'Ms. Sarah Johnson' },
         },
-    ], [isRTL]);
+    ];
+}
 
-    const mockAssignments = useMemo(() => isRTL ? [
+function getMockAssignments(isRTL: boolean) {
+    return isRTL ? [
         {
             id: '1',
             type: 'assignment' as const,
@@ -192,27 +152,83 @@ export default function StudentHomePage() {
             dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
             submissionStatus: 'pending' as const,
         },
-    ], [isRTL]);
+    ];
+}
 
-    const mockTeachers = useMemo(() => isRTL ? [
-        { id: '1', name: 'د. أحمد حسن', subjects: ['رياضيات', 'فيزياء'] },
-        { id: '2', name: 'أ. سارة جونسون', subjects: ['لغة إنجليزية', 'أدب'] },
-    ] : [
-        { id: '1', name: 'Dr. Ahmed Hassan', subjects: ['Mathematics', 'Physics'] },
-        { id: '2', name: 'Ms. Sarah Johnson', subjects: ['English', 'Literature'] },
-    ], [isRTL]);
+function Skeleton({ className }: { className?: string }) {
+    return <div className={`animate-pulse bg-teal-100/70 rounded-2xl ${className}`} />;
+}
 
-    const mockSubjects = useMemo(() => isRTL ? [
-        { id: '1', name: 'رياضيات' },
-        { id: '2', name: 'علوم' },
-        { id: '3', name: 'لغة إنجليزية' },
-        { id: '4', name: 'لغة عربية' },
-    ] : [
-        { id: '1', name: 'Math' },
-        { id: '2', name: 'Science' },
-        { id: '3', name: 'English' },
-        { id: '4', name: 'Arabic' },
-    ], [isRTL]);
+
+export default function StudentHomePage() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
+    const { data: session } = useSession();
+    const { t, language } = useLanguage();
+    const isRTL = language === 'ar';
+    const [announcementState, setAnnouncementState] = useState<DataState<ApiAnnouncement[]>>(createIdleState());
+    const [enrollmentData, setEnrollmentData] = useState<EnrollmentStatusData | null>(null);
+
+    // Single effect for all data fetching — parallel instead of sequential
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            setAnnouncementState(createLoadingState());
+            try {
+                const response = await fetch('/api/announcements?role=student');
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    setAnnouncementState(createSuccessState(data.data));
+                } else {
+                    setAnnouncementState(createSuccessState([]));
+                }
+            } catch (error) {
+                console.error('Failed to fetch announcements:', error);
+                setAnnouncementState(createErrorState(
+                    'Failed to load announcements',
+                    () => fetchAnnouncements()
+                ));
+            }
+        };
+
+        const fetchEnrollment = async () => {
+            try {
+                setEnrollmentData({
+                    applicationId: 'app-001',
+                    applicationNumber: 'APP-2026-0001',
+                    status: 'provisionally_accepted',
+                    pendingItemsCount: 3,
+                    lastUpdateDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                });
+            } catch {
+                setEnrollmentData(null);
+            }
+        };
+
+        // Parallel fetch
+        Promise.all([fetchAnnouncements(), fetchEnrollment()]);
+    }, []);
+
+    const handleUpload = useCallback(async (assignmentId: string, file: File) => {
+        // TODO: implement actual file upload via API
+    }, []);
+
+    // Use module-level static data instead of useMemo
+    const mockData = isRTL ? MOCK_DATA_AR : MOCK_DATA_EN;
+    const mockLessons = getMockLessons(isRTL);
+    const mockAssignments = getMockAssignments(isRTL);
+
+    const greetingText = (() => {
+        const hour = new Date().getHours();
+        if (isRTL) {
+            if (hour < 12) return 'صباح الخير';
+            if (hour < 17) return 'طاب يومك';
+            return 'مساء الخير';
+        }
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+        return 'Good evening';
+    })();
 
     const nextLesson = mockLessons[0];
     const minutesUntilNext = nextLesson
@@ -365,9 +381,9 @@ export default function StudentHomePage() {
             )}
 
             {/* ── Announcement Card ─────────────────────────────────── */}
-            {mockAnnouncement && (
+            {mockData.announcement && (
                 <AnnouncementCard
-                    announcement={mockAnnouncement}
+                    announcement={mockData.announcement}
                     onViewAll={() => router.push(withLocalePrefix('/student/announcements', locale))}
                 />
             )}
@@ -421,7 +437,7 @@ export default function StudentHomePage() {
                     </div>
                 ) : (
                     <TeacherCardList
-                        teachers={mockTeachers}
+                        teachers={mockData.teachers}
                         title={t('home.teachers')}
                         onSeeAll={() => router.push(withLocalePrefix('/student/chat', locale))}
                         onMessage={(id) => router.push(withLocalePrefix(`/student/chat?teacher=${id}`, locale))}
@@ -443,7 +459,7 @@ export default function StudentHomePage() {
                     </div>
                 ) : (
                     <SubjectGrid
-                        subjects={mockSubjects}
+                        subjects={mockData.subjects}
                         title={t('home.subjects')}
                         onSeeAll={() => router.push(withLocalePrefix('/student/courses', locale))}
                         onSubjectClick={(id) => router.push(withLocalePrefix(`/student/courses`, locale))}

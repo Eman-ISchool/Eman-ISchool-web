@@ -59,6 +59,15 @@
     "settings": "Paramètres",
     "logout": "Déconnexion"
   },
+  "student": {
+    "nav": {
+      "home": "Accueil",
+      "myCourses": "Mes cours",
+      "calendar": "Calendrier",
+      "attendance": "Présence",
+      "support": "Support"
+    }
+  },
   "reels": {
     "title": "Clips d'apprentissage IA",
     "subtitle": "Leçons courtes en moins de 2 minutes",

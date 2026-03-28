@@ -21,19 +21,21 @@ credentials
 - mobile: 790320149
 - password: 12345678
 
-
-
-
+  | col1 | col2 | col3 |
+  | ---- | ---- | ---- |
+  |      |      |      |
+  |      |      |      |
 
   This will create the two accounts:
+- **Student: Jordan (+962) 790320148 / 12345678**
+- **Teacher: Jordan (+962) 790320147 / 12345678**
+- **admin/dahboard: Jordan (+962)790320149 / 12345678**
 
-- Student: Jordan (+962) 790320148 / 12345678
-- Teacher: Jordan (+962) 790320147 / 12345678
-- admin/dahboard: Jordan (+962)790320149 / 12345678
+TESTing
 
-
-
-
+- Email: admin@test.com
+- Password: TestAdmin123!
+- 
 
 0147
 

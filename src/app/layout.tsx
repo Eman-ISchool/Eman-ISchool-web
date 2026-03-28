@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Tajawal } from 'next/font/google';
-import { defaultLocale } from '@/i18n/config';
-import { cookies } from 'next/headers';
-// E2E rebuild trigger
+import { Inter } from 'next/font/google';
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
@@ -12,12 +10,6 @@ const tajawal = Tajawal({
   display: 'swap',
   preload: true,
 });
-
-// Since Geist might not be available from next/font/google directly in this version,
-// we will just use a generic sans or assuming it's imported correctly.
-// Let's use Inter as the closest fallback to Geist if we don't have Geist files local, 
-// or since Geist became standard in Next 15, we can use Inter for now or fetch Next.js 14 specific.
-import { Inter } from 'next/font/google';
 
 const geistFallback = Inter({
   subsets: ['latin'],
@@ -49,17 +41,17 @@ export const viewport: Viewport = {
   themeColor: "#161616",
 };
 
+// Locale and direction are handled by the [locale] layout which receives
+// the locale from the URL path (middleware ensures localePrefix: 'always').
+// Previously this layout called cookies() which forced every page to be
+// dynamically rendered — removing it allows static/ISR rendering.
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const locale = cookieStore.get('NEXT_LOCALE')?.value ?? defaultLocale;
-  const direction = locale === 'ar' ? 'rtl' : 'ltr';
-
   return (
-    <html lang={locale} dir={direction} className={`${tajawal.variable} ${geistFallback.variable} font-sans`}>
+    <html className={`${tajawal.variable} ${geistFallback.variable} font-sans`}>
       <body className={`antialiased min-h-screen flex flex-col bg-gray-50`}>
         {children}
       </body>

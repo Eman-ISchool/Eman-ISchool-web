@@ -1,37 +1,20 @@
-'use client';
-
 import { ReactNode } from 'react';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Topbar from '@/components/admin/Topbar';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { authOptions } from '@/lib/auth';
 
 interface AdminPortalLayoutProps {
     children: ReactNode;
     params: { locale: string };
 }
 
-export default function AdminPortalLayout({ children, params }: AdminPortalLayoutProps) {
-    const { status } = useSession();
-    const router = useRouter();
+export default async function AdminPortalLayout({ children, params }: AdminPortalLayoutProps) {
+    const session = await getServerSession(authOptions);
 
-    // Show loading state while checking authentication
-    if (status === 'loading') {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-                    <p className="text-gray-600 dark:text-gray-400">جاري التحميل...</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Redirect to login if not authenticated
-    if (status === 'unauthenticated') {
-        router.push(`/${params.locale}/login/admin`);
-        return null;
+    if (!session) {
+        redirect(`/${params.locale}/login/admin`);
     }
 
     return (
