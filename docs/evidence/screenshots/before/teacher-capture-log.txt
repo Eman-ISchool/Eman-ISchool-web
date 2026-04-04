@@ -1,0 +1,17 @@
+⚠️ teacher-home (/ar/teacher) → 0 ERROR: page.goto: Timeout 15000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/teacher", waiting until "networkidle"[22m
+
+⚠️ teacher-dashboard (/ar/teacher/home) → 0 ERROR: page.goto: net::ERR_ABORTED; maybe frame was detached?
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/teacher/home", waiting until "networkidle"[22m
+
+⚠️ teacher-courses (/ar/teacher/courses) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-subjects (/ar/teacher/subjects) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-grades (/ar/teacher/grades) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-assessments (/ar/teacher/assessments) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-calendar (/ar/teacher/calendar) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-materials (/ar/teacher/materials) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-reels (/ar/teacher/reels) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-profile (/ar/teacher/profile) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ teacher-chat (/ar/teacher/chat) → 0 ERROR: page.goto: Target page, context or browser has been closed

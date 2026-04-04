@@ -132,7 +132,7 @@ const LessonInfoSection = memo<LessonInfoSectionProps>(({ lesson }) => {
               Copy Link
             </button>
             {hasJoined && (
-              <span className="ml-4 text-sm text-green-600 font-medium">
+              <span className="ms-4 text-sm text-green-600 font-medium">
                 ✅ Attendance tracked automatically
               </span>
             )}

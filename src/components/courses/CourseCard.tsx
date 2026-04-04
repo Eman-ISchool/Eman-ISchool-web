@@ -47,7 +47,7 @@ export function CourseCard({ course, locale, role }: CourseCardProps) {
                         <BookOpen className="h-12 w-12" />
                     </div>
                 )}
-                <div className="absolute top-2 right-2 px-2 py-1 bg-white/90 rounded text-xs font-bold shadow-sm text-brand-primary">
+                <div className="absolute top-2 end-2 px-2 py-1 bg-white/90 rounded text-xs font-bold shadow-sm text-brand-primary">
                     {course.grade?.name}
                 </div>
             </div>

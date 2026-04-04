@@ -53,17 +53,19 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-gray-200 dark:bg-gray-700 ${className}`} />;
 }
 
-function formatDateRange(): string {
+function formatDateRange(locale: string): string {
   const now = new Date();
   const sixMonthsAgo = new Date(now);
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const dateLocale = locale === 'ar' ? 'ar-SA' : 'en-US';
   const fmt = (d: Date) =>
-    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' });
   return `${fmt(sixMonthsAgo)} - ${fmt(now)}`;
 }
 
-function formatToday(): string {
-  return new Date().toLocaleDateString('en-US', {
+function formatToday(locale: string): string {
+  const dateLocale = locale === 'ar' ? 'ar-SA' : 'en-US';
+  return new Date().toLocaleDateString(dateLocale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -223,8 +225,8 @@ export default function ReferenceDashboardOverview() {
               className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-12 px-4 py-2 has-[>svg]:px-3 w-[300px] justify-start text-left font-normal"
               type="button"
             >
-              <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
-              {formatDateRange()}
+              <Calendar className="me-2 h-4 w-4" aria-hidden="true" />
+              {formatDateRange(locale)}
             </button>
           </div>
           <Link href={withLocalePrefix('/dashboard/admin/reports', locale)}>
@@ -235,7 +237,7 @@ export default function ReferenceDashboardOverview() {
           </Link>
           <div className="flex items-center space-x-2 bg-muted/50 px-3 py-2 rounded-lg">
             <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="text-sm font-medium">{formatToday()}</span>
+            <span className="text-sm font-medium">{formatToday(locale)}</span>
           </div>
         </div>
       </div>
@@ -252,7 +254,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{totalBundles}</div>
             <p className="text-sm text-purple-600 dark:text-purple-400 mt-2 flex items-center">
-              <Activity className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <Activity className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? `${publishedCourses} مواد دراسية نشطة` : `${publishedCourses} active courses`}
             </p>
           </div>
@@ -327,7 +329,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{totalEnrollments}</div>
             <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 flex items-center">
-              <Clock className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <Clock className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? `معلق: ${pendingEnrollments}` : `Pending: ${pendingEnrollments}`}
             </p>
           </div>
@@ -346,7 +348,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-amber-900 dark:text-amber-100 mb-2">{completionRate}%</div>
             <p className="text-sm text-amber-700 dark:text-amber-300 flex items-center">
-              <Star className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <Star className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? 'متوسط معدل الإكمال' : 'Average tracking rate'}
             </p>
           </div>
@@ -363,7 +365,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">0.0%</div>
             <p className="text-sm text-indigo-700 dark:text-indigo-300 flex items-center">
-              <UserCheck className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <UserCheck className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? '0 إجمالي المحاولات' : '0 Total Attempts'}
             </p>
           </div>
@@ -380,7 +382,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-red-900 dark:text-red-100 mb-2">AED0</div>
             <p className="text-sm text-red-700 dark:text-red-300 flex items-center">
-              <DollarSign className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <DollarSign className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? 'التكاليف التشغيلية الشهرية' : 'Monthly operating costs'}
             </p>
           </div>
@@ -397,7 +399,7 @@ export default function ReferenceDashboardOverview() {
           <div className="p-6 pt-0">
             <div className="text-3xl font-bold text-teal-900 dark:text-teal-100 mb-2">{totalTeachers}</div>
             <p className="text-sm text-teal-700 dark:text-teal-300 flex items-center">
-              <MessageSquare className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" aria-hidden="true" />
+              <MessageSquare className="h-4 w-4 me-1" aria-hidden="true" />
               {isArabic ? '0 رسائل هذا الشهر' : '0 Messages this month'}
             </p>
           </div>
@@ -603,7 +605,7 @@ export default function ReferenceDashboardOverview() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-4 min-w-max ltr:ml-auto rtl:mr-auto">
+                    <div className="flex gap-4 min-w-max ms-auto">
                       <div>
                         <div className="font-bold text-lg text-gray-900 dark:text-white">{bundle.paid}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">{isArabic ? 'اجمالي المستحق' : 'Total Due'}</div>

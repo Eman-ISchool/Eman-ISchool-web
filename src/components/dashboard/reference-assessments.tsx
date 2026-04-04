@@ -121,7 +121,7 @@ function SearchField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 rounded-2xl border-slate-200 bg-white pr-11 shadow-sm"
+        className="h-11 rounded-2xl border-slate-200 bg-white pe-11 shadow-sm"
       />
     </div>
   );
@@ -539,10 +539,10 @@ export function ReferenceQuizzesPage() {
             <Tabs dir="ltr" value={view} onValueChange={(value) => setView(value as 'cards' | 'table')}>
               <TabsList className="tabs-pill-active h-auto rounded-[1.1rem] border border-slate-200 bg-[#f4f4f4] p-1">
                 <TabsTrigger value="cards" className="rounded-[0.9rem] border border-transparent px-4 py-2 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-                  Cards
+                  {locale === 'ar' ? 'بطاقات' : 'Cards'}
                 </TabsTrigger>
                 <TabsTrigger value="table" className="rounded-[0.9rem] border border-transparent px-4 py-2 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-                  Table
+                  {locale === 'ar' ? 'جدول' : 'Table'}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -788,7 +788,7 @@ export function ReferenceQuizManagePage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => showSaved('جارٍ فتح إعدادات الاختبار...')} className="h-12 rounded-full border-slate-200 bg-white px-5">
-                <Settings className="ml-2 h-4 w-4" />
+                <Settings className="ms-2 h-4 w-4" />
                 إعدادات الاختبار
               </Button>
               <Button onClick={handleSave} disabled={saving} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
@@ -812,7 +812,7 @@ export function ReferenceQuizManagePage() {
           <div className="rounded-[1.6rem] border border-slate-200 bg-[#fafafa] p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <div className="relative">
-                <select defaultValue={activeQuestion?.fileType || 'تحميل ملف'} className="h-11 appearance-none rounded-xl border border-slate-200 bg-white px-4 pl-10 text-sm text-slate-700 outline-none">
+                <select defaultValue={activeQuestion?.fileType || 'تحميل ملف'} className="h-11 appearance-none rounded-xl border border-slate-200 bg-white px-4 ps-10 text-sm text-slate-700 outline-none">
                   <option>تحميل ملف</option>
                 </select>
               </div>

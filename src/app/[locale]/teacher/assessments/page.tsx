@@ -6,14 +6,18 @@ import Link from 'next/link';
 import { Plus, ClipboardCheck, Users, Clock, TrendingUp } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { withLocalePrefix } from '@/lib/locale-path';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageError } from '@/components/ui/page-error';
 
 export default function AssessmentsDashboard() {
     const { data: session, status } = useSession();
     const locale = useLocale();
+    const isArabic = locale === 'ar';
     const user = session?.user as any;
 
     const [assessments, setAssessments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'manage' | 'results'>('manage');
 
     useEffect(() => {
@@ -21,13 +25,17 @@ export default function AssessmentsDashboard() {
 
         const fetchAssessments = async () => {
             try {
+                setError(null);
                 const res = await fetch(`/api/assessments?teacherId=${user.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setAssessments(Array.isArray(data) ? data : []);
+                } else {
+                    setError(isArabic ? 'فشل في تحميل التقييمات. يرجى المحاولة مرة أخرى.' : 'Failed to load assessments. Please try again.');
                 }
             } catch (err) {
                 console.error('Error fetching assessments:', err);
+                setError(isArabic ? 'فشل في تحميل التقييمات. يرجى المحاولة مرة أخرى.' : 'Failed to load assessments. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -35,6 +43,30 @@ export default function AssessmentsDashboard() {
 
         fetchAssessments();
     }, [status, user?.id]);
+
+    const handleRetry = () => {
+        setLoading(true);
+        setError(null);
+        setAssessments([]);
+        // Re-trigger the effect by forcing a state change
+        const fetchAssessments = async () => {
+            try {
+                const res = await fetch(`/api/assessments?teacherId=${user?.id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAssessments(Array.isArray(data) ? data : []);
+                } else {
+                    setError(isArabic ? 'فشل في تحميل التقييمات. يرجى المحاولة مرة أخرى.' : 'Failed to load assessments. Please try again.');
+                }
+            } catch (err) {
+                console.error('Error fetching assessments:', err);
+                setError(isArabic ? 'فشل في تحميل التقييمات. يرجى المحاولة مرة أخرى.' : 'Failed to load assessments. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAssessments();
+    };
 
     if (status === 'loading' || loading) {
         return (
@@ -49,6 +81,10 @@ export default function AssessmentsDashboard() {
         );
     }
 
+    if (error) {
+        return <PageError message={error} onRetry={handleRetry} />;
+    }
+
     const manageAssessments = assessments;
     const resultAssessments = assessments.filter((a: any) =>
         (a.assessment_submissions?.[0]?.count || 0) > 0
@@ -58,15 +94,15 @@ export default function AssessmentsDashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Assessments</h1>
-                    <p className="text-gray-500 mt-1">Create and manage tests, quizzes, and exams</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{isArabic ? 'التقييمات' : 'Assessments'}</h1>
+                    <p className="text-gray-500 mt-1">{isArabic ? 'إنشاء وإدارة الاختبارات والامتحانات' : 'Create and manage tests, quizzes, and exams'}</p>
                 </div>
                 <Link
                     href={withLocalePrefix('/teacher/assessments/new', locale)}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
-                    Build New Test
+                    {isArabic ? 'إنشاء اختبار جديد' : 'Build New Test'}
                 </Link>
             </div>
 
@@ -76,31 +112,25 @@ export default function AssessmentsDashboard() {
                     onClick={() => setActiveTab('manage')}
                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === 'manage' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                    Manage Tests
+                    {isArabic ? 'إدارة الاختبارات' : 'Manage Tests'}
                 </button>
                 <button
                     onClick={() => setActiveTab('results')}
                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === 'results' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                    Results
+                    {isArabic ? 'النتائج' : 'Results'}
                 </button>
             </div>
 
             {/* Content */}
             {activeTab === 'manage' ? (
                 manageAssessments.length === 0 ? (
-                    <div className="text-center py-16 bg-gray-50 rounded-2xl">
-                        <ClipboardCheck className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No assessments created</h3>
-                        <p className="text-gray-500 mb-6">Create your first assessment to test your students.</p>
-                        <Link
-                            href={withLocalePrefix('/teacher/assessments/new', locale)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Build New Test
-                        </Link>
-                    </div>
+                    <EmptyState
+                        icon={<ClipboardCheck className="w-8 h-8 text-gray-400" />}
+                        title={isArabic ? 'لم يتم إنشاء تقييمات' : 'No assessments created'}
+                        description={isArabic ? 'أنشئ أول تقييم لاختبار طلابك.' : 'Create your first assessment to test your students.'}
+                        action={{ label: isArabic ? 'إنشاء اختبار جديد' : 'Build New Test', href: withLocalePrefix('/teacher/assessments/new', locale) }}
+                    />
                 ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {manageAssessments.map((assessment: any) => (
@@ -112,7 +142,7 @@ export default function AssessmentsDashboard() {
                                 <div className="flex items-start justify-between mb-3">
                                     <ClipboardCheck className="w-8 h-8 text-blue-400" />
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${assessment.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                                        {assessment.status || 'draft'}
+                                        {assessment.status === 'published' ? (isArabic ? 'منشور' : 'published') : (isArabic ? 'مسودة' : 'draft')}
                                     </span>
                                 </div>
                                 <h3 className="font-semibold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
@@ -125,7 +155,7 @@ export default function AssessmentsDashboard() {
                                     </span>
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
-                                        {assessment.assessment_submissions?.[0]?.count || 0} submissions
+                                        {assessment.assessment_submissions?.[0]?.count || 0} {isArabic ? 'تسليم' : 'submissions'}
                                     </span>
                                 </div>
                             </Link>
@@ -134,11 +164,11 @@ export default function AssessmentsDashboard() {
                 )
             ) : (
                 resultAssessments.length === 0 ? (
-                    <div className="text-center py-16 bg-gray-50 rounded-2xl">
-                        <TrendingUp className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No results yet</h3>
-                        <p className="text-gray-500">Results will appear once students submit assessments.</p>
-                    </div>
+                    <EmptyState
+                        icon={<TrendingUp className="w-8 h-8 text-gray-400" />}
+                        title={isArabic ? 'لا توجد نتائج بعد' : 'No results yet'}
+                        description={isArabic ? 'ستظهر النتائج بمجرد تقديم الطلاب للتقييمات.' : 'Results will appear once students submit assessments.'}
+                    />
                 ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {resultAssessments.map((assessment: any) => (
@@ -153,7 +183,7 @@ export default function AssessmentsDashboard() {
                                 <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
-                                        {assessment.assessment_submissions?.[0]?.count || 0} submissions
+                                        {assessment.assessment_submissions?.[0]?.count || 0} {isArabic ? 'تسليم' : 'submissions'}
                                     </span>
                                 </div>
                             </Link>

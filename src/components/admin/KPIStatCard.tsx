@@ -92,9 +92,9 @@ export default function KPIStatCard({
                         <div className="mt-3 flex items-center gap-1.5">
                             <div className={`flex items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${trend.isPositive ? theme.trendPos : theme.trendNeg}`}>
                                 {trend.isPositive ? (
-                                    <TrendingUp className="mr-1 h-3 w-3 rtl:ml-1 rtl:mr-0" />
+                                    <TrendingUp className="me-1 h-3 w-3" />
                                 ) : (
-                                    <TrendingDown className="mr-1 h-3 w-3 rtl:ml-1 rtl:mr-0" />
+                                    <TrendingDown className="me-1 h-3 w-3" />
                                 )}
                                 <span>
                                     {trend.value > 0 ? '+' : ''}

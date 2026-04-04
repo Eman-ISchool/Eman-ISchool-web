@@ -19,7 +19,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
                 {label && (
                     <Label className={`text-sm font-medium ${error ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'}`}>
                         {label}
-                        {required && <span className="mr-1 text-red-500 rtl:ml-1 rtl:mr-0">*</span>}
+                        {required && <span className="me-1 text-red-500">*</span>}
                     </Label>
                 )}
                 {children}
@@ -56,7 +56,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             <FormField label={label} error={error} required={required} helperText={helperText}>
                 <div className="relative">
                     {leftIcon && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 rtl:right-auto rtl:left-3">
+                        <div className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400">
                             {leftIcon}
                         </div>
                     )}
@@ -67,7 +67,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                         {...props}
                     />
                     {rightIcon && (
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3">
+                        <div className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400">
                             {rightIcon}
                         </div>
                     )}
@@ -135,7 +135,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
                             </option>
                         ))}
                     </select>
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3">
+                    <div className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>

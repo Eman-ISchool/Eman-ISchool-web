@@ -6,6 +6,7 @@ import { withLocalePrefix } from '@/lib/locale-path';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ClipboardCheck, Clock, CheckCircle, PlaySquare, RefreshCw } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function StudentAssessmentsPage({
@@ -152,13 +153,11 @@ export default async function StudentAssessmentsPage({
                     })}
                 </div>
             ) : (
-                <div className="text-center py-16 px-6 border-2 border-dashed rounded-xl bg-white">
-                    <ClipboardCheck className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900">No Assessments Available</h3>
-                    <p className="mt-2 text-gray-500 max-w-sm mx-auto">
-                        Your teachers have not published any assessments or exams for your enrolled courses yet.
-                    </p>
-                </div>
+                <EmptyState
+                    icon={<ClipboardCheck className="h-12 w-12 text-slate-400" />}
+                    title="No Assessments Available"
+                    description="Your teachers have not published any assessments or exams for your enrolled courses yet."
+                />
             )}
         </div>
     );

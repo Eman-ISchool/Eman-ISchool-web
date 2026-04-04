@@ -1,0 +1,11 @@
+⚠️ parent-home (/ar/parent/home) → 0 ERROR: page.goto: Timeout 15000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/parent/home", waiting until "networkidle"[22m
+
+⚠️ parent-courses (/ar/parent/courses) → 0 ERROR: page.goto: Timeout 15000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/parent/courses", waiting until "networkidle"[22m
+
+⚠️ parent-invoices (/ar/parent/invoices) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ parent-support (/ar/parent/support) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ parent-applications (/ar/parent/applications) → 0 ERROR: page.goto: Target page, context or browser has been closed

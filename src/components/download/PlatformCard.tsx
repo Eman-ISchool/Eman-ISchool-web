@@ -51,7 +51,7 @@ export function PlatformCard({
         }`}
     >
       {isRecommended && (
-        <span className="absolute -top-3 -right-3 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+        <span className="absolute -top-3 -end-3 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
           Recommended
         </span>
       )}

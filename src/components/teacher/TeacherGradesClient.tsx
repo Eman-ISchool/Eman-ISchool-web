@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Layers, BookOpen, ArrowRight, Plus, X } from 'lucide-react';
 import { withLocalePrefix } from '@/lib/locale-path';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/page-header';
 
 export interface TeacherGradeRecord {
   id: string;
@@ -64,38 +66,31 @@ export default function TeacherGradesClient({ locale, initialGrades }: TeacherGr
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isArabic ? 'فصولي' : 'My Classes'}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {isArabic
-              ? 'إدارة الفصول الدراسية والمواد والدروس الخاصة بك'
-              : 'Manage your classes, courses, and lessons'}
-          </p>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {isArabic ? 'فصل جديد' : 'New Class'}
-        </button>
-      </div>
+      <PageHeader
+        title={isArabic ? 'فصولي' : 'My Classes'}
+        subtitle={isArabic
+          ? 'إدارة الفصول الدراسية والمواد والدروس الخاصة بك'
+          : 'Manage your classes, courses, and lessons'}
+        action={
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {isArabic ? 'فصل جديد' : 'New Class'}
+          </button>
+        }
+      />
 
       {grades.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-2xl">
-          <Layers className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">
-            {isArabic ? 'لا توجد فصول دراسية' : 'No Classes Configured'}
-          </h3>
-          <p className="text-gray-500">
-            {isArabic
-              ? 'تحتاج إلى فصول للبدء. اطلب من المسؤول إضافة فصول لك.'
-              : 'You need classes to start. Ask an admin to assign classes to you.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={<Layers className="h-8 w-8 text-slate-400" />}
+          title={isArabic ? 'لا توجد فصول دراسية' : 'No Classes Configured'}
+          description={isArabic
+            ? 'تحتاج إلى فصول للبدء. اطلب من المسؤول إضافة فصول لك.'
+            : 'You need classes to start. Ask an admin to assign classes to you.'}
+          action={{ label: isArabic ? 'فصل جديد' : 'New Class', onClick: () => setIsModalOpen(true) }}
+        />
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {grades.map((grade) => {

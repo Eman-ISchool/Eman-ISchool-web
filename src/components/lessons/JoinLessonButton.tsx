@@ -47,7 +47,7 @@ export function JoinLessonButton({
     if (!isLive) {
         return (
             <Button disabled variant="outline" size="lg">
-                <Video className="h-4 w-4 mr-2" />
+                <Video className="h-4 w-4 me-2" />
                 Lesson Not Started
             </Button>
         );
@@ -62,7 +62,7 @@ export function JoinLessonButton({
                 size="lg"
             >
                 {isLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 ) : null}
                 Leave Lesson
             </Button>
@@ -77,9 +77,9 @@ export function JoinLessonButton({
             className="bg-brand-primary hover:bg-brand-primary/90"
         >
             {isLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 me-2 animate-spin" />
             ) : (
-                <Video className="h-4 w-4 mr-2" />
+                <Video className="h-4 w-4 me-2" />
             )}
             Join Live Lesson
         </Button>

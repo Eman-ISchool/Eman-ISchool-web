@@ -211,7 +211,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                             </Link>
                         </div>
                         <div className="relative">
-                            <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                            <Lock className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                             <Input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
@@ -232,7 +232,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                 aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                             >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -253,7 +253,7 @@ export default function LoginForm({ role, title, description }: LoginFormProps) 
                         className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg shadow-teal-600/20 hover:shadow-teal-600/30 transition-all hover:-translate-y-0.5 active:translate-y-0"
                     >
                         {isLoading ? (
-                            <><Loader2 className="ml-2 h-4 w-4 animate-spin" /> جاري التحقق...</>
+                            <><Loader2 className="ms-2 h-4 w-4 animate-spin" /> جاري التحقق...</>
                         ) : (
                             'تسجيل الدخول'
                         )}

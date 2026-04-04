@@ -134,7 +134,7 @@ export function AttendanceRoster({ lessonId, initialAttendance = [] }: Attendanc
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <Badge className={statusColors[record.attendance_status]}>
-                                            <StatusIcon className="h-3 w-3 mr-1" />
+                                            <StatusIcon className="h-3 w-3 me-1" />
                                             {record.attendance_status}
                                         </Badge>
                                         <div className="text-sm text-gray-600">

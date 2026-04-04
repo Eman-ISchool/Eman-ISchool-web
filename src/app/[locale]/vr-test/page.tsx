@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { VRCanvas } from '@/components/vr/canvas';
-import { VRScene } from '@/components/vr/scenes';
-import { VRHotspots } from '@/components/vr/hotspots';
-import { VRInfoPanel, VRNavigation } from '@/components/vr/ui';
+import dynamic from 'next/dynamic';
 import { useVRCapabilities } from '@/lib/vr/hooks';
 import type { VRScene as VRSceneType, AnyHotspot, InfoHotspot, VRLanguage, RichContent } from '@/types/vr';
+
+const VRCanvas = dynamic(() => import('@/components/vr/canvas').then(m => m.VRCanvas), { ssr: false });
+const VRScene = dynamic(() => import('@/components/vr/scenes').then(m => m.VRScene), { ssr: false });
+const VRHotspots = dynamic(() => import('@/components/vr/hotspots').then(m => m.VRHotspots), { ssr: false });
+const VRInfoPanel = dynamic(() => import('@/components/vr/ui').then(m => m.VRInfoPanel), { ssr: false });
+const VRNavigation = dynamic(() => import('@/components/vr/ui').then(m => m.VRNavigation), { ssr: false });
 
 /**
  * VR Scene Test Page

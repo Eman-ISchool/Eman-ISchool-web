@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {
             key: 'academic',
             label: 'الأكاديمي',
-            icon: <BookOpen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <BookOpen className="me-2 h-4 w-4" />,
             items: [
                 { label: 'المواد الدراسية', href: '/dashboard/courses' },
                 { label: 'الفئات', href: '/dashboard/categories' },
@@ -62,10 +62,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {
             key: 'admin',
             label: 'الإدارة',
-            icon: <Users className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <Users className="me-2 h-4 w-4" />,
             items: [
                 { label: 'المستخدمون', href: '/dashboard/users' },
-                { label: 'القبول والتسجيل', href: '/admin/admissions' },
                 { label: 'الطلبات', href: '/dashboard/applications' },
                 { label: 'البيانات المرجعية', href: '/dashboard/lookups' },
             ]
@@ -73,49 +72,50 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {
             key: 'finance',
             label: 'المالية',
-            icon: <CreditCard className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <CreditCard className="me-2 h-4 w-4" />,
             items: [
                 { label: 'المدفوعات', href: '/dashboard/payments' },
-                { label: 'المصروفات', href: '/dashboard/expenses' },
-                { label: 'الكوبونات', href: '/dashboard/coupons' },
+                { label: 'الرواتب', href: '/dashboard/salaries' },
+                { label: 'قسائم الراتب', href: '/dashboard/payslips' },
                 { label: 'البنوك', href: '/dashboard/banks' },
                 { label: 'العملات', href: '/dashboard/currencies' },
-                { label: 'الرواتب', href: '/dashboard/salaries' },
-                { label: 'قسائم الدفع', href: '/dashboard/payslips' },
+                { label: 'المصروفات', href: '/dashboard/expenses' },
+                { label: 'الكوبونات', href: '/dashboard/coupons' },
             ]
         },
         {
             key: 'communication',
             label: 'التواصل',
-            icon: <MessageSquare className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <MessageSquare className="me-2 h-4 w-4" />,
             items: [
-                { label: 'الرسائل', href: '/dashboard/messages' },
                 { label: 'الإعلانات', href: '/dashboard/announcements' },
+                { label: 'الرسائل', href: '/dashboard/messages' },
             ]
         },
         {
             key: 'content',
             label: 'المحتوى',
-            icon: <FilePen className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <FilePen className="me-2 h-4 w-4" />,
             items: [
                 { label: 'إدارة المحتوى', href: '/dashboard/cms' },
-                { label: 'الترجمات', href: '/dashboard/translations' },
+                { label: 'المدونات', href: '/dashboard/blogs' },
+                { label: 'الترجمة', href: '/dashboard/translations' },
             ]
         },
         {
             key: 'analytics',
             label: 'التحليلات',
-            icon: <ChartNoAxesColumn className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <ChartNoAxesColumn className="me-2 h-4 w-4" />,
             items: [
-                { label: 'التقارير', href: '/dashboard/admin/reports' },
+                { label: 'التقارير', href: '/dashboard/reports' },
             ]
         },
         {
             key: 'data',
             label: 'إدارة البيانات',
-            icon: <Database className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />,
+            icon: <Database className="me-2 h-4 w-4" />,
             items: [
-                { label: 'النسخ الاحتياطي', href: '/dashboard/backup' },
+                { label: 'النسخ الاحتياطي والاستعادة', href: '/dashboard/backup' },
             ]
         }
     ];
@@ -217,7 +217,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <div className="space-y-1">
                             {/* Dashboard Home */}
                             <Link href={withLocalePrefix('/dashboard', locale)} className={navItemClass('/dashboard')} onClick={() => setMobileOpen(false)}>
-                                <LayoutDashboard className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                <LayoutDashboard className="me-2 h-4 w-4" />
                                 <span className="w-full rtl:text-right">الرئيسية</span>
                             </Link>
 
@@ -236,7 +236,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         </button>
 
                                         {isExpanded && (
-                                            <div className="mt-1 space-y-1 rtl:pr-6 ltr:pl-6">
+                                            <div className="mt-1 space-y-1 ps-6">
                                                 {group.items.map(item => (
                                                     <Link
                                                         key={item.href}
@@ -255,13 +255,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                             {isAdminRole && (
                                 <Link href={withLocalePrefix('/dashboard/role-management', locale)} className={navItemClass('/dashboard/role-management')} onClick={() => setMobileOpen(false)}>
-                                    <ShieldCheck className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                    <ShieldCheck className="me-2 h-4 w-4" />
                                     <span className="w-full rtl:text-right">إدارة الصلاحيات</span>
                                 </Link>
                             )}
 
                             <Link href={withLocalePrefix('/dashboard/system-settings', locale)} className={navItemClass('/dashboard/system-settings')} onClick={() => setMobileOpen(false)}>
-                                <Settings className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                                <Settings className="me-2 h-4 w-4" />
                                 <span className="w-full rtl:text-right">الإعدادات</span>
                             </Link>
                         </div>
@@ -270,7 +270,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     {/* Bottom Profile / Footer Link */}
                     <div className="p-4 border-t border-gray-200 dark:border-gray-800">
                         <Link href={withLocalePrefix('/dashboard/profile', locale)} className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all h-12 px-4 py-2 w-full justify-start text-left font-normal text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" onClick={() => setMobileOpen(false)}>
-                            <User className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                            <User className="me-2 h-4 w-4" />
                             <span className="w-full rtl:text-right">الملف الشخصي</span>
                         </Link>
                     </div>

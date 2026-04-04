@@ -317,7 +317,7 @@ export default function MultiStepForm() {
                                                 variant="outline"
                                                 onClick={() => document.getElementById(doc.key)?.click()}
                                             >
-                                                {(formData as any)[doc.key] ? <FileCheck className="w-4 h-4 mr-2 text-green-600" /> : <Upload className="w-4 h-4 mr-2" />}
+                                                {(formData as any)[doc.key] ? <FileCheck className="w-4 h-4 me-2 text-green-600" /> : <Upload className="w-4 h-4 me-2" />}
                                                 {(formData as any)[doc.key] ? 'Change File' : 'Upload'}
                                             </Button>
                                         </div>
@@ -437,7 +437,7 @@ export default function MultiStepForm() {
                         onClick={handleBack}
                         disabled={step === 1 || loading}
                     >
-                        <ChevronLeft className="w-4 h-4 mr-2" /> Back
+                        <ChevronLeft className="w-4 h-4 me-2" /> Back
                     </Button>
 
                     {step < 4 ? (
@@ -445,7 +445,7 @@ export default function MultiStepForm() {
                             className="bg-brand-primary text-black hover:bg-brand-primary-hover font-bold"
                             onClick={handleNext}
                         >
-                            Next Step <ChevronRight className="w-4 h-4 ml-2" />
+                            Next Step <ChevronRight className="w-4 h-4 ms-2" />
                         </Button>
                     ) : (
                         <Button
@@ -454,11 +454,11 @@ export default function MultiStepForm() {
                             disabled={loading || (formData.paymentMethod === 'bank_transfer' && !formData.bankReceiptFile)}
                         >
                             {loading ? (
-                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                                <><Loader2 className="w-4 h-4 me-2 animate-spin" /> Processing...</>
                             ) : formData.paymentMethod === 'stripe' ? (
-                                <><CreditCard className="w-4 h-4 mr-2" /> Pay via Stripe</>
+                                <><CreditCard className="w-4 h-4 me-2" /> Pay via Stripe</>
                             ) : (
-                                <><CheckCircle2 className="w-4 h-4 mr-2" /> Submit Application</>
+                                <><CheckCircle2 className="w-4 h-4 me-2" /> Submit Application</>
                             )}
                         </Button>
                     )}

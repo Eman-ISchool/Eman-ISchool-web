@@ -150,7 +150,7 @@ export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsS
               className="rounded-full border-slate-300"
               onClick={() => showNotice(isArabic ? 'تم تحديث الحالة الحالية.' : 'Current state refreshed.')}
             >
-              <RefreshCw className="ml-2 h-4 w-4" />
+              <RefreshCw className="ms-2 h-4 w-4" />
               {isArabic ? 'تحديث' : 'Refresh'}
             </Button>
             <Button
@@ -175,7 +175,7 @@ export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsS
 
         <div className="mt-6 grid gap-3 rounded-[1.6rem] bg-slate-50 p-4 md:grid-cols-[1fr_auto]">
           <div className="relative">
-            <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute end-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -190,7 +190,7 @@ export default function ReferenceSettingsWorkspace({ scope }: { scope: SettingsS
             className="h-12 rounded-2xl border-slate-300"
             onClick={() => showNotice(isArabic ? 'تم حفظ الإعدادات الحالية.' : 'Current settings saved.')}
           >
-            <Save className="ml-2 h-4 w-4" />
+            <Save className="ms-2 h-4 w-4" />
             {isArabic ? 'حفظ الحالة' : 'Save state'}
           </Button>
         </div>

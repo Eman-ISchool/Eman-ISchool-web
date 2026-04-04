@@ -95,7 +95,7 @@ export default function DataTable<T extends { id: string | number }>({
             {searchKey && (
                 <div className="p-4 border-b border-gray-100">
                     <div className="relative">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
                             value={search}

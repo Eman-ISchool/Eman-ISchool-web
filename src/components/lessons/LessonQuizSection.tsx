@@ -235,7 +235,7 @@ export default function LessonQuizSection({
                           {t('quizzes.lastSubmission')}: {formatDate(latestSubmission.submitted_at)}
                         </span>
                         {latestSubmission.score !== null && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          <span className="ms-2 px-2 py-1 bg-blue-100 text-blue-700 rounded">
                             {t('quizzes.score')}: {latestSubmission.score.toFixed(1)}%
                           </span>
                         )}
@@ -497,10 +497,10 @@ function QuizResults({ assessmentId }: { assessmentId: string }) {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left">Student</th>
-              <th className="px-4 py-2 text-left">Submitted</th>
-              <th className="px-4 py-2 text-left">Score</th>
-              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2 text-start">Student</th>
+              <th className="px-4 py-2 text-start">Submitted</th>
+              <th className="px-4 py-2 text-start">Score</th>
+              <th className="px-4 py-2 text-start">Status</th>
             </tr>
           </thead>
           <tbody>

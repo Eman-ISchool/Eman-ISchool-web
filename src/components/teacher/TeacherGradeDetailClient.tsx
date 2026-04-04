@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
-import { ArrowLeft, BookOpen, CalendarDays, CreditCard, Download, Info, Search, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, CalendarDays, ClipboardList, CreditCard, Download, FileText, Info, Search, Users } from 'lucide-react';
 
-type GradeTab = 'info' | 'courses' | 'schedule' | 'students' | 'fees';
+type GradeTab = 'info' | 'courses' | 'lessons' | 'assessments' | 'schedule' | 'students' | 'fees';
 
 interface TeacherGradeDetailClientProps {
   locale: string;
@@ -97,6 +97,7 @@ export default function TeacherGradeDetailClient({
 }: TeacherGradeDetailClientProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const isArabic = locale === 'ar';
   const [activeTab, setActiveTab] = useState<GradeTab>(initialTab);
   const [grade, setGrade] = useState<GradeRecord | null>(null);
   const [supervisors, setSupervisors] = useState<UserOption[]>([]);
@@ -146,18 +147,28 @@ export default function TeacherGradeDetailClient({
   const [feeDueDate, setFeeDueDate] = useState('');
   const [feeBusy, setFeeBusy] = useState(false);
 
+  const [lessonsLoading, setLessonsLoading] = useState(false);
+  const [lessonsError, setLessonsError] = useState<string | null>(null);
+  const [lessons, setLessons] = useState<any[]>([]);
+
+  const [assessmentsLoading, setAssessmentsLoading] = useState(false);
+  const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
+  const [assessments, setAssessments] = useState<any[]>([]);
+
   const debouncedCourseSearch = useDebouncedValue(courseSearch, 300);
   const debouncedStudentSearch = useDebouncedValue(studentSearch, 300);
 
   const tabItems: Array<{ id: GradeTab; label: string; icon: JSX.Element }> = useMemo(
     () => [
-      { id: 'info', label: 'Info', icon: <Info className="h-4 w-4" /> },
-      { id: 'courses', label: 'Courses', icon: <BookOpen className="h-4 w-4" /> },
-      { id: 'schedule', label: 'Schedule', icon: <CalendarDays className="h-4 w-4" /> },
-      { id: 'students', label: 'Students', icon: <Users className="h-4 w-4" /> },
-      { id: 'fees', label: 'Fees', icon: <CreditCard className="h-4 w-4" /> },
+      { id: 'info', label: isArabic ? 'المعلومات' : 'Info', icon: <Info className="h-4 w-4" /> },
+      { id: 'courses', label: isArabic ? 'المواد الدراسية' : 'Courses', icon: <BookOpen className="h-4 w-4" /> },
+      { id: 'lessons', label: isArabic ? 'الدروس' : 'Lessons', icon: <FileText className="h-4 w-4" /> },
+      { id: 'assessments', label: isArabic ? 'التقييمات' : 'Assessments', icon: <ClipboardList className="h-4 w-4" /> },
+      { id: 'fees', label: isArabic ? 'الرسوم' : 'Fees', icon: <CreditCard className="h-4 w-4" /> },
+      { id: 'students', label: isArabic ? 'الطلاب' : 'Students', icon: <Users className="h-4 w-4" /> },
+      { id: 'schedule', label: isArabic ? 'الجدول' : 'Schedule', icon: <CalendarDays className="h-4 w-4" /> },
     ],
-    []
+    [isArabic]
   );
 
   const syncTabInUrl = useCallback(
@@ -244,7 +255,7 @@ export default function TeacherGradeDetailClient({
       setStudents(payload.students || []);
       setStudentsMeta(payload.meta);
     } catch (error: any) {
-      setStudentsError(error.message || 'Failed to load students');
+      setStudentsError(isArabic ? 'فشل في تحميل الطلاب' : (error.message || 'Failed to load students'));
     } finally {
       setStudentsLoading(false);
     }
@@ -280,6 +291,32 @@ export default function TeacherGradeDetailClient({
     }
   }, [gradeRef]);
 
+  const loadLessons = useCallback(async () => {
+    setLessonsLoading(true);
+    setLessonsError(null);
+    try {
+      const data = await fetchJson<{ lessons: any[] }>(`/api/grades/${gradeRef}/lessons`);
+      setLessons(data.lessons || []);
+    } catch (err: any) {
+      setLessonsError(err.message);
+    } finally {
+      setLessonsLoading(false);
+    }
+  }, [gradeRef]);
+
+  const loadAssessments = useCallback(async () => {
+    setAssessmentsLoading(true);
+    setAssessmentsError(null);
+    try {
+      const data = await fetchJson<{ assessments: any[] }>(`/api/grades/${gradeRef}/assessments`);
+      setAssessments(data.assessments || []);
+    } catch (err: any) {
+      setAssessmentsError(err.message);
+    } finally {
+      setAssessmentsLoading(false);
+    }
+  }, [gradeRef]);
+
   useEffect(() => {
     void loadGradeInfo();
   }, [loadGradeInfo]);
@@ -290,10 +327,12 @@ export default function TeacherGradeDetailClient({
 
   useEffect(() => {
     if (activeTab === 'courses') void loadCourses();
+    if (activeTab === 'lessons') void loadLessons();
+    if (activeTab === 'assessments') void loadAssessments();
     if (activeTab === 'students') void loadStudents();
     if (activeTab === 'schedule') void loadSchedule();
     if (activeTab === 'fees') void loadFees();
-  }, [activeTab, loadCourses, loadStudents, loadSchedule, loadFees]);
+  }, [activeTab, loadCourses, loadLessons, loadAssessments, loadStudents, loadSchedule, loadFees]);
 
   useEffect(() => {
     if (activeTab === 'students' && courses.length === 0) {
@@ -366,7 +405,7 @@ export default function TeacherGradeDetailClient({
       setEnrollEmail('');
       await loadStudents();
     } catch (error: any) {
-      setStudentsError(error.message || 'Failed to enroll student.');
+      setStudentsError(isArabic ? 'فشل في تسجيل الطالب' : (error.message || 'Failed to enroll student.'));
     } finally {
       setEnrollBusy(false);
     }
@@ -430,16 +469,16 @@ export default function TeacherGradeDetailClient({
         className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Classes
+        {isArabic ? 'العودة إلى الفصول' : 'Back to Classes'}
       </Link>
 
       <div className="rounded-2xl border border-gray-100 bg-white p-6">
         <h1 className="text-2xl font-bold text-gray-900">{grade.name}</h1>
         {grade.description ? <p className="mt-2 text-sm text-gray-600">{grade.description}</p> : null}
         <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
-          <span>Code: {grade.slug || '-'}</span>
-          <span>Supervisor: {grade.supervisor?.name || 'Unassigned'}</span>
-          <span>Status: {grade.is_active ? 'Active' : 'Archived'}</span>
+          <span>{isArabic ? 'الرمز' : 'Code'}: {grade.slug || '-'}</span>
+          <span>{isArabic ? 'المشرف' : 'Supervisor'}: {grade.supervisor?.name || (isArabic ? 'غير معين' : 'Unassigned')}</span>
+          <span>{isArabic ? 'الحالة' : 'Status'}: {grade.is_active ? (isArabic ? 'نشط' : 'Active') : (isArabic ? 'مؤرشف' : 'Archived')}</span>
         </div>
       </div>
 
@@ -476,7 +515,7 @@ export default function TeacherGradeDetailClient({
               {isEditingInfo ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Grade Name *
+                    {isArabic ? 'اسم الفصل *' : 'Grade Name *'}
                     <input
                       className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
                       value={infoForm.name}
@@ -484,7 +523,7 @@ export default function TeacherGradeDetailClient({
                     />
                   </label>
                   <label className="text-sm font-medium text-gray-700">
-                    Grade Code
+                    {isArabic ? 'رمز الفصل' : 'Grade Code'}
                     <input
                       className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
                       value={infoForm.slug}
@@ -492,13 +531,13 @@ export default function TeacherGradeDetailClient({
                     />
                   </label>
                   <label className="text-sm font-medium text-gray-700 md:col-span-2">
-                    Supervisor *
+                    {isArabic ? 'المشرف *' : 'Supervisor *'}
                     <select
                       className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
                       value={infoForm.supervisor_id}
                       onChange={(event) => setInfoForm((prev) => ({ ...prev, supervisor_id: event.target.value }))}
                     >
-                      <option value="">Select supervisor</option>
+                      <option value="">{isArabic ? 'اختر المشرف' : 'Select supervisor'}</option>
                       {supervisors.map((supervisor) => (
                         <option key={supervisor.id} value={supervisor.id}>
                           {supervisor.name} ({supervisor.email})
@@ -507,7 +546,7 @@ export default function TeacherGradeDetailClient({
                     </select>
                   </label>
                   <label className="text-sm font-medium text-gray-700 md:col-span-2">
-                    Description
+                    {isArabic ? 'الوصف' : 'Description'}
                     <textarea
                       rows={4}
                       className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
@@ -517,32 +556,32 @@ export default function TeacherGradeDetailClient({
                   </label>
                   <div className="flex gap-2 md:col-span-2">
                     <button className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm text-white" type="button" onClick={saveInfo}>
-                      Save
+                      {isArabic ? 'حفظ' : 'Save'}
                     </button>
                     <button
                       className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700"
                       type="button"
                       onClick={() => setIsEditingInfo(false)}
                     >
-                      Cancel
+                      {isArabic ? 'إلغاء' : 'Cancel'}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  <InfoCard label="Grade name" value={grade.name} />
-                  <InfoCard label="Grade code" value={grade.slug || '-'} />
-                  <InfoCard label="Supervisor" value={grade.supervisor?.name || 'Unassigned'} />
-                  <InfoCard label="Status" value={grade.is_active ? 'Active' : 'Archived'} />
-                  <InfoCard label="Created" value={grade.created_at ? new Date(grade.created_at).toLocaleString() : '-'} />
-                  <InfoCard label="Updated" value={grade.updated_at ? new Date(grade.updated_at).toLocaleString() : '-'} />
+                  <InfoCard label={isArabic ? 'اسم الفصل' : 'Grade name'} value={grade.name} />
+                  <InfoCard label={isArabic ? 'رمز الفصل' : 'Grade code'} value={grade.slug || '-'} />
+                  <InfoCard label={isArabic ? 'المشرف' : 'Supervisor'} value={grade.supervisor?.name || (isArabic ? 'غير معين' : 'Unassigned')} />
+                  <InfoCard label={isArabic ? 'الحالة' : 'Status'} value={grade.is_active ? (isArabic ? 'نشط' : 'Active') : (isArabic ? 'مؤرشف' : 'Archived')} />
+                  <InfoCard label={isArabic ? 'تاريخ الإنشاء' : 'Created'} value={grade.created_at ? new Date(grade.created_at).toLocaleString() : '-'} />
+                  <InfoCard label={isArabic ? 'تاريخ التحديث' : 'Updated'} value={grade.updated_at ? new Date(grade.updated_at).toLocaleString() : '-'} />
                   <div className="md:col-span-2">
                     <button
                       className="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white"
                       type="button"
                       onClick={() => setIsEditingInfo(true)}
                     >
-                      Edit grade
+                      {isArabic ? 'تعديل الفصل' : 'Edit grade'}
                     </button>
                   </div>
                 </div>
@@ -555,15 +594,15 @@ export default function TeacherGradeDetailClient({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative">
-                    <Search className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                    <Search className="pointer-events-none absolute start-2 top-2.5 h-4 w-4 text-gray-400" />
                     <input
                       value={courseSearch}
                       onChange={(event) => {
                         setCoursePage(1);
                         setCourseSearch(event.target.value);
                       }}
-                      className="w-64 rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm"
-                      placeholder="Search courses"
+                      className="w-64 rounded-lg border border-gray-200 py-2 ps-8 pe-3 text-sm"
+                      placeholder={isArabic ? "بحث المواد الدراسية" : "Search courses"}
                     />
                   </div>
                   <select
@@ -574,16 +613,16 @@ export default function TeacherGradeDetailClient({
                       setCourseStatus(event.target.value as 'all' | 'published' | 'draft');
                     }}
                   >
-                    <option value="all">All statuses</option>
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
+                    <option value="all">{isArabic ? 'جميع الحالات' : 'All statuses'}</option>
+                    <option value="published">{isArabic ? 'منشور' : 'Published'}</option>
+                    <option value="draft">{isArabic ? 'مسودة' : 'Draft'}</option>
                   </select>
                 </div>
                 <Link
                   href={withLocalePrefix(`/teacher/courses/new?gradeId=${grade.id}`, locale)}
                   className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm text-white"
                 >
-                  Create course
+                  {isArabic ? 'إنشاء مادة دراسية' : 'Create course'}
                 </Link>
               </div>
 
@@ -596,26 +635,26 @@ export default function TeacherGradeDetailClient({
                     <table className="min-w-full divide-y divide-gray-100 text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Course</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Teacher</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Students</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Next session</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Actions</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'المادة' : 'Course'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'المعلم' : 'Teacher'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الحالة' : 'Status'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الطلاب' : 'Students'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الجلسة القادمة' : 'Next session'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'إجراءات' : 'Actions'}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 bg-white">
                         {courses.map((course) => (
                           <tr key={course.id}>
                             <td className="px-4 py-3 font-medium text-gray-900">{course.title}</td>
-                            <td className="px-4 py-3 text-gray-600">{course.teacher_name || 'Unassigned'}</td>
+                            <td className="px-4 py-3 text-gray-600">{course.teacher_name || (isArabic ? 'غير معين' : 'Unassigned')}</td>
                             <td className="px-4 py-3">
                               <span
                                 className={`rounded-full px-2 py-1 text-xs font-semibold ${
                                   course.is_published ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
                                 }`}
                               >
-                                {course.is_published ? 'Published' : 'Draft'}
+                                {course.is_published ? (isArabic ? 'منشور' : 'Published') : (isArabic ? 'مسودة' : 'Draft')}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-gray-600">{course.students_count}</td>
@@ -627,7 +666,7 @@ export default function TeacherGradeDetailClient({
                                 href={withLocalePrefix(`/teacher/courses/${course.id}`, locale)}
                                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
                               >
-                                View details
+                                {isArabic ? 'عرض التفاصيل' : 'View details'}
                               </Link>
                             </td>
                           </tr>
@@ -641,6 +680,110 @@ export default function TeacherGradeDetailClient({
             </div>
           ) : null}
 
+          {activeTab === 'lessons' ? (
+            <div className="space-y-4">
+              {lessonsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
+                </div>
+              ) : lessonsError ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+                  <p className="text-red-600 mb-2">{lessonsError}</p>
+                  <button onClick={loadLessons} className="text-sm text-red-500 underline">{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
+                </div>
+              ) : lessons.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
+                  <FileText className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                  <h3 className="font-semibold text-gray-700 mb-1">{isArabic ? 'لا توجد دروس' : 'No Lessons'}</h3>
+                  <p className="text-sm text-gray-500">{isArabic ? 'لم يتم العثور على دروس للمواد في هذا الفصل. أنشئ دروسًا من صفحة تفاصيل المادة.' : 'No lessons found for courses in this grade. Create lessons from the course detail page.'}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-gray-100">
+                  <table className="min-w-full divide-y divide-gray-100 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الدرس' : 'Lesson'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'المادة' : 'Course'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'التاريخ' : 'Date'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الحالة' : 'Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {lessons.map((lesson: any) => (
+                        <tr key={lesson.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium text-gray-900">{lesson.title}</td>
+                          <td className="px-4 py-3 text-gray-500">{lesson.course_title || '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">
+                            {lesson.start_date_time ? new Date(lesson.start_date_time).toLocaleDateString() : '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                              lesson.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              lesson.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {lesson.status || 'scheduled'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {activeTab === 'assessments' ? (
+            <div className="space-y-4">
+              {assessmentsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
+                </div>
+              ) : assessmentsError ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+                  <p className="text-red-600 mb-2">{assessmentsError}</p>
+                  <button onClick={loadAssessments} className="text-sm text-red-500 underline">{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
+                </div>
+              ) : assessments.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
+                  <ClipboardList className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                  <h3 className="font-semibold text-gray-700 mb-1">{isArabic ? 'لا توجد تقييمات' : 'No Assessments'}</h3>
+                  <p className="text-sm text-gray-500">{isArabic ? 'لم يتم العثور على اختبارات أو امتحانات للمواد في هذا الفصل.' : 'No quizzes or exams found for courses in this grade.'}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-gray-100">
+                  <table className="min-w-full divide-y divide-gray-100 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'التقييم' : 'Assessment'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'النوع' : 'Type'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'المادة' : 'Course'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'التسليمات' : 'Submissions'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {assessments.map((a: any) => (
+                        <tr key={a.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium text-gray-900">{a.title}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                              a.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {a.type || 'quiz'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{a.course_title || '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">{a.submission_count ?? 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : null}
+
           {activeTab === 'schedule' ? (
             <div className="space-y-4">
               <div className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
@@ -648,7 +791,7 @@ export default function TeacherGradeDetailClient({
               </div>
               <p className="text-sm text-gray-600">
                 Calendar shell is active. This tab already consumes the future contract:
-                <code className="ml-1 rounded bg-gray-100 px-1">events[] = {'{sessionId, courseId, title, start, end, teacher}'}</code>
+                <code className="ms-1 rounded bg-gray-100 px-1">events[] = {'{sessionId, courseId, title, start, end, teacher}'}</code>
               </p>
               {scheduleLoading ? <TabSkeleton /> : null}
               {scheduleError ? <InlineError message={scheduleError} /> : null}
@@ -679,15 +822,15 @@ export default function TeacherGradeDetailClient({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative">
-                    <Search className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                    <Search className="pointer-events-none absolute start-2 top-2.5 h-4 w-4 text-gray-400" />
                     <input
                       value={studentSearch}
                       onChange={(event) => {
                         setStudentPage(1);
                         setStudentSearch(event.target.value);
                       }}
-                      className="w-64 rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm"
-                      placeholder="Search students"
+                      className="w-64 rounded-lg border border-gray-200 py-2 ps-8 pe-3 text-sm"
+                      placeholder={isArabic ? "بحث الطلاب" : "Search students"}
                     />
                   </div>
                   <button
@@ -696,7 +839,7 @@ export default function TeacherGradeDetailClient({
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
                   >
                     <Download className="h-4 w-4" />
-                    Export CSV
+                    {isArabic ? 'تصدير CSV' : 'Export CSV'}
                   </button>
                 </div>
               </div>
@@ -714,7 +857,7 @@ export default function TeacherGradeDetailClient({
                   onChange={(event) => setSelectedCourseId(event.target.value)}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
                 >
-                  <option value="">Select course</option>
+                  <option value="">{isArabic ? 'اختر المادة' : 'Select course'}</option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>
                       {course.title}
@@ -727,7 +870,7 @@ export default function TeacherGradeDetailClient({
                   disabled={enrollBusy || !enrollEmail || !selectedCourseId}
                   className="rounded-lg bg-gray-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {enrollBusy ? 'Enrolling...' : 'Enroll Student'}
+                  {enrollBusy ? (isArabic ? 'جاري التسجيل...' : 'Enrolling...') : (isArabic ? 'تسجيل طالب' : 'Enroll Student')}
                 </button>
               </div>
 
@@ -740,10 +883,10 @@ export default function TeacherGradeDetailClient({
                     <table className="min-w-full divide-y divide-gray-100 text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Student</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Email</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Enrollment</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Payment</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الطالب' : 'Student'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'البريد' : 'Email'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'التسجيل' : 'Enrollment'}</th>
+                          <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الدفع' : 'Payment'}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 bg-white">
@@ -779,9 +922,9 @@ export default function TeacherGradeDetailClient({
           {activeTab === 'fees' ? (
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <InfoCard label="Expected" value={formatMoney(feesSummary?.expected_total || 0)} />
-                <InfoCard label="Collected" value={formatMoney(feesSummary?.collected_total || 0)} />
-                <InfoCard label="Outstanding" value={formatMoney(feesSummary?.outstanding_total || 0)} />
+                <InfoCard label={isArabic ? 'المتوقع' : 'Expected'} value={formatMoney(feesSummary?.expected_total || 0)} />
+                <InfoCard label={isArabic ? 'المحصّل' : 'Collected'} value={formatMoney(feesSummary?.collected_total || 0)} />
+                <InfoCard label={isArabic ? 'المتبقي' : 'Outstanding'} value={formatMoney(feesSummary?.outstanding_total || 0)} />
               </div>
 
               <div className="grid gap-2 rounded-xl border border-gray-100 p-3 md:grid-cols-[1fr_180px_180px_140px]">
@@ -789,13 +932,13 @@ export default function TeacherGradeDetailClient({
                   value={feeName}
                   onChange={(event) => setFeeName(event.target.value)}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                  placeholder="Fee item name"
+                  placeholder={isArabic ? "اسم بند الرسوم" : "Fee item name"}
                 />
                 <input
                   value={feeAmount}
                   onChange={(event) => setFeeAmount(event.target.value)}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                  placeholder="Amount"
+                  placeholder={isArabic ? "المبلغ" : "Amount"}
                   type="number"
                   min="1"
                 />
@@ -811,7 +954,7 @@ export default function TeacherGradeDetailClient({
                   disabled={feeBusy}
                   className="rounded-lg bg-gray-900 px-3 py-2 text-sm text-white disabled:opacity-50"
                 >
-                  {feeBusy ? 'Saving...' : 'Add Fee'}
+                  {feeBusy ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'إضافة رسوم' : 'Add Fee')}
                 </button>
               </div>
 
@@ -823,11 +966,11 @@ export default function TeacherGradeDetailClient({
                   <table className="min-w-full divide-y divide-gray-100 text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Item</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Amount</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Due date</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Student</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'البند' : 'Item'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'المبلغ' : 'Amount'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'تاريخ الاستحقاق' : 'Due date'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الطالب' : 'Student'}</th>
+                        <th className="px-4 py-3 text-start font-semibold text-gray-600">{isArabic ? 'الحالة' : 'Status'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">

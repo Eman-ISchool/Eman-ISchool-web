@@ -230,7 +230,7 @@ export default function ReferenceDashboardShell({
                 </button>
 
                 {open ? (
-                  <div className="mt-1 space-y-1 pr-4">
+                  <div className="mt-1 space-y-1 pe-4">
                     {group.items.map((item) => {
                       const activeItem = navItemActive(pathname, item.href, locale);
                       return (

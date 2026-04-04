@@ -239,7 +239,7 @@ export default function LessonExamSection({
                           {t('exams.lastSubmission')}: {formatDate(latestSubmission.submitted_at)}
                         </span>
                         {latestSubmission.score !== null && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          <span className="ms-2 px-2 py-1 bg-blue-100 text-blue-700 rounded">
                             {t('exams.score')}: {latestSubmission.score.toFixed(1)}%
                           </span>
                         )}

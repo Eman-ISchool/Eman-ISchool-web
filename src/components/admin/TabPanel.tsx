@@ -83,7 +83,7 @@ export default function TabPanel({
                             )}
                             <span>{tab.label}</span>
                             {tab.badge && (
-                                <span className="ml-1.5 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                <span className="ms-1.5 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                                     {tab.badge}
                                 </span>
                             )}

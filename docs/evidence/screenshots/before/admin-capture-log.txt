@@ -1,0 +1,22 @@
+⚠️ admin-home (/ar/admin) → 0 ERROR: page.goto: Timeout 15000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/admin", waiting until "networkidle"[22m
+
+⚠️ admin-dashboard (/ar/admin/home) → 0 ERROR: page.goto: Test timeout of 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/admin/home", waiting until "networkidle"[22m
+
+⚠️ admin-students (/ar/admin/students) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-teachers (/ar/admin/teachers) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-grades (/ar/admin/grades) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-lessons (/ar/admin/lessons) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-attendance (/ar/admin/attendance) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-meetings (/ar/admin/meetings) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-fees (/ar/admin/fees) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-quizzes-exams (/ar/admin/quizzes-exams) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-reels (/ar/admin/reels) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-content (/ar/admin/content) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-settings (/ar/admin/settings) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-support (/ar/admin/support) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-enrollment-applications (/ar/admin/enrollment-applications) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ admin-calendar (/ar/admin/calendar) → 0 ERROR: page.goto: Target page, context or browser has been closed

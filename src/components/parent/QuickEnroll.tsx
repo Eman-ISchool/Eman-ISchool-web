@@ -195,12 +195,12 @@ export default function QuickEnroll({ courseId, courseTitle }: { courseId: strin
                 >
                     {enrolling ? (
                         <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            <Loader2 className="w-4 h-4 me-2 animate-spin" />
                             {isArabic ? 'جاري التسجيل...' : 'Enrolling...'}
                         </>
                     ) : (
                         <>
-                            <UserPlus className="w-4 h-4 mr-2" />
+                            <UserPlus className="w-4 h-4 me-2" />
                             {isArabic ? 'تسجيل الطالب' : 'Enroll Student'}
                         </>
                     )}

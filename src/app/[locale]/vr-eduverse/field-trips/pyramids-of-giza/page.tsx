@@ -30,9 +30,9 @@ import type {
   VRLanguage,
   AnyHotspot,
 } from '@/types/vr';
-import { VRHotspots } from '@/components/vr/hotspots/VRHotspots';
-import { VRScene as VRSceneComponent } from '@/components/vr/scenes/VRScene';
-import { VRNavigation } from '@/components/vr/ui/VRNavigation';
+const VRHotspots = dynamic(() => import('@/components/vr/hotspots/VRHotspots').then(m => m.VRHotspots), { ssr: false });
+const VRSceneComponent = dynamic(() => import('@/components/vr/scenes/VRScene').then(m => m.VRScene), { ssr: false });
+const VRNavigation = dynamic(() => import('@/components/vr/ui/VRNavigation').then(m => m.VRNavigation), { ssr: false });
 
 // Dynamically import VR components to avoid SSR issues
 const VRCanvas = dynamic(

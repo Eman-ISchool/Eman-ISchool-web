@@ -83,7 +83,7 @@ export function SubjectList({
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">{t('subjects')}</h2>
                 <Button onClick={() => setIsAdding(true)} disabled={isAdding} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 me-2" />
                     {t('addSubject')}
                 </Button>
             </div>
@@ -127,7 +127,7 @@ export function SubjectList({
                                 </div>
                             </CardHeader>
                             <CardContent className="pb-4 pt-0">
-                                <div className="pl-4 border-l-2 border-gray-100 space-y-2 mt-2">
+                                <div className="ps-4 border-s-2 border-gray-100 space-y-2 mt-2">
                                     {subject.lessons && subject.lessons.length > 0 ? (
                                         subject.lessons.map((lesson) => (
                                             <div key={lesson.id} className="flex justify-between items-center bg-gray-50 p-2 rounded hover:bg-gray-100 transition-colors">
@@ -149,7 +149,7 @@ export function SubjectList({
                                     )}
                                     <Button size="sm" variant="outline" className="w-full mt-2" asChild>
                                         <Link href={withLocalePrefix(`/teacher/lessons/new?subjectId=${subject.id}&courseId=${courseId}`, locale)}>
-                                            <Plus className="h-3 w-3 mr-2" />
+                                            <Plus className="h-3 w-3 me-2" />
                                             {t('addLesson')}
                                         </Link>
                                     </Button>

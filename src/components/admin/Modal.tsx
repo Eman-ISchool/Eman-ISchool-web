@@ -117,7 +117,7 @@ export function FormLabel({ children, required = false, htmlFor }: { children: R
     return (
         <label className="admin-label" htmlFor={htmlFor}>
             {children}
-            {required && <span className="text-red-500 mr-1">*</span>}
+            {required && <span className="text-red-500 me-1">*</span>}
         </label>
     );
 }

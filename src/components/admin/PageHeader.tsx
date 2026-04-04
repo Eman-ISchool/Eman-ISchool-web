@@ -112,7 +112,7 @@ export function PageHeader({
 
                 {/* Dropdown Menu */}
                 {secondaryActions.length > 1 && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="absolute end-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                     <div className="py-1">
                       {secondaryActions.map((action, index) => (
                         <button

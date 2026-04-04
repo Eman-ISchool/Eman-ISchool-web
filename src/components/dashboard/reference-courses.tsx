@@ -250,12 +250,12 @@ function SearchField({
 }) {
   return (
     <div className="relative flex-1">
-      <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="absolute end-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <Input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 rounded-2xl border-slate-200 bg-white pr-11 shadow-sm"
+        className="h-11 rounded-2xl border-slate-200 bg-white pe-11 shadow-sm"
       />
     </div>
   );
@@ -413,6 +413,8 @@ function RichTextBox({
 }
 
 function UploadPanel() {
+  const locale = useLocale();
+  const isAr = locale === 'ar';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -472,7 +474,7 @@ function UploadPanel() {
           <button
             type="button"
             onClick={() => { setPreview(null); setFileName(null); }}
-            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-sm hover:bg-red-600"
+            className="absolute -end-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-sm hover:bg-red-600"
           >
             ×
           </button>
@@ -483,7 +485,7 @@ function UploadPanel() {
         </div>
       )}
       <p className="text-sm font-semibold text-slate-600">
-        {fileName || (isDragging ? 'Drop image here' : 'Drag and drop an image here, or')}
+        {fileName || (isDragging ? (isAr ? 'أفلت الصورة هنا' : 'Drop image here') : (isAr ? 'اسحب وأفلت صورة هنا، أو' : 'Drag and drop an image here, or'))}
       </p>
       <button
         type="button"
@@ -491,17 +493,21 @@ function UploadPanel() {
         onClick={() => fileInputRef.current?.click()}
       >
         <UploadCloud className="h-4 w-4" />
-        {preview ? 'Change Image' : 'Upload Image'}
+        {preview ? (isAr ? 'تغيير الصورة' : 'Change Image') : (isAr ? 'رفع صورة' : 'Upload Image')}
       </button>
-      <p className="mt-4 text-xs text-slate-400">Supported formats: jpg, jpeg, png, gif, webp (max 5MB)</p>
+      <p className="mt-4 text-xs text-slate-400">{isAr ? 'الصيغ المدعومة: jpg, jpeg, png, gif, webp (الحد الأقصى 5 ميغابايت)' : 'Supported formats: jpg, jpeg, png, gif, webp (max 5MB)'}</p>
     </div>
   );
 }
 
-const CALENDAR_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const CALENDAR_MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const CALENDAR_MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 function CalendarMonthView({ liveSessions = [] }: { liveSessions?: CourseLiveSessionItem[] }) {
-  const columns = ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun'];
+  const locale = useLocale();
+  const isAr = locale === 'ar';
+  const CALENDAR_MONTHS = isAr ? CALENDAR_MONTHS_AR : CALENDAR_MONTHS_EN;
+  const columns = isAr ? ['سبت', 'جمعة', 'خميس', 'أربعاء', 'ثلاثاء', 'اثنين', 'أحد'] : ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun'];
   const [activeView, setActiveView] = useState<string>('الشهر');
   const [monthOffset, setMonthOffset] = useState(0); // 0 = March 2026
 
@@ -679,7 +685,7 @@ function CourseInfoTab({
                   <option value="رحمة خليل">رحمة خليل</option>
                   <option value="Zainab elfadili Ibrahim">Zainab elfadili Ibrahim</option>
                 </select>
-                <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
 
@@ -696,9 +702,9 @@ function CourseInfoTab({
           <h2 className="text-3xl font-black text-slate-950">بيانات الاجتماع</h2>
           <Button onClick={handleMeetClick} disabled={meetLoading} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
             {meetLoading ? (
-              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+              <Loader2 className="ms-2 h-4 w-4 animate-spin" />
             ) : (
-              <Video className="ml-2 h-4 w-4" />
+              <Video className="ms-2 h-4 w-4" />
             )}
             {meetLoading ? 'جاري الإنشاء...' : meetingLink ? 'فتح الاجتماع' : 'إنشاء اجتماع'}
           </Button>
@@ -751,7 +757,7 @@ const ListSectionCard = React.memo(function ListSectionCard({
 
         {Icon && actionLabel ? (
           <Button onClick={onAction} className="h-11 rounded-full bg-[#171717] px-4 text-white hover:bg-black/85">
-            <Icon className="ml-2 h-4 w-4" />
+            <Icon className="ms-2 h-4 w-4" />
             {actionLabel}
           </Button>
         ) : actionLabel ? (
@@ -1075,6 +1081,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [addSection, setAddSection] = useState<'lesson' | 'assignment' | 'exam' | 'live' | null>(null);
+  const [liveViewMode, setLiveViewMode] = useState<'calendar' | 'list'>('calendar');
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemContent, setNewItemContent] = useState('');
   const [newItemVideoUrl, setNewItemVideoUrl] = useState('');
@@ -1225,7 +1232,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 
         <div className="flex items-center justify-between">
           <Button onClick={handleSave} disabled={saving} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85 disabled:opacity-50">
-            {saving ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Save className="ml-2 h-4 w-4" />}
+            {saving ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Save className="ms-2 h-4 w-4" />}
             {saving ? 'جاري الحفظ...' : courseId ? 'حفظ' : 'حفظ المادة'}
           </Button>
 
@@ -1241,23 +1248,23 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
         <Tabs defaultValue="info" dir="rtl" className="space-y-4">
           <TabsList className="tabs-pill-active h-auto rounded-[1.2rem] border border-slate-200 bg-[#f4f4f4] p-1">
             <TabsTrigger value="info" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-              <BookOpen className="ml-2 h-4 w-4" />
+              <BookOpen className="ms-2 h-4 w-4" />
               المعلومات
             </TabsTrigger>
             <TabsTrigger value="lessons" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-              <FileText className="ml-2 h-4 w-4" />
+              <FileText className="ms-2 h-4 w-4" />
               الدروس
             </TabsTrigger>
             <TabsTrigger value="assignments" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-              <Pencil className="ml-2 h-4 w-4" />
+              <Pencil className="ms-2 h-4 w-4" />
               الواجبات
             </TabsTrigger>
             <TabsTrigger value="exams" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-              <FileText className="ml-2 h-4 w-4" />
+              <FileText className="ms-2 h-4 w-4" />
               الامتحانات
             </TabsTrigger>
             <TabsTrigger value="live" className="rounded-[0.9rem] border border-transparent px-5 py-3 data-[state=active]:border-slate-800 data-[state=active]:bg-white data-[state=active]:shadow-none">
-              <Video className="ml-2 h-4 w-4" />
+              <Video className="ms-2 h-4 w-4" />
               الحصص المباشرة
             </TabsTrigger>
           </TabsList>
@@ -1443,11 +1450,64 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 
                 <div className="flex items-center gap-3">
                   <h2 className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-lg font-semibold text-slate-800">الفصول المباشرة</h2>
-                  <span className="rounded-2xl bg-[#f4f4f4] px-4 py-3 text-sm text-slate-500">عرض القائمة</span>
+                  <button
+                    type="button"
+                    onClick={() => setLiveViewMode(liveViewMode === 'calendar' ? 'list' : 'calendar')}
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition cursor-pointer ${
+                      liveViewMode === 'list'
+                        ? 'bg-[#171717] text-white'
+                        : 'bg-[#f4f4f4] text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    عرض القائمة
+                  </button>
                 </div>
               </div>
 
-              <CalendarMonthView liveSessions={courseData?.liveSessions || []} />
+              {liveViewMode === 'calendar' ? (
+                <CalendarMonthView liveSessions={courseData?.liveSessions || []} />
+              ) : (
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white shadow-sm">
+                  <div className="overflow-hidden rounded-[1.5rem]">
+                    <table className="w-full text-right text-sm">
+                      <thead className="border-b border-slate-200 bg-[#f4f4f4]">
+                        <tr>
+                          <th className="px-5 py-4 font-semibold text-slate-700">اليوم</th>
+                          <th className="px-5 py-4 font-semibold text-slate-700">الوقت</th>
+                          <th className="px-5 py-4 font-semibold text-slate-700">العنوان</th>
+                          <th className="px-5 py-4 font-semibold text-slate-700">المعلم</th>
+                          <th className="px-5 py-4 font-semibold text-slate-700">الرابط</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {(courseData?.liveSessions || []).length > 0 ? (
+                          (courseData?.liveSessions || []).map((session) => (
+                            <tr key={session.id} className="hover:bg-slate-50">
+                              <td className="px-5 py-4 text-slate-900 font-semibold">{session.day}</td>
+                              <td className="px-5 py-4 text-[#a45a12] font-bold">{session.time}</td>
+                              <td className="px-5 py-4 text-slate-700 max-w-[200px] truncate">{session.title}</td>
+                              <td className="px-5 py-4 text-slate-500">{session.teacher}</td>
+                              <td className="px-5 py-4">
+                                {session.meetLink ? (
+                                  <a href={session.meetLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">
+                                    انضمام
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-400 text-xs">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="px-5 py-12 text-center text-slate-400">لا توجد دروس مباشرة مجدولة.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -1513,31 +1573,36 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
       {addSection ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className={`w-full rounded-[1.7rem] bg-white p-6 shadow-2xl ${addSection === 'exam' ? 'max-w-2xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto`}>
-            <div className="mb-5 text-right">
-              <h3 className="text-2xl font-black text-slate-950">
-                {addSection === 'lesson' ? 'إنشاء درس' : addSection === 'assignment' ? 'إضافة واجب جديد' : addSection === 'exam' ? 'إنشاء امتحان' : 'إضافة حصة مباشرة'}
-              </h3>
-              {addSection === 'lesson' ? (
-                <p className="mt-2 text-sm text-slate-400">إضافة درس جديد للمادة الدراسية</p>
-              ) : addSection === 'exam' ? (
-                <p className="mt-2 text-sm text-slate-400">إدارة امتحانات هذه المادة الدراسية.</p>
-              ) : null}
+            <div className="mb-5 flex items-start justify-between">
+              <button type="button" onClick={resetModal} className="mt-1 text-slate-400 hover:text-slate-600">
+                <X className="h-5 w-5" />
+              </button>
+              <div className="text-right">
+                <h3 className="text-2xl font-black text-slate-950">
+                  {addSection === 'lesson' ? 'إنشاء درس' : addSection === 'assignment' ? 'إضافة واجب جديد' : addSection === 'exam' ? 'إنشاء امتحان' : 'إضافة درس مباشر'}
+                </h3>
+                <p className="mt-2 text-sm text-slate-400">
+                  {addSection === 'lesson' ? 'إضافة درس جديد للمادة الدراسية' : addSection === 'exam' ? 'إدارة امتحانات هذه المادة الدراسية.' : addSection === 'live' ? 'جدولة درس مباشر مع تاريخ ووقت البداية والنهاية.' : null}
+                </p>
+              </div>
             </div>
 
             <div className="space-y-4 text-right">
-              {/* Title field — all types */}
+              {/* Title field — lesson, assignment, exam (NOT live) */}
+              {addSection !== 'live' ? (
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">
-                  {addSection === 'lesson' ? 'عنوان الدرس' : addSection === 'assignment' ? 'عنوان الواجب' : addSection === 'exam' ? 'عنوان الامتحان' : 'عنوان الحصة'}
+                  {addSection === 'lesson' ? 'عنوان الدرس' : addSection === 'assignment' ? 'عنوان الواجب' : 'عنوان الامتحان'}
                 </label>
                 <Input
                   value={newItemTitle}
                   onChange={(event) => setNewItemTitle(event.target.value)}
-                  placeholder={addSection === 'lesson' ? 'أدخل عنوان الدرس' : addSection === 'assignment' ? 'أدخل عنوان الواجب' : addSection === 'exam' ? 'العنوان' : 'أدخل عنوان الحصة'}
+                  placeholder={addSection === 'lesson' ? 'أدخل عنوان الدرس' : addSection === 'assignment' ? 'أدخل عنوان الواجب' : 'العنوان'}
                   autoFocus
                   className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
                 />
               </div>
+              ) : null}
 
               {/* Content textarea — lesson only */}
               {addSection === 'lesson' ? (
@@ -1590,7 +1655,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                         <option value="اختبارات شهرية">اختبارات شهرية</option>
                         <option value="اختبارات يومية">اختبارات يومية</option>
                       </select>
-                      <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -1634,7 +1699,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                         <option value="مسودة">مسودة</option>
                         <option value="منشور">منشور</option>
                       </select>
-                      <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     </div>
                   </div>
                 </>
@@ -1658,7 +1723,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">
                     تاريخ الدرس
-                    <span className="mr-1 text-xs font-normal text-slate-400">(اختياري)</span>
+                    <span className="me-1 text-xs font-normal text-slate-400">(اختياري)</span>
                   </label>
                   <Input
                     type="datetime-local"
@@ -1670,12 +1735,12 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 </div>
               ) : null}
 
-              {/* Date field — live session */}
+              {/* Start time — live session */}
               {addSection === 'live' ? (
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">التاريخ</label>
+                  <label className="text-sm font-semibold text-slate-700">وقت البدء</label>
                   <Input
-                    type="date"
+                    type="datetime-local"
                     value={newItemDueDate}
                     onChange={(event) => setNewItemDueDate(event.target.value)}
                     className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
@@ -1683,16 +1748,39 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 </div>
               ) : null}
 
-              {/* Time field — live session */}
+              {/* End time — live session */}
               {addSection === 'live' ? (
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">الوقت</label>
+                  <label className="text-sm font-semibold text-slate-700">وقت الانتهاء</label>
                   <Input
-                    type="time"
+                    type="datetime-local"
                     value={newItemTime}
                     onChange={(event) => setNewItemTime(event.target.value)}
                     className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
                   />
+                </div>
+              ) : null}
+
+              {/* Weekday checkboxes — live session */}
+              {addSection === 'live' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">ايام الاسبوع</label>
+                  <div className="flex flex-wrap gap-3 justify-end">
+                    {[
+                      { key: 'sun', label: 'الأحد' },
+                      { key: 'mon', label: 'الاثنين' },
+                      { key: 'tue', label: 'الثلاثاء' },
+                      { key: 'wed', label: 'الأربعاء' },
+                      { key: 'thu', label: 'الخميس' },
+                      { key: 'fri', label: 'الجمعة' },
+                      { key: 'sat', label: 'السبت' },
+                    ].map((day) => (
+                      <label key={day.key} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50">
+                        <span>{day.label}</span>
+                        <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-slate-900" />
+                      </label>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
@@ -1701,7 +1789,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">
                     رابط الفيديو
-                    <span className="mr-1 text-xs font-normal text-slate-400">(اختياري)</span>
+                    <span className="me-1 text-xs font-normal text-slate-400">(اختياري)</span>
                   </label>
                   <input
                     ref={lessonVideoInputRef}
@@ -1740,19 +1828,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                 </div>
               ) : null}
 
-              {/* Live session link */}
-              {addSection === 'live' ? (
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">رابط الحصة</label>
-                  <Input
-                    dir="ltr"
-                    value={newItemVideoUrl}
-                    onChange={(event) => setNewItemVideoUrl(event.target.value)}
-                    placeholder="https://"
-                    className="h-12 rounded-[1rem] border-slate-200 bg-white font-mono"
-                  />
-                </div>
-              ) : null}
+              {/* Live session link — hidden, auto-generated via Google Meet API */}
 
               {/* Publish checkbox — lesson only */}
               {addSection === 'lesson' ? (
@@ -1770,7 +1846,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 
             <div className="mt-6 flex justify-start gap-3">
               <button type="button" onClick={handleAddItem} className="inline-flex items-center gap-2 rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white">
-                {addSection === 'exam' ? <><Save className="h-4 w-4" /> إنشاء</> : addSection === 'lesson' ? 'إنشاء' : addSection === 'assignment' ? 'إنشاء واجب' : 'إضافة حصة'}
+                {addSection === 'exam' ? <><Save className="h-4 w-4" /> إنشاء</> : addSection === 'lesson' ? 'إنشاء' : addSection === 'assignment' ? 'إنشاء واجب' : 'حفظ'}
               </button>
               <button type="button" onClick={resetModal} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900">
                 إلغاء
@@ -1825,6 +1901,8 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
 }
 
 export function ReferenceCategoriesPage() {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [rows, setRows] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1855,7 +1933,9 @@ export function ReferenceCategoriesPage() {
           description: item.description || 'لا يوجد وصف',
           courses: '—',
           bundles: '—',
-          createdAt: item.created_at || '-',
+          createdAt: item.created_at
+            ? new Date(item.created_at).toLocaleDateString(isArabic ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            : '-',
         }));
         setRows(mapped);
       } catch (_err) {
@@ -1896,7 +1976,9 @@ export function ReferenceCategoriesPage() {
           description: data.description || description.trim() || 'لا يوجد وصف',
           courses: '—',
           bundles: '—',
-          createdAt: data.created_at || '-',
+          createdAt: data.created_at
+            ? new Date(data.created_at).toLocaleDateString(isArabic ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            : '-',
         },
         ...current,
       ]);
@@ -1988,7 +2070,7 @@ export function ReferenceCategoriesPage() {
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                     {openMenuId === row.id && (
-                      <div className="absolute left-0 top-full z-50 mt-1 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                      <div className="absolute start-0 top-full z-50 mt-1 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setEditRow(row); setEditName(row.name); setEditDescription(row.description === 'لا يوجد وصف' ? '' : row.description); setOpenMenuId(null); }}
@@ -2254,11 +2336,11 @@ export function ReferenceBundlesPage() {
           </select>
           <PillButton variant="secondary">
             <UploadCloud className="h-4 w-4" />
-            dashboard.bundles.import
+            استيراد
           </PillButton>
           <PillButton variant="secondary">
             <Download className="h-4 w-4" />
-            dashboard.bundles.export
+            تصدير
           </PillButton>
         </TopBar>
 
@@ -2496,7 +2578,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
           </div>
 
           <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
-            <Save className="ml-2 h-4 w-4" />
+            <Save className="ms-2 h-4 w-4" />
             حفظ الفصل
           </Button>
         </div>
@@ -2546,7 +2628,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                       <option value="اللغات">اللغات</option>
                       <option value="second">second</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   </div>
                 </div>
 
@@ -2558,7 +2640,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                       <option value="ابراهيم محمد">ابراهيم محمد</option>
                       <option value="رحمة خليل">رحمة خليل</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   </div>
                 </div>
 
@@ -2819,7 +2901,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                     <option value="ابراهيم محمد">ابراهيم محمد</option>
                     <option value="رحمة خليل">رحمة خليل</option>
                   </select>
-                  <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -2882,7 +2964,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                     placeholder="قم بتحديد تاريخ الاستحقاق"
                     className="h-12 rounded-[1rem] border-slate-200 bg-white text-right"
                   />
-                  <Calendar className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Calendar className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -2930,7 +3012,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                       <option key={s.id} value={s.name}>{s.name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -2950,7 +3032,7 @@ export function ReferenceBundleEditorPage({ bundleId }: { bundleId?: string }) {
                     <option value="الجمعة">الجمعة (Friday)</option>
                     <option value="السبت">السبت (Saturday)</option>
                   </select>
-                  <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -3125,7 +3207,7 @@ export function ReferenceLessonDetailPage({ lessonId }: { lessonId: string }) {
 
         <div className="flex items-center justify-between">
           <Button onClick={handleSave} className="h-12 rounded-full bg-[#171717] px-5 text-white hover:bg-black/85">
-            <Save className="ml-2 h-4 w-4" />
+            <Save className="ms-2 h-4 w-4" />
             حفظ الدرس
           </Button>
 

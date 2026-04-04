@@ -45,7 +45,7 @@ export function PublishCourseButton({
             disabled={isLoading}
             className={!isPublished ? "bg-green-600 hover:bg-green-700 text-white" : ""}
         >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {isPublished ? t('unpublish') : t('publish')}
         </Button>
     );

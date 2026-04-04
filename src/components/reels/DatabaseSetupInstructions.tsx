@@ -58,7 +58,7 @@ export function DatabaseSetupInstructions() {
                     </div>
 
                     <div className="space-y-4 mb-8">
-                        <div className="border-l-4 border-blue-500 pl-4">
+                        <div className="border-s-4 border-blue-500 ps-4">
                             <h3 className="font-semibold text-gray-800 mb-2">Option 1: Quick Setup (Recommended)</h3>
                             <p className="text-gray-600 mb-3">
                                 Use the simulation API to automatically create sample reels:
@@ -80,12 +80,12 @@ export function DatabaseSetupInstructions() {
                             )}
                         </div>
 
-                        <div className="border-l-4 border-purple-500 pl-4">
+                        <div className="border-s-4 border-purple-500 ps-4">
                             <h3 className="font-semibold text-gray-800 mb-2">Option 2: Manual Setup</h3>
                             <p className="text-gray-600 mb-2">
                                 Execute the SQL migration in Supabase Dashboard:
                             </p>
-                            <ol className="list-decimal list-inside space-y-2 text-gray-600 ml-4">
+                            <ol className="list-decimal list-inside space-y-2 text-gray-600 ms-4">
                                 <li>Open your Supabase Dashboard</li>
                                 <li>Navigate to SQL Editor</li>
                                 <li>Click "New Query"</li>
@@ -110,7 +110,7 @@ export function DatabaseSetupInstructions() {
                     <p className="text-yellow-800 text-sm">
                         If you see this message, it means either:
                     </p>
-                    <ul className="list-disc list-inside text-yellow-800 text-sm ml-4 mt-2">
+                    <ul className="list-disc list-inside text-yellow-800 text-sm ms-4 mt-2">
                         <li>The database tables haven't been created yet</li>
                         <li>There are no reels in the database</li>
                         <li>The Nanobana API key is not configured (simulation mode is active)</li>

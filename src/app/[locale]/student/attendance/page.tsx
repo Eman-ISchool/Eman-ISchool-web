@@ -4,6 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { CalendarX } from 'lucide-react';
 
 export default async function StudentAttendancePage({
     params: { locale }
@@ -99,7 +101,11 @@ export default async function StudentAttendancePage({
                             </table>
                         </div>
                     ) : (
-                        <div className="text-center py-8 text-gray-500">No attendance records found.</div>
+                        <EmptyState
+                            icon={<CalendarX className="h-12 w-12 text-slate-400" />}
+                            title="No Attendance Records"
+                            description="No attendance records have been recorded for your lessons yet."
+                        />
                     )}
                 </CardContent>
             </Card>

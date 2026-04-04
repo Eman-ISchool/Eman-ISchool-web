@@ -244,7 +244,7 @@ export function LessonForm({ courseId, subjectId, lesson, locale }: LessonFormPr
                         disabled={isLoading}
                         className="bg-brand-primary text-black hover:bg-yellow-400"
                     >
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                         {t('save')}
                     </Button>
                 </CardFooter>

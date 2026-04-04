@@ -1,0 +1,12 @@
+⚠️ login (/ar/login) → 0 ERROR: page.goto: Timeout 15000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/login", waiting until "networkidle"[22m
+
+⚠️ login-admin (/ar/login/admin) → 0 ERROR: page.goto: Test timeout of 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/ar/login/admin", waiting until "networkidle"[22m
+
+⚠️ login-student (/ar/login/student) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ login-teacher (/ar/login/teacher) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ register (/ar/register) → 0 ERROR: page.goto: Target page, context or browser has been closed
+⚠️ forgot-password (/ar/forgot-password) → 0 ERROR: page.goto: Target page, context or browser has been closed

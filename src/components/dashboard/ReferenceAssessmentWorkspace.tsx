@@ -166,7 +166,7 @@ export default function ReferenceAssessmentWorkspace({ scope }: { scope: Assessm
                 className="rounded-full border-slate-300"
                 onClick={() => showNotice(isArabic ? 'تم تحديث حالة النماذج.' : 'Assessment state refreshed.')}
               >
-                <TimerReset className="ml-2 h-4 w-4" />
+                <TimerReset className="ms-2 h-4 w-4" />
                 {isArabic ? 'تحديث' : 'Refresh'}
               </Button>
               <Button
@@ -192,7 +192,7 @@ export default function ReferenceAssessmentWorkspace({ scope }: { scope: Assessm
           <div className="mt-6 rounded-[1.6rem] bg-slate-50 p-4">
             <div className="grid gap-3 md:grid-cols-[1fr_auto]">
               <div className="relative">
-                <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute end-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}

@@ -36,7 +36,7 @@ export function SubjectTabs({ activeTab, setActiveTab, counts }: SubjectTabsProp
                         {tab.icon}
                         {tab.label}
                         {tab.count !== undefined && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs">
+                            <span className="ms-1 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs">
                                 {tab.count}
                             </span>
                         )}

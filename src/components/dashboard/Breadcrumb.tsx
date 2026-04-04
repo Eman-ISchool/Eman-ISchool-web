@@ -17,7 +17,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             <ol className="inline-flex items-center space-x-1 md:space-x-3 space-x-reverse">
                 <li className="inline-flex items-center">
                     <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-brand-primary">
-                        <Home className="ml-2 w-4 h-4" />
+                        <Home className="ms-2 w-4 h-4" />
                         الرئيسية
                     </Link>
                 </li>

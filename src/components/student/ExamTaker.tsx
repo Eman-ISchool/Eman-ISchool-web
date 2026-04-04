@@ -171,7 +171,7 @@ export function ExamTaker({
                                         <div>
                                             <CardTitle className="text-lg leading-relaxed font-medium text-gray-800">
                                                 {q.question_text}
-                                                {q.is_mandatory && <span className="text-red-500 ml-1" title="Required">*</span>}
+                                                {q.is_mandatory && <span className="text-red-500 ms-1" title="Required">*</span>}
                                             </CardTitle>
                                         </div>
                                     </div>
@@ -242,7 +242,7 @@ export function ExamTaker({
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 flex justify-end gap-4 lg:pl-64">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 flex justify-end gap-4 lg:ps-64">
                 <Button
                     type="submit"
                     disabled={isSubmitting}

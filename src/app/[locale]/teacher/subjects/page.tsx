@@ -5,6 +5,7 @@ import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
 import { withLocalePrefix } from '@/lib/locale-path';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default async function TeacherSubjectsPage({ params: { locale } }: { params: { locale: string } }) {
     const session = await getServerSession(authOptions);
@@ -16,6 +17,8 @@ export default async function TeacherSubjectsPage({ params: { locale } }: { para
     if (!currentUser || !isTeacherOrAdmin(currentUser.role)) {
         redirect('/auth/error?error=AccessDenied');
     }
+
+    const isArabic = locale === 'ar';
 
     let subjects: any[] = [];
 
@@ -35,24 +38,25 @@ export default async function TeacherSubjectsPage({ params: { locale } }: { para
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">My Subjects</h1>
-                    <p className="text-gray-500 mt-1">Manage your teaching subjects and related courses</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{isArabic ? 'موادي' : 'My Subjects'}</h1>
+                    <p className="text-gray-500 mt-1">{isArabic ? 'إدارة المواد الدراسية والدورات المرتبطة' : 'Manage your teaching subjects and related courses'}</p>
                 </div>
                 <Link
                     href={withLocalePrefix('/teacher/subjects/new', locale)}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
-                    New Subject
+                    {isArabic ? 'مادة جديدة' : 'New Subject'}
                 </Link>
             </div>
 
             {subjects.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl">
-                    <Layers className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No Subjects Configured</h3>
-                    <p className="text-gray-500">Create subjects to organize your teaching courses and materials.</p>
-                </div>
+                <EmptyState
+                    icon={<Layers className="w-8 h-8 text-gray-400" />}
+                    title={isArabic ? 'لم يتم تكوين مواد' : 'No Subjects Configured'}
+                    description={isArabic ? 'أنشئ مواد لتنظيم دوراتك التعليمية والمواد الدراسية.' : 'Create subjects to organize your teaching courses and materials.'}
+                    action={{ label: isArabic ? 'مادة جديدة' : 'New Subject', href: withLocalePrefix('/teacher/subjects/new', locale) }}
+                />
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {subjects.map((subject: any) => (
@@ -79,10 +83,10 @@ export default async function TeacherSubjectsPage({ params: { locale } }: { para
                                 )}
                                 <div className="flex items-center gap-2 mt-3">
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${subject.is_active ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                                        {subject.is_active ? 'Active' : 'Inactive'}
+                                        {subject.is_active ? (isArabic ? 'نشط' : 'Active') : (isArabic ? 'غير نشط' : 'Inactive')}
                                     </span>
                                     <span className="text-xs text-gray-400">
-                                        {subject.courses?.[0]?.count || 0} courses
+                                        {subject.courses?.[0]?.count || 0} {isArabic ? 'دورات' : 'courses'}
                                     </span>
                                 </div>
                             </div>

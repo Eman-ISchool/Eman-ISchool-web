@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Check, X, Clock, AlertCircle } from 'lucide-react';
@@ -28,6 +29,8 @@ interface AttendanceRecord {
 }
 
 export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, courseId: string }) {
+    const locale = useLocale();
+    const isArabic = locale === 'ar';
     const [students, setStudents] = useState<Student[]>([]);
     const [records, setRecords] = useState<Record<string, AttendanceRecord['status']>>({});
     const [notes, setNotes] = useState<Record<string, string>>({});
@@ -93,9 +96,9 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
 
             if (!res.ok) throw new Error('Failed to save');
 
-            toast({ title: 'Attendance Saved', description: 'Records have been updated.' });
+            toast({ title: isArabic ? 'تم حفظ الحضور' : 'Attendance Saved', description: isArabic ? 'تم تحديث السجلات.' : 'Records have been updated.' });
         } catch (error) {
-            toast({ title: 'Error', description: 'Failed to save attendance.', variant: 'destructive' });
+            toast({ title: isArabic ? 'خطأ' : 'Error', description: isArabic ? 'فشل في حفظ الحضور.' : 'Failed to save attendance.', variant: 'destructive' });
         } finally {
             setIsSaving(false);
         }
@@ -112,12 +115,12 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Attendance Sheet</CardTitle>
+                <CardTitle>{isArabic ? 'كشف الحضور' : 'Attendance Sheet'}</CardTitle>
                 <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => markAll('present')}>Mark All Present</Button>
+                    <Button size="sm" variant="outline" onClick={() => markAll('present')}>{isArabic ? 'تحديد الكل حاضر' : 'Mark All Present'}</Button>
                     <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Save Changes
+                        {isSaving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : null}
+                        {isArabic ? 'حفظ التغييرات' : 'Save Changes'}
                     </Button>
                 </div>
             </CardHeader>
@@ -126,9 +129,9 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 uppercase">
                             <tr>
-                                <th className="px-4 py-3 text-left">Student</th>
-                                <th className="px-4 py-3 text-center">Status</th>
-                                <th className="px-4 py-3 text-left">Notes</th>
+                                <th className="px-4 py-3 text-start">{isArabic ? 'الطالب' : 'Student'}</th>
+                                <th className="px-4 py-3 text-center">{isArabic ? 'الحالة' : 'Status'}</th>
+                                <th className="px-4 py-3 text-start">{isArabic ? 'ملاحظات' : 'Notes'}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y relative">
@@ -143,7 +146,7 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                                                 icon={<Check className="h-4 w-4" />}
                                                 color="bg-green-100 text-green-700 hover:bg-green-200"
                                                 activeColor="bg-green-600 text-white hover:bg-green-700"
-                                                label="Present"
+                                                label={isArabic ? 'حاضر' : 'Present'}
                                             />
                                             <StatusButton
                                                 active={records[student.id] === 'absent'}
@@ -151,7 +154,7 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                                                 icon={<X className="h-4 w-4" />}
                                                 color="bg-red-100 text-red-700 hover:bg-red-200"
                                                 activeColor="bg-red-600 text-white hover:bg-red-700"
-                                                label="Absent"
+                                                label={isArabic ? 'غائب' : 'Absent'}
                                             />
                                             <StatusButton
                                                 active={records[student.id] === 'late'}
@@ -159,7 +162,7 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                                                 icon={<Clock className="h-4 w-4" />}
                                                 color="bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                                                 activeColor="bg-yellow-500 text-white hover:bg-yellow-600"
-                                                label="Late"
+                                                label={isArabic ? 'متأخر' : 'Late'}
                                             />
                                             <StatusButton
                                                 active={records[student.id] === 'excused'}
@@ -167,14 +170,14 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                                                 icon={<AlertCircle className="h-4 w-4" />}
                                                 color="bg-blue-100 text-blue-700 hover:bg-blue-200"
                                                 activeColor="bg-blue-500 text-white hover:bg-blue-600"
-                                                label="Excused"
+                                                label={isArabic ? 'معذور' : 'Excused'}
                                             />
                                         </div>
                                     </td>
                                     <td className="px-4 py-3">
                                         <input
                                             className="w-full border rounded px-2 py-1 text-sm"
-                                            placeholder="Notes..."
+                                            placeholder={isArabic ? 'ملاحظات...' : 'Notes...'}
                                             value={notes[student.id] || ''}
                                             onChange={(e) => handleNoteChange(student.id, e.target.value)}
                                         />
@@ -183,7 +186,7 @@ export function AttendanceSheet({ lessonId, courseId }: { lessonId: string, cour
                             ))}
                         </tbody>
                     </table>
-                    {students.length === 0 && <div className="p-8 text-center text-gray-500">No students enrolled.</div>}
+                    {students.length === 0 && <div className="p-8 text-center text-gray-500">{isArabic ? 'لا يوجد طلاب مسجلين.' : 'No students enrolled.'}</div>}
                 </div>
             </CardContent>
         </Card>

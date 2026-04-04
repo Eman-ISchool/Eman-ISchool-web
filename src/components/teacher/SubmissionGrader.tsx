@@ -220,7 +220,7 @@ export function SubmissionGrader({
 
                                         <div className="mt-4 flex justify-end font-semibold text-sm">
                                             Points Awarded:
-                                            <span className={`ml-2 ${a?.points_awarded > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className={`ms-2 ${a?.points_awarded > 0 ? 'text-green-600' : 'text-red-500'}`}>
                                                 {a?.points_awarded || 0} / {q.points}
                                             </span>
                                         </div>
@@ -289,7 +289,7 @@ export function SubmissionGrader({
                 })}
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 flex justify-end gap-4 lg:pl-64">
+            <div className="fixed bottom-0 inset-x-0 p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 flex justify-end gap-4 lg:ps-64">
                 <Button
                     onClick={handleSaveGrades}
                     disabled={isSaving}
