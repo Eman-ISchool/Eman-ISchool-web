@@ -1,9 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const ReferenceCoursesCatalogPage = dynamic(
-  () => import('@/components/dashboard/reference-courses').then(m => ({ default: m.ReferenceCoursesCatalogPage })),
-  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-gray-100 rounded-xl" /> }
-);
+import { ReferenceCoursesCatalogPage } from '@/components/dashboard/reference-courses';
 
 export default function DashboardCoursesPage() {
   return <ReferenceCoursesCatalogPage />;

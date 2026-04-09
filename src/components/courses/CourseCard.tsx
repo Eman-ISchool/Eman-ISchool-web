@@ -61,7 +61,7 @@ export function CourseCard({ course, locale, role }: CourseCardProps) {
                 <div className="flex items-center gap-2 mb-3">
                     <div className="h-6 w-6 rounded-full bg-gray-200 overflow-hidden relative">
                         {course.teacher?.image ? (
-                            <Image src={course.teacher.image} alt={course.teacher.name} fill />
+                            <Image src={course.teacher.image} alt={course.teacher.name} fill sizes="24px" />
                         ) : (
                             <div className="w-full h-full bg-brand-primary/20 flex items-center justify-center text-[10px] text-brand-primary font-bold">
                                 {course.teacher?.name?.charAt(0) || 'T'}

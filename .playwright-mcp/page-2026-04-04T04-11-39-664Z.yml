@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e12]:
+        - tablist [ref=e15]:
+          - tab "Sign in" [selected] [ref=e16]
+          - tab "Register" [ref=e17]
+        - tabpanel "Sign in" [ref=e18]:
+          - heading "Sign in to your account" [level=1] [ref=e20]
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - text: auth.login.phonePlaceholder
+              - generic [ref=e24]:
+                - combobox [ref=e25]:
+                  - generic [ref=e26]:
+                    - generic [ref=e27]: 🇦🇪
+                    - generic [ref=e28]: "+971"
+                  - img
+                - spinbutton "auth.login.phonePlaceholder" [ref=e30]
+            - generic [ref=e31]:
+              - text: Enter your password
+              - generic [ref=e33]:
+                - img [ref=e35]
+                - textbox "Enter your password" [ref=e39]
+                - button [ref=e41]:
+                  - img
+            - button "Sign in" [ref=e42]
+            - link "Forgot password?" [ref=e44] [cursor=pointer]:
+              - /url: /forgot-password
+      - img "Authentication background" [ref=e46]
+  - region "Notifications alt+T"
+  - alert [ref=e47]

@@ -1003,32 +1003,13 @@ export default function AdminCourseDetailsPage({ params }: { params: { id: strin
     }, []);
 
     useEffect(() => {
-        // No single-course GET endpoint; fetch list and find by ID
-        // Support both UUID lookup and numeric index (1-based) for compatibility with reference site
-        fetch(`/api/courses?limit=50`)
+        fetch(`/api/courses/${params.id}`)
             .then((r) => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
             .then((d) => {
-                const courses = d.courses || [];
-                // First try exact ID match, then slug-based for known numeric IDs, then index fallback
-                let c = courses.find((course: any) => String(course.id) === String(params.id));
-                if (!c && /^\d+$/.test(params.id)) {
-                    // Map known numeric IDs to slugs matching reference site
-                    const slugMap: Record<string, string> = { '1': 'basics-english-level-1', '2': 'electronic-teacher-course', '3': 'basics-english-level-2' };
-                    const targetSlug = slugMap[params.id];
-                    if (targetSlug) {
-                        c = courses.find((course: any) => course.slug === targetSlug);
-                    }
-                    // Fallback to index-based
-                    if (!c) {
-                        const idx = parseInt(params.id, 10) - 1;
-                        if (idx >= 0 && idx < courses.length) {
-                            c = courses[idx];
-                        }
-                    }
-                }
+                const c = d.course;
                 if (!c) {
                     setCourseLoadError(isArabic ? 'لم يتم العثور على المادة الدراسية' : 'Course not found');
                     return;

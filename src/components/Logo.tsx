@@ -7,6 +7,7 @@ export function Logo({ className = '' }: { className?: string }) {
                 src="/logo-full.jpg"
                 alt="Eman ISchool"
                 fill
+                sizes="(min-width: 768px) 160px, 128px"
                 className="object-contain"
                 priority
             />

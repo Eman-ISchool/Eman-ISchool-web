@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Tajawal } from 'next/font/google';
-import { Inter } from 'next/font/google';
+import { Tajawal, Inter } from 'next/font/google';
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
@@ -52,6 +51,13 @@ export default function RootLayout({
 }>) {
   return (
     <html className={`${tajawal.variable} ${geistFallback.variable} font-sans`}>
+      <head>
+        {/* Preconnect to critical third-party origins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for non-critical origins */}
+        <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+      </head>
       <body className={`antialiased min-h-screen flex flex-col bg-gray-50`}>
         {children}
       </body>

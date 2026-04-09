@@ -1,0 +1,382 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: ا
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: ابراهيم محمد
+            - paragraph [ref=e12]: ADMIN
+        - generic [ref=e13]:
+          - link "الرئيسية" [ref=e14] [cursor=pointer]:
+            - /url: /ar/dashboard
+            - generic [ref=e15]: الرئيسية
+            - img [ref=e16]
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - button "الأكاديمي" [ref=e23]:
+                - generic [ref=e24]:
+                  - img [ref=e25]
+                  - generic [ref=e27]: الأكاديمي
+                - img [ref=e28]
+              - generic [ref=e30]:
+                - link "المواد الدراسية" [ref=e31] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses
+                  - generic [ref=e32]: المواد الدراسية
+                  - img [ref=e33]
+                - link "الفئات" [ref=e35] [cursor=pointer]:
+                  - /url: /ar/dashboard/categories
+                  - generic [ref=e36]: الفئات
+                  - img [ref=e37]
+                - link "الفصول" [ref=e39] [cursor=pointer]:
+                  - /url: /ar/dashboard/bundles
+                  - generic [ref=e40]: الفصول
+                  - img [ref=e41]
+                - link "الامتحانات" [ref=e43] [cursor=pointer]:
+                  - /url: /ar/dashboard/exams
+                  - generic [ref=e44]: الامتحانات
+                  - img [ref=e45]
+                - link "الاختبارات" [ref=e48] [cursor=pointer]:
+                  - /url: /ar/dashboard/quizzes
+                  - generic [ref=e49]: الاختبارات
+                  - img [ref=e50]
+            - button "الإدارة" [ref=e54]:
+              - generic [ref=e55]:
+                - img [ref=e56]
+                - generic [ref=e61]: الإدارة
+              - img [ref=e62]
+            - button "المالية" [ref=e65]:
+              - generic [ref=e66]:
+                - img [ref=e67]
+                - generic [ref=e70]: المالية
+              - img [ref=e71]
+            - button "التواصل" [ref=e74]:
+              - generic [ref=e75]:
+                - img [ref=e76]
+                - generic [ref=e79]: التواصل
+              - img [ref=e80]
+            - button "المحتوى" [ref=e83]:
+              - generic [ref=e84]:
+                - img [ref=e85]
+                - generic [ref=e87]: المحتوى
+              - img [ref=e88]
+            - button "التحليلات" [ref=e91]:
+              - generic [ref=e92]:
+                - img [ref=e93]
+                - generic [ref=e96]: التحليلات
+              - img [ref=e97]
+            - button "إدارة البيانات" [ref=e100]:
+              - generic [ref=e101]:
+                - img [ref=e102]
+                - generic [ref=e104]: إدارة البيانات
+              - img [ref=e105]
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - link "الإعدادات" [ref=e109] [cursor=pointer]:
+              - /url: /ar/dashboard/system-settings
+              - generic [ref=e110]: الإعدادات
+              - img [ref=e111]
+            - link "الملف الشخصي" [ref=e114] [cursor=pointer]:
+              - /url: /ar/dashboard/profile
+              - generic [ref=e115]: الملف الشخصي
+              - img [ref=e116]
+          - button "تسجيل الخروج" [ref=e119]:
+            - generic [ref=e120]: تسجيل الخروج
+            - img [ref=e121]
+    - generic [ref=e123]:
+      - generic [ref=e125]:
+        - button "إغلاق" [ref=e126]:
+          - img [ref=e127]
+        - generic [ref=e130]:
+          - img [ref=e132]
+          - generic [ref=e135]:
+            - paragraph [ref=e136]: تثبيت التطبيق
+            - paragraph [ref=e137]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - button "تثبيت التطبيق" [ref=e138]
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - heading "الفصول" [level=1] [ref=e142]
+          - paragraph [ref=e143]: إدارة مجموعات المواد الدراسية والفصول
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - img [ref=e147]
+              - textbox "بحث عن الفصول..." [ref=e150]
+            - combobox [ref=e151]:
+              - option "جميع الفصول" [selected]
+              - option "نشط"
+              - option "غير نشط"
+            - button "استيراد" [ref=e152]:
+              - img [ref=e153]
+              - text: استيراد
+            - button "تصدير" [ref=e156]:
+              - img [ref=e157]
+              - text: تصدير
+          - link "إنشاء فصل" [ref=e161] [cursor=pointer]:
+            - /url: /ar/dashboard/bundles/create
+            - img [ref=e162]
+            - text: إنشاء فصل
+        - generic [ref=e183]:
+          - generic [ref=e185]:
+            - generic [ref=e187]:
+              - heading "Grade 8A" [level=3] [ref=e188]
+              - generic [ref=e189]: نشط
+            - generic [ref=e190]:
+              - generic [ref=e191]: "الفئة:"
+              - generic [ref=e192]: غير مصنف
+            - generic [ref=e193]:
+              - link "معاينة" [ref=e194] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/e9c026d6-7d6f-4d83-b567-00be9d121c50
+                - img [ref=e195]
+                - text: معاينة
+              - button "حذف" [ref=e198]:
+                - img [ref=e199]
+                - generic [ref=e202]: حذف
+          - generic [ref=e204]:
+            - generic [ref=e206]:
+              - heading "Grade 4" [level=3] [ref=e207]
+              - generic [ref=e208]: نشط
+            - generic [ref=e209]:
+              - generic [ref=e210]: "الفئة:"
+              - generic [ref=e211]: غير مصنف
+            - generic [ref=e212]:
+              - link "معاينة" [ref=e213] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/8f82fe87-0467-46d6-b06e-8fa90fcee881
+                - img [ref=e214]
+                - text: معاينة
+              - button "حذف" [ref=e217]:
+                - img [ref=e218]
+                - generic [ref=e221]: حذف
+          - generic [ref=e223]:
+            - generic [ref=e225]:
+              - heading "Grade 6" [level=3] [ref=e226]
+              - generic [ref=e227]: نشط
+            - generic [ref=e228]:
+              - generic [ref=e229]: "الفئة:"
+              - generic [ref=e230]: غير مصنف
+            - generic [ref=e231]:
+              - link "معاينة" [ref=e232] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/93400c71-df6b-4e2d-aa40-58850f6a7821
+                - img [ref=e233]
+                - text: معاينة
+              - button "حذف" [ref=e236]:
+                - img [ref=e237]
+                - generic [ref=e240]: حذف
+          - generic [ref=e242]:
+            - generic [ref=e244]:
+              - heading "الصف الأول الابتدائي" [level=3] [ref=e245]
+              - generic [ref=e246]: نشط
+            - generic [ref=e247]:
+              - generic [ref=e248]: "الفئة:"
+              - generic [ref=e249]: غير مصنف
+            - generic [ref=e250]:
+              - link "معاينة" [ref=e251] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/26349f09-4acd-480c-8552-c4b1d1830a2c
+                - img [ref=e252]
+                - text: معاينة
+              - button "حذف" [ref=e255]:
+                - img [ref=e256]
+                - generic [ref=e259]: حذف
+          - generic [ref=e260]:
+            - img "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول" [ref=e261]
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - heading "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول" [level=3] [ref=e265]
+                  - generic [ref=e266]: نشط
+                - paragraph [ref=e267]: ✨ تعلم الحروف ونطقها الصحيح 🔤 التعرف على الكلمات الأساسية والجمل البسيطة 📚 تدريبات عملية تساعد الطفل على القراءة والكتابة خطوة بخطوة
+              - generic [ref=e268]:
+                - generic [ref=e269]: "الفئة:"
+                - generic [ref=e270]: غير مصنف
+              - generic [ref=e271]:
+                - link "معاينة" [ref=e272] [cursor=pointer]:
+                  - /url: /ar/dashboard/bundles/5cd80859-a299-41da-bb34-722f95a071ac
+                  - img [ref=e273]
+                  - text: معاينة
+                - button "حذف" [ref=e276]:
+                  - img [ref=e277]
+                  - generic [ref=e280]: حذف
+          - generic [ref=e282]:
+            - generic [ref=e284]:
+              - heading "الصف الثاني الابتدائي" [level=3] [ref=e285]
+              - generic [ref=e286]: نشط
+            - generic [ref=e287]:
+              - generic [ref=e288]: "الفئة:"
+              - generic [ref=e289]: غير مصنف
+            - generic [ref=e290]:
+              - link "معاينة" [ref=e291] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/bd30e3e0-7dd8-439b-ba06-30f429987277
+                - img [ref=e292]
+                - text: معاينة
+              - button "حذف" [ref=e295]:
+                - img [ref=e296]
+                - generic [ref=e299]: حذف
+          - generic [ref=e300]:
+            - img "كورس المعلم الإلكتروني" [ref=e301]
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - generic [ref=e304]:
+                  - heading "كورس المعلم الإلكتروني" [level=3] [ref=e305]
+                  - generic [ref=e306]: نشط
+                - paragraph [ref=e307]: كورس المعلم الإلكتروني
+              - generic [ref=e308]:
+                - generic [ref=e309]: "الفئة:"
+                - generic [ref=e310]: غير مصنف
+              - generic [ref=e311]:
+                - link "معاينة" [ref=e312] [cursor=pointer]:
+                  - /url: /ar/dashboard/bundles/ce40b55a-cc86-44ce-ad13-fdd97d3823ed
+                  - img [ref=e313]
+                  - text: معاينة
+                - button "حذف" [ref=e316]:
+                  - img [ref=e317]
+                  - generic [ref=e320]: حذف
+          - generic [ref=e321]:
+            - img "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني" [ref=e322]
+            - generic [ref=e323]:
+              - generic [ref=e324]:
+                - generic [ref=e325]:
+                  - heading "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني" [level=3] [ref=e326]
+                  - generic [ref=e327]: نشط
+                - paragraph [ref=e328]: "بنهاية المستوى الثاني سيتعلم الطلاب أن: يستخدموا اللغة الإنجليزية الأساسية للتحدث عن مواضيع يومية مألوفة. يكونوا جملاً بسيطة وصحيحة باستخدام التراكيب اللغوية"
+              - generic [ref=e329]:
+                - generic [ref=e330]: "الفئة:"
+                - generic [ref=e331]: غير مصنف
+              - generic [ref=e332]:
+                - link "معاينة" [ref=e333] [cursor=pointer]:
+                  - /url: /ar/dashboard/bundles/ea08fd20-6f89-4bea-9c66-588a32a8ada1
+                  - img [ref=e334]
+                  - text: معاينة
+                - button "حذف" [ref=e337]:
+                  - img [ref=e338]
+                  - generic [ref=e341]: حذف
+          - generic [ref=e343]:
+            - generic [ref=e344]:
+              - generic [ref=e345]:
+                - heading "الثالث الابتدائي" [level=3] [ref=e346]
+                - generic [ref=e347]: نشط
+              - paragraph [ref=e348]: الصف الثالث الابتدائي
+            - generic [ref=e349]:
+              - generic [ref=e350]: "الفئة:"
+              - generic [ref=e351]: غير مصنف
+            - generic [ref=e352]:
+              - link "معاينة" [ref=e353] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/989521e5-2bb8-4f05-a989-5a347a17b535
+                - img [ref=e354]
+                - text: معاينة
+              - button "حذف" [ref=e357]:
+                - img [ref=e358]
+                - generic [ref=e361]: حذف
+          - generic [ref=e363]:
+            - generic [ref=e365]:
+              - heading "الرابع الابتدائي" [level=3] [ref=e366]
+              - generic [ref=e367]: نشط
+            - generic [ref=e368]:
+              - generic [ref=e369]: "الفئة:"
+              - generic [ref=e370]: غير مصنف
+            - generic [ref=e371]:
+              - link "معاينة" [ref=e372] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/59bf0312-5022-4a1f-980d-2978757c5918
+                - img [ref=e373]
+                - text: معاينة
+              - button "حذف" [ref=e376]:
+                - img [ref=e377]
+                - generic [ref=e380]: حذف
+          - generic [ref=e382]:
+            - generic [ref=e383]:
+              - generic [ref=e384]:
+                - heading "الصف الخامس ابتدائي" [level=3] [ref=e385]
+                - generic [ref=e386]: غير نشط
+              - paragraph [ref=e387]: الصف الخامس من الأول إلى الأربع
+            - generic [ref=e388]:
+              - generic [ref=e389]: "الفئة:"
+              - generic [ref=e390]: غير مصنف
+            - generic [ref=e391]:
+              - link "معاينة" [ref=e392] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/8553f515-00a1-4f8c-ad49-feb3f1e0ac9e
+                - img [ref=e393]
+                - text: معاينة
+              - button "حذف" [ref=e396]:
+                - img [ref=e397]
+                - generic [ref=e400]: حذف
+          - generic [ref=e402]:
+            - generic [ref=e404]:
+              - heading "الصف الخامس الابتدائي" [level=3] [ref=e405]
+              - generic [ref=e406]: نشط
+            - generic [ref=e407]:
+              - generic [ref=e408]: "الفئة:"
+              - generic [ref=e409]: غير مصنف
+            - generic [ref=e410]:
+              - link "معاينة" [ref=e411] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/683d4a5b-782f-4445-86fd-261b8458ecea
+                - img [ref=e412]
+                - text: معاينة
+              - button "حذف" [ref=e415]:
+                - img [ref=e416]
+                - generic [ref=e419]: حذف
+          - generic [ref=e421]:
+            - generic [ref=e422]:
+              - generic [ref=e423]:
+                - heading "الصف الثالث ابتدائي" [level=3] [ref=e424]
+                - generic [ref=e425]: غير نشط
+              - paragraph [ref=e426]: الصف الثالث من الأول إلى الأربع
+            - generic [ref=e427]:
+              - generic [ref=e428]: "الفئة:"
+              - generic [ref=e429]: غير مصنف
+            - generic [ref=e430]:
+              - link "معاينة" [ref=e431] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/51fc2c65-df62-4f10-9776-6442f4b1b372
+                - img [ref=e432]
+                - text: معاينة
+              - button "حذف" [ref=e435]:
+                - img [ref=e436]
+                - generic [ref=e439]: حذف
+          - generic [ref=e441]:
+            - generic [ref=e443]:
+              - heading "السادس الابتدائي" [level=3] [ref=e444]
+              - generic [ref=e445]: نشط
+            - generic [ref=e446]:
+              - generic [ref=e447]: "الفئة:"
+              - generic [ref=e448]: غير مصنف
+            - generic [ref=e449]:
+              - link "معاينة" [ref=e450] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/890abe8f-c6d5-4626-bd58-0530cda30440
+                - img [ref=e451]
+                - text: معاينة
+              - button "حذف" [ref=e454]:
+                - img [ref=e455]
+                - generic [ref=e458]: حذف
+          - generic [ref=e460]:
+            - generic [ref=e461]:
+              - generic [ref=e462]:
+                - heading "الأول المتوسط" [level=3] [ref=e463]
+                - generic [ref=e464]: نشط
+              - paragraph [ref=e465]: الصف الأول المتوسط
+            - generic [ref=e466]:
+              - generic [ref=e467]: "الفئة:"
+              - generic [ref=e468]: غير مصنف
+            - generic [ref=e469]:
+              - link "معاينة" [ref=e470] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/471502bd-1179-477b-9c93-4a74d9c2c361
+                - img [ref=e471]
+                - text: معاينة
+              - button "حذف" [ref=e474]:
+                - img [ref=e475]
+                - generic [ref=e478]: حذف
+          - generic [ref=e480]:
+            - generic [ref=e481]:
+              - generic [ref=e482]:
+                - heading "الثاني المتوسط" [level=3] [ref=e483]
+                - generic [ref=e484]: نشط
+              - paragraph [ref=e485]: الصف الثاني المتوسط
+            - generic [ref=e486]:
+              - generic [ref=e487]: "الفئة:"
+              - generic [ref=e488]: غير مصنف
+            - generic [ref=e489]:
+              - link "معاينة" [ref=e490] [cursor=pointer]:
+                - /url: /ar/dashboard/bundles/9bc72a59-f83f-42ff-901a-e900c8faa913
+                - img [ref=e491]
+                - text: معاينة
+              - button "حذف" [ref=e494]:
+                - img [ref=e495]
+                - generic [ref=e498]: حذف
+  - alert [ref=e182]

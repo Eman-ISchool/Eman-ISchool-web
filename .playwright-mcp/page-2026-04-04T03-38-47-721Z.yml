@@ -1,0 +1,190 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - main [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - heading "فصولي" [level=1] [ref=e9]
+            - paragraph [ref=e10]: إدارة الفصول الدراسية والمواد والدروس الخاصة بك
+          - button "فصل جديد" [ref=e12]:
+            - img [ref=e13]
+            - text: فصل جديد
+        - generic [ref=e14]:
+          - link "Grade 8A 0 مادة" [ref=e15] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-8a-1773430793884
+            - generic [ref=e16]:
+              - img [ref=e18]
+              - img [ref=e22]
+            - heading "Grade 8A" [level=3] [ref=e24]
+            - generic [ref=e25]:
+              - img [ref=e26]
+              - generic [ref=e28]: 0 مادة
+          - link "Grade 4 9 مادة" [ref=e29] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-4-1773435383688
+            - generic [ref=e30]:
+              - img [ref=e32]
+              - img [ref=e36]
+            - heading "Grade 4" [level=3] [ref=e38]
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - generic [ref=e42]: 9 مادة
+          - link "Grade 6 3 مادة" [ref=e43] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-6-1773606798653
+            - generic [ref=e44]:
+              - img [ref=e46]
+              - img [ref=e50]
+            - heading "Grade 6" [level=3] [ref=e52]
+            - generic [ref=e53]:
+              - img [ref=e54]
+              - generic [ref=e56]: 3 مادة
+          - link "الصف الأول الابتدائي 8 مادة" [ref=e57] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-1
+            - generic [ref=e58]:
+              - img [ref=e60]
+              - img [ref=e64]
+            - heading "الصف الأول الابتدائي" [level=3] [ref=e66]
+            - generic [ref=e67]:
+              - img [ref=e68]
+              - generic [ref=e70]: 8 مادة
+          - link "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول ✨ تعلم الحروف ونطقها الصحيح 🔤 التعرف على الكلمات الأساسية والجمل البسيطة 📚 تدريبات عملية تساعد الطفل على القراءة والكتابة خطوة بخطوة 0 مادة" [ref=e71] [cursor=pointer]:
+            - /url: /ar/teacher/grades/كورس-تأسيس-اللغة-الإنجليزية-للأطفال---المستوى-الأول-1774574897135
+            - generic [ref=e72]:
+              - img [ref=e74]
+              - img [ref=e78]
+            - heading "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول" [level=3] [ref=e80]
+            - paragraph [ref=e81]: ✨ تعلم الحروف ونطقها الصحيح 🔤 التعرف على الكلمات الأساسية والجمل البسيطة 📚 تدريبات عملية تساعد الطفل على القراءة والكتابة خطوة بخطوة
+            - generic [ref=e82]:
+              - img [ref=e83]
+              - generic [ref=e85]: 0 مادة
+          - link "الصف الثاني الابتدائي 7 مادة" [ref=e86] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-2
+            - generic [ref=e87]:
+              - img [ref=e89]
+              - img [ref=e93]
+            - heading "الصف الثاني الابتدائي" [level=3] [ref=e95]
+            - generic [ref=e96]:
+              - img [ref=e97]
+              - generic [ref=e99]: 7 مادة
+          - link "كورس المعلم الإلكتروني كورس المعلم الإلكتروني 0 مادة" [ref=e100] [cursor=pointer]:
+            - /url: /ar/teacher/grades/كورس-المعلم-الإلكتروني-1774574897673
+            - generic [ref=e101]:
+              - img [ref=e103]
+              - img [ref=e107]
+            - heading "كورس المعلم الإلكتروني" [level=3] [ref=e109]
+            - paragraph [ref=e110]: كورس المعلم الإلكتروني
+            - generic [ref=e111]:
+              - img [ref=e112]
+              - generic [ref=e114]: 0 مادة
+          - link "الثالث الابتدائي الصف الثالث الابتدائي 0 مادة" [ref=e115] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-3
+            - generic [ref=e116]:
+              - img [ref=e118]
+              - img [ref=e122]
+            - heading "الثالث الابتدائي" [level=3] [ref=e124]
+            - paragraph [ref=e125]: الصف الثالث الابتدائي
+            - generic [ref=e126]:
+              - img [ref=e127]
+              - generic [ref=e129]: 0 مادة
+          - 'link "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني بنهاية المستوى الثاني سيتعلم الطلاب أن: يستخدموا اللغة الإنجليزية الأساسية للتحدث عن مواضيع يومية مألوفة. يكونوا جملاً بسيطة وصحيحة باستخدام التراكيب اللغوية 0 مادة" [ref=e130] [cursor=pointer]':
+            - /url: /ar/teacher/grades/كورس-تأسيس-اللغة-الإنجليزية-للأطفال---المستوى-الثاني-1774574897962
+            - generic [ref=e131]:
+              - img [ref=e133]
+              - img [ref=e137]
+            - heading "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني" [level=3] [ref=e139]
+            - paragraph [ref=e140]: "بنهاية المستوى الثاني سيتعلم الطلاب أن: يستخدموا اللغة الإنجليزية الأساسية للتحدث عن مواضيع يومية مألوفة. يكونوا جملاً بسيطة وصحيحة باستخدام التراكيب اللغوية"
+            - generic [ref=e141]:
+              - img [ref=e142]
+              - generic [ref=e144]: 0 مادة
+          - link "الرابع الابتدائي 0 مادة" [ref=e145] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-4
+            - generic [ref=e146]:
+              - img [ref=e148]
+              - img [ref=e152]
+            - heading "الرابع الابتدائي" [level=3] [ref=e154]
+            - generic [ref=e155]:
+              - img [ref=e156]
+              - generic [ref=e158]: 0 مادة
+          - link "الصف الخامس ابتدائي الصف الخامس من الأول إلى الأربع 0 مادة" [ref=e159] [cursor=pointer]:
+            - /url: /ar/teacher/grades/الصف-الخامس-ابتدائي-1774574898348
+            - generic [ref=e160]:
+              - img [ref=e162]
+              - img [ref=e166]
+            - heading "الصف الخامس ابتدائي" [level=3] [ref=e168]
+            - paragraph [ref=e169]: الصف الخامس من الأول إلى الأربع
+            - generic [ref=e170]:
+              - img [ref=e171]
+              - generic [ref=e173]: 0 مادة
+          - link "الصف الثالث ابتدائي الصف الثالث من الأول إلى الأربع 0 مادة" [ref=e174] [cursor=pointer]:
+            - /url: /ar/teacher/grades/الصف-الثالث-ابتدائي-1774574898638
+            - generic [ref=e175]:
+              - img [ref=e177]
+              - img [ref=e181]
+            - heading "الصف الثالث ابتدائي" [level=3] [ref=e183]
+            - paragraph [ref=e184]: الصف الثالث من الأول إلى الأربع
+            - generic [ref=e185]:
+              - img [ref=e186]
+              - generic [ref=e188]: 0 مادة
+          - link "الصف الخامس الابتدائي 7 مادة" [ref=e189] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-5
+            - generic [ref=e190]:
+              - img [ref=e192]
+              - img [ref=e196]
+            - heading "الصف الخامس الابتدائي" [level=3] [ref=e198]
+            - generic [ref=e199]:
+              - img [ref=e200]
+              - generic [ref=e202]: 7 مادة
+          - link "السادس الابتدائي 0 مادة" [ref=e203] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-6
+            - generic [ref=e204]:
+              - img [ref=e206]
+              - img [ref=e210]
+            - heading "السادس الابتدائي" [level=3] [ref=e212]
+            - generic [ref=e213]:
+              - img [ref=e214]
+              - generic [ref=e216]: 0 مادة
+          - link "الأول المتوسط الصف الأول المتوسط 0 مادة" [ref=e217] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-7
+            - generic [ref=e218]:
+              - img [ref=e220]
+              - img [ref=e224]
+            - heading "الأول المتوسط" [level=3] [ref=e226]
+            - paragraph [ref=e227]: الصف الأول المتوسط
+            - generic [ref=e228]:
+              - img [ref=e229]
+              - generic [ref=e231]: 0 مادة
+          - link "الثاني المتوسط الصف الثاني المتوسط 0 مادة" [ref=e232] [cursor=pointer]:
+            - /url: /ar/teacher/grades/grade-8
+            - generic [ref=e233]:
+              - img [ref=e235]
+              - img [ref=e239]
+            - heading "الثاني المتوسط" [level=3] [ref=e241]
+            - paragraph [ref=e242]: الصف الثاني المتوسط
+            - generic [ref=e243]:
+              - img [ref=e244]
+              - generic [ref=e246]: 0 مادة
+    - navigation [ref=e247]:
+      - link "الرئيسية" [ref=e248] [cursor=pointer]:
+        - /url: /ar/teacher/home
+        - img [ref=e249]
+        - generic [ref=e254]: الرئيسية
+      - link "My Classes" [ref=e255] [cursor=pointer]:
+        - /url: /ar/teacher/grades
+        - img [ref=e256]
+        - generic [ref=e259]: My Classes
+      - link "Assessments" [ref=e260] [cursor=pointer]:
+        - /url: /ar/teacher/assessments
+        - img [ref=e261]
+        - generic [ref=e265]: Assessments
+      - link "الجدول" [ref=e266] [cursor=pointer]:
+        - /url: /ar/teacher/calendar
+        - img [ref=e267]
+        - generic [ref=e269]: الجدول
+      - link "المحادثات" [ref=e270] [cursor=pointer]:
+        - /url: /ar/teacher/chat
+        - img [ref=e271]
+        - generic [ref=e273]: المحادثات
+      - link "الملف الشخصي" [ref=e274] [cursor=pointer]:
+        - /url: /ar/teacher/profile
+        - img [ref=e275]
+        - generic [ref=e278]: الملف الشخصي
+  - alert [ref=e279]

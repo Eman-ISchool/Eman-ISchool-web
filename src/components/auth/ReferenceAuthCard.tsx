@@ -6,23 +6,17 @@ import { getSession, signIn } from 'next-auth/react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowRight,
-  CheckCircle2,
   Eye,
   EyeOff,
-  GraduationCap,
   Loader2,
-  Mail,
-  Phone,
-  ShieldCheck,
-  Sparkles,
+  Lock,
+  Download,
+  Smartphone,
+  X,
+  ImageIcon,
+  Upload,
 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PhoneField } from '@/components/auth/PhoneField';
 import { withLocalePrefix } from '@/lib/locale-path';
 
@@ -47,58 +41,62 @@ export default function ReferenceAuthCard({
   const [registerPending, setRegisterPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPwaBanner, setShowPwaBanner] = useState(true);
 
-  const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
-  const [loginCountryCode, setLoginCountryCode] = useState('962');
+  const [loginCountryCode, setLoginCountryCode] = useState('971');
   const [loginPhone, setLoginPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginEmail, setLoginEmail] = useState('');
 
-  const [joinCountryCode, setJoinCountryCode] = useState('962');
+  const [joinCountryCode, setJoinCountryCode] = useState('971');
+  const [joinParentCountryCode, setJoinParentCountryCode] = useState('249');
   const [joinFullName, setJoinFullName] = useState('');
   const [joinEmail, setJoinEmail] = useState('');
   const [joinPhone, setJoinPhone] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   const [joinConfirmPassword, setJoinConfirmPassword] = useState('');
-  const [joinConsent, setJoinConsent] = useState(false);
+  const [joinParentName, setJoinParentName] = useState('');
+  const [joinParentPhone, setJoinParentPhone] = useState('');
 
   const copy = {
-    badge: isArabic ? 'نظام إدارة المدرسة' : 'School Management System',
-    title: isArabic ? 'أهلاً بك في Future-style Portal' : 'Welcome to the Future-style Portal',
-    subtitle: isArabic
-      ? 'تسجيل دخول موحّد برقم الهاتف مع تجربة عربية كاملة وشريط تنقل عام مماثل للمرجع.'
-      : 'Unified phone-based auth with bilingual public navigation and reference-style account entry.',
-    loginTab: isArabic ? 'تسجيل الدخول' : 'Login',
-    joinTab: isArabic ? 'انضم الآن' : 'Join now',
-    loginTitle: isArabic ? 'ادخل إلى لوحة التحكم' : 'Access your dashboard',
-    joinTitle: isArabic ? 'أنشئ حساب ولي أمر' : 'Create a parent account',
-    name: isArabic ? 'الاسم الكامل' : 'Full name',
-    email: isArabic ? 'البريد الإلكتروني' : 'Email address',
-    phone: isArabic ? 'رقم الجوال' : 'Mobile number',
-    password: isArabic ? 'كلمة المرور' : 'Password',
-    confirmPassword: isArabic ? 'تأكيد كلمة المرور' : 'Confirm password',
+    loginTab: isArabic ? 'تسجيل الدخول' : 'Sign in',
+    joinTab: isArabic ? 'تسجيل' : 'Register',
+    loginTitle: isArabic ? 'تسجيل الدخول إلى حسابك' : 'Sign in to your account',
+    joinTitle: isArabic ? 'إنشاء حساب جديد' : 'Create new account',
+    phoneLabel: isArabic ? 'رقم الهاتف' : 'Phone number',
+    passwordLabel: isArabic ? 'أدخل كلمة المرور' : 'Enter your password',
+    passwordPlaceholder: isArabic ? 'أدخل كلمة المرور' : 'Enter your password',
     forgotPassword: isArabic ? 'نسيت كلمة المرور؟' : 'Forgot password?',
-    consent: isArabic
-      ? 'أوافق على إنشاء الحساب واستخدام بياناتي للتواصل والخدمات التعليمية.'
-      : 'I agree to create an account and use my details for educational services and contact.',
     loginSubmit: isArabic ? 'تسجيل الدخول' : 'Sign in',
-    joinSubmit: isArabic ? 'إنشاء الحساب' : 'Create account',
-    loginPending: isArabic ? 'جارٍ التحقق...' : 'Checking credentials...',
-    joinPending: isArabic ? 'جارٍ إنشاء الحساب...' : 'Creating your account...',
-    joinSuccess: isArabic
-      ? 'تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول بنفس رقم الجوال.'
-      : 'Account created successfully. You can now sign in with the same mobile number.',
+    joinSubmit: isArabic ? 'تسجيل' : 'Register',
+    nameLabel: isArabic ? 'الاسم' : 'Name',
+    namePlaceholder: isArabic ? 'أدخل اسمك' : 'Enter your name',
+    emailLabel: isArabic ? 'البريد الإلكتروني' : 'Email',
+    emailPlaceholder: isArabic ? 'أدخل بريدك الإلكتروني' : 'Enter your email',
+    parentNameLabel: isArabic ? 'اسم ولي الأمر (اختياري)' : 'Parent name (optional)',
+    parentNamePlaceholder: isArabic ? 'أدخل اسم ولي الأمر' : 'Enter parent name',
+    parentPhoneLabel: isArabic ? 'رقم هاتف ولي الأمر (اختياري)' : 'Parent phone (optional)',
+    createPasswordLabel: isArabic ? 'كلمة المرور' : 'Password',
+    createPasswordPlaceholder: isArabic ? 'إنشاء كلمة مرور' : 'Create password',
+    confirmPasswordLabel: isArabic ? 'تأكيد كلمة المرور' : 'Confirm password',
+    confirmPasswordPlaceholder: isArabic ? 'تأكيد كلمة المرور' : 'Confirm password',
+    profilePicture: isArabic ? 'الصورة الشخصية (اختياري)' : 'Profile picture (optional)',
+    dragDrop: isArabic ? 'قم بسحب الملف هنا او' : 'Drag and drop an image here, or',
+    supportedFormats: isArabic
+      ? 'الصيغ المدعومة: jpg, jpeg, png, gif, webp, pdf, mp4, mp3, mov, avi, mkv, ppt (max 300MB)'
+      : 'Supported formats: jpg, jpeg, png, gif, webp, pdf, mp4, mp3, mov, avi, mkv, ppt (max 300MB)',
+    pwaBannerTitle: isArabic ? 'تثبيت التطبيق' : 'Install App',
+    pwaBannerDesc: isArabic
+      ? 'احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع'
+      : 'Get the full app experience with offline access and faster loading',
+    pwaBannerButton: isArabic ? 'تثبيت التطبيق' : 'Install App',
     invalidCredentials: isArabic ? 'بيانات الدخول غير صحيحة.' : 'Invalid sign-in details.',
     passwordMismatch: isArabic ? 'كلمتا المرور غير متطابقتين.' : 'Passwords do not match.',
     fillRequired: isArabic ? 'يرجى تعبئة جميع الحقول المطلوبة.' : 'Please complete all required fields.',
-    consentRequired: isArabic ? 'يجب الموافقة للمتابعة.' : 'You must accept the consent notice.',
-    emailLabel: isArabic ? 'البريد الإلكتروني' : 'Email address',
-    usePhone: isArabic ? 'الدخول برقم الجوال' : 'Sign in with phone',
-    useEmail: isArabic ? 'الدخول بالبريد الإلكتروني' : 'Sign in with email',
-    phoneHint: isArabic ? 'نستخدم رقم الجوال للدخول كما في المرجع.' : 'Phone-based sign-in matches the reference flow.',
-    featureOne: isArabic ? 'واجهة عامة مبسطة مع تبديل لغة فعلي' : 'Simplified public shell with real locale switching',
-    featureTwo: isArabic ? 'نموذج موحّد لتسجيل الدخول والانضمام' : 'Unified login and join experience',
-    featureThree: isArabic ? 'جاهز للوحة التحكم العربية وRTL' : 'Ready for Arabic RTL dashboard flows',
+    joinSuccess: isArabic
+      ? 'تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.'
+      : 'Account created successfully. You can now sign in.',
+    loginPending: isArabic ? 'جارٍ التحقق...' : 'Checking credentials...',
+    joinPending: isArabic ? 'جارٍ إنشاء الحساب...' : 'Creating your account...',
   };
 
   const routeByRole = (role?: string | null) => {
@@ -123,11 +121,13 @@ export default function ReferenceAuthCard({
     setLoginPending(true);
 
     try {
-      const credentialPayload = loginMethod === 'email'
-        ? { identifier: loginEmail, email: loginEmail, password: loginPassword, redirect: false }
-        : { identifier: loginPhone, phone: loginPhone, countryCode: loginCountryCode, password: loginPassword, redirect: false };
-
-      const result = await signIn('credentials', credentialPayload);
+      const result = await signIn('credentials', {
+        identifier: loginPhone,
+        phone: loginPhone,
+        countryCode: loginCountryCode,
+        password: loginPassword,
+        redirect: false,
+      });
 
       if (result?.error) {
         setError(copy.invalidCredentials);
@@ -149,13 +149,8 @@ export default function ReferenceAuthCard({
     setError(null);
     setSuccess(null);
 
-    if (!joinFullName || !joinEmail || !joinPhone || !joinPassword || !joinConfirmPassword) {
+    if (!joinFullName || !joinPhone || !joinPassword || !joinConfirmPassword) {
       setError(copy.fillRequired);
-      return;
-    }
-
-    if (!joinConsent) {
-      setError(copy.consentRequired);
       return;
     }
 
@@ -176,14 +171,14 @@ export default function ReferenceAuthCard({
           phone: joinPhone,
           countryCode: joinCountryCode,
           password: joinPassword,
-          consentGiven: joinConsent,
+          parentName: joinParentName,
+          parentPhone: joinParentPhone,
+          parentCountryCode: joinParentCountryCode,
         }),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || copy.fillRequired);
-      }
+      if (!response.ok) throw new Error(data.error || copy.fillRequired);
 
       setSuccess(copy.joinSuccess);
       setActiveTab('login');
@@ -194,7 +189,8 @@ export default function ReferenceAuthCard({
       setJoinPhone('');
       setJoinPassword('');
       setJoinConfirmPassword('');
-      setJoinConsent(false);
+      setJoinParentName('');
+      setJoinParentPhone('');
     } catch (err) {
       setError(err instanceof Error ? err.message : copy.fillRequired);
     } finally {
@@ -202,327 +198,320 @@ export default function ReferenceAuthCard({
     }
   };
 
-  const passwordToggle = (
-    visible: boolean,
-    onClick: () => void,
-  ) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`absolute inset-y-0 flex items-center text-slate-400 transition hover:text-slate-700 ${isArabic ? 'left-3' : 'right-3'
-        }`}
-      aria-label={visible ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')}
-    >
-      {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  );
-
   return (
-    <Card className="overflow-hidden rounded-[2rem] border-slate-200 bg-white shadow-[0_30px_80px_-35px_rgba(15,23,42,0.35)]">
-      <CardContent className="p-0">
-        <div className="grid min-h-[720px] lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_42%),linear-gradient(135deg,#0a52bd,#0D6EFD_60%,#0b5ed7)] px-8 py-10 text-white sm:px-10 lg:px-12">
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)]" />
-            <div className="relative flex h-full flex-col justify-between gap-8">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur">
-                  <Sparkles className="h-4 w-4" />
-                  <span>{copy.badge}</span>
-                </div>
-
-                <div className="space-y-4">
-                  <h1 className="max-w-xl text-4xl font-black leading-tight sm:text-5xl">
-                    {copy.title}
-                  </h1>
-                  <p className="max-w-lg text-sm leading-7 text-sky-100 sm:text-base">
-                    {copy.subtitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                {[copy.featureOne, copy.featureTwo, copy.featureThree].map((feature) => (
-                  <div
-                    key={feature}
-                    className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur-sm"
-                  >
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
-                    <p className="text-sm text-slate-100">{feature}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-black/15 p-4 text-sm text-sky-100">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <p>{copy.phoneHint}</p>
+    <div className="min-h-screen bg-white" dir={isArabic ? 'rtl' : 'ltr'}>
+      {/* PWA Install Banner */}
+      {showPwaBanner && (
+        <div className="relative bg-gray-900 text-white px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className={`flex items-center gap-3 ${isArabic ? 'flex-row-reverse' : ''}`}>
+              <Smartphone className="h-8 w-8 text-gray-400 shrink-0" />
+              <div className={isArabic ? 'text-right' : ''}>
+                <p className="font-semibold text-sm">{copy.pwaBannerTitle}</p>
+                <p className="text-xs text-gray-300">{copy.pwaBannerDesc}</p>
               </div>
             </div>
-          </div>
-
-          <div className="bg-slate-50 px-6 py-8 sm:px-8 lg:px-10">
-            <div className="mx-auto flex h-full w-full max-w-md flex-col justify-center">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-sm">
-                  <GraduationCap className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 tracking-wide">FutureLab</p>
-                  <p className="text-xs text-slate-500 font-medium">{copy.badge}</p>
-                </div>
-              </div>
-
-              {error && (
-                <div
-                  role="alert"
-                  aria-live="assertive"
-                  className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-                >
-                  {error}
-                </div>
-              )}
-
-              {success && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
-                >
-                  {success}
-                </div>
-              )}
-
-              <Tabs
-                value={activeTab}
-                onValueChange={(value) => {
-                  setActiveTab(value as AuthTab);
-                  setError(null);
-                  setSuccess(null);
-                }}
-                className="space-y-6"
+            <div className="flex items-center gap-3 shrink-0">
+              <button className="flex items-center gap-2 rounded-lg bg-white text-gray-900 px-4 py-2.5 text-sm font-medium hover:bg-gray-100 transition">
+                <Download className="h-4 w-4" />
+                {copy.pwaBannerButton}
+              </button>
+              <button
+                onClick={() => setShowPwaBanner(false)}
+                className="text-gray-400 hover:text-white transition"
               >
-                <TabsList className="tabs-pill-active grid w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm">
-                  <TabsTrigger value="login" className="rounded-xl">
-                    {copy.loginTab}
-                  </TabsTrigger>
-                  <TabsTrigger value="join" className="rounded-xl">
-                    {copy.joinTab}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="login" className="space-y-6">
-                  <div className="space-y-1">
-                    <h2 className="text-2xl font-bold text-slate-950">{copy.loginTitle}</h2>
-                  </div>
-
-                  {/* Login method toggle */}
-                  <div className="flex rounded-xl bg-white p-1 shadow-sm border border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => setLoginMethod('phone')}
-                      className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
-                        loginMethod === 'phone'
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      <Phone className="h-4 w-4" />
-                      {copy.usePhone}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLoginMethod('email')}
-                      className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
-                        loginMethod === 'email'
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      <Mail className="h-4 w-4" />
-                      {copy.useEmail}
-                    </button>
-                  </div>
-
-                  <form className="space-y-4" onSubmit={handleLogin}>
-                    {loginMethod === 'phone' ? (
-                      <PhoneField
-                        countryCode={loginCountryCode}
-                        onCountryCodeChange={setLoginCountryCode}
-                        onPhoneChange={setLoginPhone}
-                        phone={loginPhone}
-                        locale={locale}
-                        label={copy.phone}
-                        disabled={loginPending}
-                      />
-                    ) : (
-                      <div className="space-y-1.5">
-                        <Label className="text-sm font-medium text-slate-700">{copy.emailLabel}</Label>
-                        <Input
-                          type="email"
-                          dir="ltr"
-                          value={loginEmail}
-                          onChange={(event) => setLoginEmail(event.target.value)}
-                          placeholder="email@example.com"
-                          className="h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20"
-                          disabled={loginPending}
-                          required
-                        />
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium text-slate-700">{copy.password}</Label>
-                        <Link
-                          href={withLocalePrefix('/forgot-password', locale)}
-                          className="text-xs font-medium text-sky-700 transition hover:text-sky-900"
-                        >
-                          {copy.forgotPassword}
-                        </Link>
-                      </div>
-                      <div className="relative">
-                        <Input
-                          type={showLoginPassword ? 'text' : 'password'}
-                          value={loginPassword}
-                          onChange={(event) => setLoginPassword(event.target.value)}
-                          className={`h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20 ${isArabic ? 'ps-10 pe-4' : 'ps-4 pe-10'
-                            }`}
-                          disabled={loginPending}
-                          required
-                        />
-                        {passwordToggle(showLoginPassword, () => setShowLoginPassword((value) => !value))}
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="h-12 w-full rounded-xl bg-primary text-white hover:bg-primary-hover shadow-md font-bold text-[15px]"
-                      disabled={loginPending}
-                    >
-                      {loginPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>{copy.loginPending}</span>
-                        </>
-                      ) : (
-                        copy.loginSubmit
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="join" className="space-y-6">
-                  <div className="space-y-1">
-                    <h2 className="text-2xl font-bold text-slate-950">{copy.joinTitle}</h2>
-                  </div>
-
-                  <form className="space-y-4" onSubmit={handleRegister}>
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-slate-700">{copy.name}</Label>
-                      <Input
-                        value={joinFullName}
-                        onChange={(event) => setJoinFullName(event.target.value)}
-                        className="h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20"
-                        disabled={registerPending}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-slate-700">{copy.email}</Label>
-                      <Input
-                        type="email"
-                        dir="ltr"
-                        value={joinEmail}
-                        onChange={(event) => setJoinEmail(event.target.value)}
-                        className="h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20"
-                        disabled={registerPending}
-                        required
-                      />
-                    </div>
-
-                    <PhoneField
-                      countryCode={joinCountryCode}
-                      onCountryCodeChange={setJoinCountryCode}
-                      onPhoneChange={setJoinPhone}
-                      phone={joinPhone}
-                      locale={locale}
-                      label={copy.phone}
-                      disabled={registerPending}
-                    />
-
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-slate-700">{copy.password}</Label>
-                      <div className="relative">
-                        <Input
-                          type={showRegisterPassword ? 'text' : 'password'}
-                          value={joinPassword}
-                          onChange={(event) => setJoinPassword(event.target.value)}
-                          className={`h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20 ${isArabic ? 'ps-10 pe-4' : 'ps-4 pe-10'
-                            }`}
-                          disabled={registerPending}
-                          required
-                        />
-                        {passwordToggle(showRegisterPassword, () => setShowRegisterPassword((value) => !value))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-slate-700">{copy.confirmPassword}</Label>
-                      <div className="relative">
-                        <Input
-                          type={showRegisterConfirmPassword ? 'text' : 'password'}
-                          value={joinConfirmPassword}
-                          onChange={(event) => setJoinConfirmPassword(event.target.value)}
-                          className={`h-12 rounded-xl border-slate-200 focus-visible:border-primary focus-visible:ring-primary/20 ${isArabic ? 'ps-10 pe-4' : 'ps-4 pe-10'
-                            }`}
-                          disabled={registerPending}
-                          required
-                        />
-                        {passwordToggle(showRegisterConfirmPassword, () => setShowRegisterConfirmPassword((value) => !value))}
-                      </div>
-                    </div>
-
-                    <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                      <input
-                        type="checkbox"
-                        checked={joinConsent}
-                        onChange={(event) => setJoinConsent(event.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-slate-300"
-                      />
-                      <span>{copy.consent}</span>
-                    </label>
-
-                    <Button
-                      type="submit"
-                      className="h-12 w-full rounded-xl bg-primary text-white hover:bg-primary-hover shadow-md font-bold text-[15px]"
-                      disabled={registerPending}
-                    >
-                      {registerPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>{copy.joinPending}</span>
-                        </>
-                      ) : (
-                        copy.joinSubmit
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-
-              <div className="mt-6 flex items-center justify-between text-xs text-slate-400">
-                <span>{isArabic ? 'واجهة عربية واتجاه RTL' : 'Arabic-ready RTL experience'}</span>
-                <span className="inline-flex items-center gap-1">
-                  <ArrowRight className={`h-3 w-3 ${isArabic ? 'rotate-180' : ''}`} />
-                  {copy.badge}
-                </span>
-              </div>
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Main content */}
+      <div className={`flex min-h-[calc(100vh-60px)] ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Image side — matches reference lime-green background with children image */}
+        <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#c8e649]" />
+          {/* Placeholder for the branded children image — replace with actual asset */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white/60">
+              <ImageIcon className="h-24 w-24 mx-auto mb-4 text-white/30" />
+            </div>
+          </div>
+        </div>
+
+        {/* Form side */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-10">
+          <div className="w-full max-w-md">
+            {error && (
+              <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {success}
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div className="flex rounded-full bg-gray-100 p-1 mb-8">
+              <button
+                type="button"
+                onClick={() => { setActiveTab('login'); setError(null); setSuccess(null); }}
+                className={`flex-1 rounded-full py-2.5 text-sm font-medium transition ${
+                  activeTab === 'login'
+                    ? 'bg-white shadow-sm text-gray-900'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {copy.loginTab}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('join'); setError(null); setSuccess(null); }}
+                className={`flex-1 rounded-full py-2.5 text-sm font-medium transition ${
+                  activeTab === 'join'
+                    ? 'bg-white shadow-sm text-gray-900'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {copy.joinTab}
+              </button>
+            </div>
+
+            {/* LOGIN TAB */}
+            {activeTab === 'login' && (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 mb-8">{copy.loginTitle}</h1>
+                <form className="space-y-5" onSubmit={handleLogin}>
+                  <PhoneField
+                    countryCode={loginCountryCode}
+                    onCountryCodeChange={setLoginCountryCode}
+                    onPhoneChange={setLoginPhone}
+                    phone={loginPhone}
+                    locale={locale}
+                    label={copy.phoneLabel}
+                    disabled={loginPending}
+                  />
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.passwordLabel}</label>
+                    <div className="relative">
+                      <div className={`absolute inset-y-0 flex items-center ${isArabic ? 'right-3' : 'left-3'}`}>
+                        <Lock className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type={showLoginPassword ? 'text' : 'password'}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder={copy.passwordPlaceholder}
+                        className={`w-full h-12 rounded-xl border border-gray-200 bg-white text-sm outline-none transition focus:border-gray-400 ${
+                          isArabic ? 'pr-10 pl-10' : 'pl-10 pr-10'
+                        }`}
+                        disabled={loginPending}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className={`absolute inset-y-0 flex items-center ${isArabic ? 'left-3' : 'right-3'}`}
+                      >
+                        {showLoginPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loginPending}
+                    className="w-full h-12 rounded-full bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loginPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {copy.loginPending}
+                      </>
+                    ) : (
+                      copy.loginSubmit
+                    )}
+                  </button>
+
+                  <div className="text-center">
+                    <Link
+                      href={withLocalePrefix('/forgot-password', locale)}
+                      className="text-sm text-gray-500 hover:text-gray-700 transition"
+                    >
+                      {copy.forgotPassword}
+                    </Link>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* REGISTER TAB */}
+            {activeTab === 'join' && (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">{copy.joinTitle}</h1>
+                <form className="space-y-4" onSubmit={handleRegister}>
+                  {/* Profile picture upload */}
+                  <div className="rounded-xl border-2 border-dashed border-gray-200 p-6 text-center">
+                    <ImageIcon className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-2">{copy.dragDrop}</p>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {copy.profilePicture}
+                    </button>
+                    <p className="text-xs text-gray-400 mt-2">{copy.supportedFormats}</p>
+                  </div>
+
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.nameLabel}</label>
+                    <input
+                      type="text"
+                      value={joinFullName}
+                      onChange={(e) => setJoinFullName(e.target.value)}
+                      placeholder={copy.namePlaceholder}
+                      className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-gray-400"
+                      disabled={registerPending}
+                      required
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <PhoneField
+                    countryCode={joinCountryCode}
+                    onCountryCodeChange={setJoinCountryCode}
+                    onPhoneChange={setJoinPhone}
+                    phone={joinPhone}
+                    locale={locale}
+                    label={copy.phoneLabel}
+                    disabled={registerPending}
+                  />
+
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.emailLabel}</label>
+                    <input
+                      type="email"
+                      dir="ltr"
+                      value={joinEmail}
+                      onChange={(e) => setJoinEmail(e.target.value)}
+                      placeholder={copy.emailPlaceholder}
+                      className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-gray-400"
+                      disabled={registerPending}
+                    />
+                  </div>
+
+                  {/* Parent name (optional) */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.parentNameLabel}</label>
+                    <input
+                      type="text"
+                      value={joinParentName}
+                      onChange={(e) => setJoinParentName(e.target.value)}
+                      placeholder={copy.parentNamePlaceholder}
+                      className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-gray-400"
+                      disabled={registerPending}
+                    />
+                  </div>
+
+                  {/* Parent phone (optional) */}
+                  <PhoneField
+                    countryCode={joinParentCountryCode}
+                    onCountryCodeChange={setJoinParentCountryCode}
+                    onPhoneChange={setJoinParentPhone}
+                    phone={joinParentPhone}
+                    locale={locale}
+                    label={copy.parentPhoneLabel}
+                    disabled={registerPending}
+                    required={false}
+                  />
+
+                  {/* Password */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.createPasswordLabel}</label>
+                    <div className="relative">
+                      <div className={`absolute inset-y-0 flex items-center ${isArabic ? 'right-3' : 'left-3'}`}>
+                        <Lock className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type={showRegisterPassword ? 'text' : 'password'}
+                        value={joinPassword}
+                        onChange={(e) => setJoinPassword(e.target.value)}
+                        placeholder={copy.createPasswordPlaceholder}
+                        className={`w-full h-12 rounded-xl border border-gray-200 bg-white text-sm outline-none transition focus:border-gray-400 ${
+                          isArabic ? 'pr-10 pl-10' : 'pl-10 pr-10'
+                        }`}
+                        disabled={registerPending}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className={`absolute inset-y-0 flex items-center ${isArabic ? 'left-3' : 'right-3'}`}
+                      >
+                        {showRegisterPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm password */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900">{copy.confirmPasswordLabel}</label>
+                    <div className="relative">
+                      <div className={`absolute inset-y-0 flex items-center ${isArabic ? 'right-3' : 'left-3'}`}>
+                        <Lock className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type={showRegisterConfirmPassword ? 'text' : 'password'}
+                        value={joinConfirmPassword}
+                        onChange={(e) => setJoinConfirmPassword(e.target.value)}
+                        placeholder={copy.confirmPasswordPlaceholder}
+                        className={`w-full h-12 rounded-xl border border-gray-200 bg-white text-sm outline-none transition focus:border-gray-400 ${
+                          isArabic ? 'pr-10 pl-10' : 'pl-10 pr-10'
+                        }`}
+                        disabled={registerPending}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                        className={`absolute inset-y-0 flex items-center ${isArabic ? 'left-3' : 'right-3'}`}
+                      >
+                        {showRegisterConfirmPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={registerPending}
+                    className="w-full h-12 rounded-full bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {registerPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {copy.joinPending}
+                      </>
+                    ) : (
+                      copy.joinSubmit
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

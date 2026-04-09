@@ -1,0 +1,3 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e8]: "0"
+  - 'heading "Application error: a client-side exception has occurred while loading futurelab.school (see the browser console for more information)." [level=2] [ref=e11]'

@@ -1,0 +1,374 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - button:
+                        - generic:
+                          - generic: F
+                      - generic:
+                        - paragraph: Fadi
+                        - paragraph: ADMIN
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - link:
+                            - /url: /ar/dashboard
+                            - img
+                            - generic: الرئيسية
+                          - generic:
+                            - button:
+                              - img
+                              - generic: الأكاديمي
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: الإدارة
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: المالية
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: التواصل
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: المحتوى
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: التحليلات
+                              - img
+                          - generic:
+                            - button:
+                              - img
+                              - generic: إدارة البيانات
+                              - img
+                          - link:
+                            - /url: /ar/dashboard/system-settings
+                            - img
+                            - generic: الإعدادات
+                  - generic:
+                    - link:
+                      - /url: /ar/dashboard/profile
+                      - img
+                      - text: الملف الشخصي
+            - generic:
+              - main:
+                - generic:
+                  - generic:
+                    - generic:
+                      - heading [level=1]: المستخدمون
+                      - paragraph: إدارة حسابات المستخدمين والصلاحيات
+                    - generic:
+                      - generic:
+                        - img
+                        - generic:
+                          - textbox:
+                            - /placeholder: بحث عن المستخدمين...
+                      - combobox:
+                        - generic: جميع المستخدمين
+                        - img
+                      - combobox:
+                        - generic: جميع المستخدمين
+                        - img
+                      - button:
+                        - img
+                        - text: إضافة مستخدم
+                    - generic:
+                      - generic:
+                        - heading [level=3]: المستخدمون
+                        - paragraph: مستخدمي النظام
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - table:
+                                - rowgroup:
+                                  - row:
+                                    - columnheader: الاسم
+                                    - columnheader: البريد الإلكتروني
+                                    - columnheader: الدور
+                                    - columnheader: الحالة
+                                    - columnheader: تاريخ الاضافة
+                                    - columnheader: الإجراءات
+                                - rowgroup:
+                                  - row:
+                                    - cell: Fadi
+                                    - cell: fadi@gmail.com
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: ADMIN
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 3/3/2026
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: اسيل خليل عبد القادر
+                                    - cell: aseelkhalilmahmoud@gmail.com
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 12/6/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: العبد بخيت احمد بخيت
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 12/4/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: عاصم البكري دفع الله
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/28/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: أبو القاسم عمر درويش
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/25/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: Ahmed amin
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/25/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: روضة عبدالله فرج الله
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/21/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: HANAN MOhammed
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/21/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: Malik Yahya Khataer
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/20/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                                  - row:
+                                    - cell: Rabah Abdallah Adam
+                                    - cell
+                                    - cell:
+                                      - generic:
+                                        - img
+                                        - text: STUDENT
+                                    - cell:
+                                      - generic:
+                                        - img
+                                    - cell: 11/19/2025
+                                    - cell:
+                                      - button:
+                                        - generic: dashboard.users.actions.open
+                                        - img
+                    - generic:
+                      - generic:
+                        - paragraph: عرض 1 الى 10 من 91 النتائج
+                      - generic:
+                        - generic:
+                          - paragraph: الحقول لكل صفحة
+                          - combobox:
+                            - generic: "10"
+                            - img
+                        - generic:
+                          - button [disabled]: رجوع
+                          - generic:
+                            - button: "1"
+                            - button: "2"
+                            - button: "3"
+                            - button: "4"
+                            - button: "5"
+                          - button: التالي
+            - list
+  - region "Notifications alt+T"
+  - alert
+  - dialog "إنشاء مستخدم جديد" [ref=e300]:
+    - generic [ref=e301]:
+      - heading "إنشاء مستخدم جديد" [level=2] [ref=e302]
+      - paragraph [ref=e303]: إضافة مستخدم جديد إلى النظام مع معلوماته الأساسية ودوره.
+    - generic [ref=e304]:
+      - generic [ref=e305]:
+        - generic [ref=e306]:
+          - text: الاسم الكامل
+          - textbox "الاسم الكامل" [active] [ref=e308]:
+            - /placeholder: الاسم
+        - generic [ref=e309]:
+          - text: عنوان البريد الإلكتروني
+          - textbox "عنوان البريد الإلكتروني" [ref=e311]:
+            - /placeholder: البريد الالكتروني
+      - generic [ref=e312]:
+        - generic [ref=e313]:
+          - text: كلمة المرور
+          - textbox "كلمة المرور" [ref=e315]:
+            - /placeholder: dashboard.users.form.passwordPlaceholder
+        - generic [ref=e316]:
+          - text: الدور
+          - combobox "الدور" [ref=e317]:
+            - generic: طالب
+            - img [ref=e318]
+          - combobox [ref=e320]
+      - generic [ref=e321]:
+        - text: رقم الهاتف
+        - generic [ref=e323]:
+          - combobox [ref=e324]:
+            - generic [ref=e325]:
+              - generic [ref=e326]: 🇸🇩
+              - generic [ref=e327]: "+249"
+            - img
+          - spinbutton "رقم الهاتف" [ref=e329]
+      - generic [ref=e330]:
+        - generic [ref=e331]:
+          - text: الراتب الأساسي
+          - generic [ref=e332]:
+            - textbox "الراتب الأساسي" [ref=e333]
+            - generic [ref=e335]: AED
+        - generic [ref=e336]:
+          - text: السعر لكل درس
+          - generic [ref=e337]:
+            - textbox "السعر لكل درس" [ref=e338]
+            - generic [ref=e340]: AED
+      - generic [ref=e341]:
+        - text: اسم البنك
+        - textbox "اسم البنك" [ref=e343]
+      - generic [ref=e344]:
+        - text: رقم الحساب البنكي
+        - textbox "رقم الحساب البنكي" [ref=e346]
+      - generic [ref=e347]:
+        - text: العنوان
+        - textbox "العنوان" [ref=e349]
+      - generic [ref=e350]:
+        - text: الصورة الشخصية
+        - generic [ref=e353]:
+          - img [ref=e355]
+          - generic [ref=e359]:
+            - paragraph [ref=e360]: Drag and drop an image here, or
+            - button "dashboard.users.form.imagePlaceholder" [ref=e361]:
+              - img
+              - text: dashboard.users.form.imagePlaceholder
+          - paragraph [ref=e362]: "Supported formats: jpg, jpeg, png, gif, webp (max 2MB)"
+      - generic [ref=e363]:
+        - generic [ref=e364]: تاريخ الميلاد
+        - button "تاريخ الميلاد" [ref=e365]:
+          - generic [ref=e366]: تاريخ الميلاد
+          - img
+      - generic [ref=e367]:
+        - text: التعليم السابق
+        - textbox "التعليم السابق" [ref=e369]
+      - generic [ref=e370]:
+        - text: اسم ولي الأمر
+        - textbox "اسم ولي الأمر" [ref=e372]:
+          - /placeholder: ولي الامر
+      - generic [ref=e373]:
+        - text: بريد ولي الأمر
+        - textbox "بريد ولي الأمر" [ref=e375]
+      - generic [ref=e376]:
+        - text: هاتف ولي الأمر
+        - generic [ref=e378]:
+          - combobox [ref=e379]:
+            - generic [ref=e380]:
+              - generic [ref=e381]: 🇸🇩
+              - generic [ref=e382]: "+249"
+            - img
+          - spinbutton "هاتف ولي الأمر" [ref=e384]
+      - generic [ref=e385]:
+        - button "إلغاء" [ref=e386]
+        - button "إنشاء" [ref=e387]
+    - button "Close" [ref=e388]:
+      - img [ref=e389]
+      - generic [ref=e392]: Close

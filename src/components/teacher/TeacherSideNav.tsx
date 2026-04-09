@@ -27,12 +27,12 @@ export const TeacherSideNav = React.memo(function TeacherSideNav() {
 
     const navItems: NavItem[] = useMemo(() => [
         { href: '/teacher/home', icon: <LayoutDashboard className="w-5 h-5" />, label: t('home') },
-        { href: '/teacher/grades', icon: <GraduationCap className="w-5 h-5" />, label: 'My Classes' },
-        { href: '/teacher/assessments', icon: <ClipboardCheck className="w-5 h-5" />, label: 'Assessments' },
+        { href: '/teacher/grades', icon: <GraduationCap className="w-5 h-5" />, label: locale === 'ar' ? 'فصولي' : 'My Classes' },
+        { href: '/teacher/assessments', icon: <ClipboardCheck className="w-5 h-5" />, label: locale === 'ar' ? 'التقييمات' : 'Assessments' },
         { href: '/teacher/calendar', icon: <Calendar className="w-5 h-5" />, label: t('calendar') },
         { href: '/teacher/chat', icon: <MessageCircle className="w-5 h-5" />, label: t('chat') },
         { href: '/teacher/profile', icon: <User className="w-5 h-5" />, label: t('profile') },
-    ], [t]);
+    ], [t, locale]);
 
     return (
         <nav className="side-nav">

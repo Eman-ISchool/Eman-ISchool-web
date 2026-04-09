@@ -1,0 +1,175 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - navigation:
+                  - link:
+                    - /url: /
+                    - generic:
+                      - img
+                    - generic: Future Labs Academy
+                  - generic:
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /about
+                          - text: حولنا
+                      - listitem:
+                        - link:
+                          - /url: /contact
+                          - text: اتصل بنا
+                      - listitem:
+                        - link:
+                          - /url: /services
+                          - text: خدماتنا
+                    - generic:
+                      - button: English
+                      - button: العربية
+                    - generic:
+                      - button: تسجيل الدخول
+                      - button: انضم
+            - main:
+              - generic:
+                - main:
+                  - generic:
+                    - generic:
+                      - button:
+                        - img
+                      - generic:
+                        - heading [level=3]: التقديم للمدرسة
+                        - paragraph: طلب التحاق للطالب
+                      - generic:
+                        - generic:
+                          - generic:
+                            - heading [level=2]: اختر الفصل
+                            - generic:
+                              - text: اختر الفصل
+                              - combobox [expanded]:
+                                - generic: اختر فصل للتقديم
+                                - img
+                              - combobox
+                          - generic:
+                            - heading [level=2]: المعلومات الشخصية
+                            - generic:
+                              - generic:
+                                - text: الاسم الكامل
+                                - generic:
+                                  - textbox:
+                                    - /placeholder: أدخل اسمك الكامل
+                              - generic:
+                                - generic: تاريخ الميلاد
+                                - button:
+                                  - img
+                                  - text: اختر تاريخ الميلاد
+                              - generic:
+                                - text: النوع
+                                - combobox:
+                                  - generic: اختر النوع
+                                  - img
+                                - combobox
+                              - generic:
+                                - text: كلمة المرور
+                                - generic:
+                                  - generic:
+                                    - img
+                                  - textbox:
+                                    - /placeholder: كلمة المرور
+                                  - generic:
+                                    - generic:
+                                      - img
+                            - generic:
+                              - text: صورة الطالب
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - img
+                                    - generic:
+                                      - paragraph: Drag and drop an image here, or
+                                      - button:
+                                        - img
+                                        - text: Upload Image
+                                    - paragraph: "Supported formats: jpg, jpeg, png, gif, webp (max 5MB)"
+                          - generic:
+                            - heading [level=2]: معلومات الاتصال
+                            - generic:
+                              - generic:
+                                - text: رقم الهاتف
+                                - generic:
+                                  - generic:
+                                    - combobox:
+                                      - generic:
+                                        - generic: 🇸🇩
+                                        - generic: "+249"
+                                      - img
+                                    - generic:
+                                      - spinbutton
+                              - generic:
+                                - text: العنوان
+                                - textbox:
+                                  - /placeholder: أدخل عنوانك
+                          - generic:
+                            - heading [level=2]: المعلومات التعليمية
+                            - generic:
+                              - generic:
+                                - text: التعليم السابق
+                                - textbox:
+                                  - /placeholder: أدخل خلفيتك التعليمية
+                          - generic:
+                            - heading [level=2]: معلومات ولي الامر
+                            - generic:
+                              - generic:
+                                - text: اسم ولي الامر
+                                - generic:
+                                  - textbox:
+                                    - /placeholder: أدخل اسم ولي الامر
+                              - generic:
+                                - text: رقم هاتف ولي الامر
+                                - generic:
+                                  - generic:
+                                    - combobox:
+                                      - generic:
+                                        - generic: 🇸🇩
+                                        - generic: "+249"
+                                      - img
+                                    - generic:
+                                      - spinbutton
+                              - generic:
+                                - generic: رقم جواز السفر (اختياري)
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - img
+                                      - generic:
+                                        - paragraph: قم بسحب الملف هنا او
+                                        - button:
+                                          - img
+                                          - text: اختر ملف
+                                      - paragraph: "الصيغ المدعومة: jpg, jpeg, png, gif, webp, pdf, mp4, mp3, mov, avi, mkv, ppt (max 300MB)"
+                              - generic:
+                                - generic: الرقم الوطني (اختياري)
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - img
+                                      - generic:
+                                        - paragraph: قم بسحب الملف هنا او
+                                        - button:
+                                          - img
+                                          - text: اختر ملف
+                                      - paragraph: "الصيغ المدعومة: jpg, jpeg, png, gif, webp, pdf, mp4, mp3, mov, avi, mkv, ppt (max 300MB)"
+                          - generic:
+                            - button: إرسال الطلب
+  - region "Notifications alt+T"
+  - alert
+  - listbox [ref=e160]:
+    - option "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول" [active] [ref=e161]:
+      - generic [ref=e163]: كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الأول
+    - option "كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني" [ref=e164]:
+      - generic [ref=e166]: كورس تأسيس اللغة الإنجليزية للأطفال - المستوى الثاني

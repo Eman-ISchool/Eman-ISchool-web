@@ -55,6 +55,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Optimize rendering for below-the-fold sections */
+.content-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Dynamic image containers — prevent layout shift */
+.aspect-video-container {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.aspect-square-container {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
 /* Arabic RTL typography — relaxed line-height for Arabic glyphs */
 [dir="rtl"] {
   line-height: 1.8;

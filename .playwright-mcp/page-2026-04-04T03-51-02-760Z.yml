@@ -1,0 +1,131 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: ا
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: ابراهيم محمد
+            - paragraph [ref=e12]: ADMIN
+        - generic [ref=e13]:
+          - link "الرئيسية" [ref=e14] [cursor=pointer]:
+            - /url: /ar/dashboard
+            - generic [ref=e15]: الرئيسية
+            - img [ref=e16]
+          - generic [ref=e21]:
+            - button "الأكاديمي" [ref=e23]:
+              - generic [ref=e24]:
+                - img [ref=e25]
+                - generic [ref=e27]: الأكاديمي
+              - img [ref=e28]
+            - button "الإدارة" [ref=e31]:
+              - generic [ref=e32]:
+                - img [ref=e33]
+                - generic [ref=e38]: الإدارة
+              - img [ref=e39]
+            - button "المالية" [ref=e42]:
+              - generic [ref=e43]:
+                - img [ref=e44]
+                - generic [ref=e47]: المالية
+              - img [ref=e48]
+            - generic [ref=e50]:
+              - button "التواصل" [ref=e51]:
+                - generic [ref=e52]:
+                  - img [ref=e53]
+                  - generic [ref=e56]: التواصل
+                - img [ref=e57]
+              - generic [ref=e59]:
+                - link "الإعلانات" [ref=e60] [cursor=pointer]:
+                  - /url: /ar/dashboard/announcements
+                  - generic [ref=e61]: الإعلانات
+                  - img [ref=e62]
+                - link "الرسائل" [ref=e65] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages
+                  - generic [ref=e66]: الرسائل
+                  - img [ref=e67]
+            - button "المحتوى" [ref=e70]:
+              - generic [ref=e71]:
+                - img [ref=e72]
+                - generic [ref=e74]: المحتوى
+              - img [ref=e75]
+            - button "التحليلات" [ref=e78]:
+              - generic [ref=e79]:
+                - img [ref=e80]
+                - generic [ref=e83]: التحليلات
+              - img [ref=e84]
+            - button "إدارة البيانات" [ref=e87]:
+              - generic [ref=e88]:
+                - img [ref=e89]
+                - generic [ref=e91]: إدارة البيانات
+              - img [ref=e92]
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - link "الإعدادات" [ref=e96] [cursor=pointer]:
+              - /url: /ar/dashboard/system-settings
+              - generic [ref=e97]: الإعدادات
+              - img [ref=e98]
+            - link "الملف الشخصي" [ref=e101] [cursor=pointer]:
+              - /url: /ar/dashboard/profile
+              - generic [ref=e102]: الملف الشخصي
+              - img [ref=e103]
+          - button "تسجيل الخروج" [ref=e106]:
+            - generic [ref=e107]: تسجيل الخروج
+            - img [ref=e108]
+    - generic [ref=e110]:
+      - generic [ref=e112]:
+        - button "إغلاق" [ref=e113]:
+          - img [ref=e114]
+        - generic [ref=e117]:
+          - img [ref=e119]
+          - generic [ref=e122]:
+            - paragraph [ref=e123]: تثبيت التطبيق
+            - paragraph [ref=e124]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - button "تثبيت التطبيق" [ref=e125]
+      - generic [ref=e126]:
+        - heading "الاعلانات" [level=1] [ref=e128]
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - button "اضافة" [ref=e131]:
+              - img [ref=e132]
+              - text: اضافة
+            - heading "الاعلانات" [level=1] [ref=e133]
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - generic [ref=e137]: الاجمالي
+                - img [ref=e138]
+              - paragraph [ref=e141]: "0"
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - generic [ref=e144]: نشط
+                - img [ref=e145]
+              - paragraph [ref=e148]: "0"
+            - generic [ref=e149]:
+              - generic [ref=e150]:
+                - generic [ref=e151]: مسودة
+                - img [ref=e152]
+              - paragraph [ref=e155]: "0"
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: منتهي
+                - img [ref=e159]
+              - paragraph [ref=e164]: "0"
+          - generic [ref=e165]:
+            - heading "الكل" [level=2] [ref=e166]
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - img
+                - textbox "بحث..." [ref=e169]
+              - combobox [ref=e170]:
+                - option "الكل" [selected]
+                - option "نشط"
+                - option "مسودة"
+                - option "منتهي"
+              - combobox [ref=e171]:
+                - option "All Types" [selected]
+              - combobox [ref=e172]:
+                - option "All Priorities" [selected]
+          - generic [ref=e173]:
+            - img [ref=e174]
+            - paragraph [ref=e177]: لا توجد اعلانات
+  - alert [ref=e178]

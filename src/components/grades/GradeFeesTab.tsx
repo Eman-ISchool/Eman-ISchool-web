@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect, memo } from 'react';
+import { useLocale } from 'next-intl';
 
 export interface GradeFeesTabProps {
   gradeId: string;
@@ -30,6 +31,8 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
   onLoadingStart,
   onLoadingEnd,
 }) => {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [fees, setFees] = useState<any[]>(data?.fees || []);
   const [summary, setSummary] = useState<any>(data?.summary || null);
   const [loading, setLoading] = useState(!data);
@@ -123,7 +126,7 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
     return (
       <div className="grade-fees-tab error">
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Retry</button>
+        <button onClick={() => window.location.reload()}>{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
       </div>
     );
   }
@@ -133,40 +136,40 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
       {/* Summary Statistics */}
       {summary && (
         <div className="fees-summary">
-          <h2>Fee Summary</h2>
+          <h2>{isArabic ? 'ملخص الرسوم' : 'Fee Summary'}</h2>
           <div className="summary-cards">
             <div className="summary-card">
-              <div className="card-label">Total Fees</div>
+              <div className="card-label">{isArabic ? 'إجمالي الرسوم' : 'Total Fees'}</div>
               <div className="card-value">
                 {formatCurrency(summary.total_fees, 'USD')}
               </div>
             </div>
             <div className="summary-card">
-              <div className="card-label">Total Paid</div>
+              <div className="card-label">{isArabic ? 'إجمالي المدفوع' : 'Total Paid'}</div>
               <div className="card-value text-green">
                 {formatCurrency(summary.total_paid, 'USD')}
               </div>
             </div>
             <div className="summary-card">
-              <div className="card-label">Outstanding Balance</div>
+              <div className="card-label">{isArabic ? 'الرصيد المتبقي' : 'Outstanding Balance'}</div>
               <div className="card-value text-red">
                 {formatCurrency(summary.total_balance, 'USD')}
               </div>
             </div>
             <div className="summary-card">
-              <div className="card-label">Payment Status</div>
+              <div className="card-label">{isArabic ? 'حالة الدفع' : 'Payment Status'}</div>
               <div className="card-stats">
                 <div className="stat">
                   <span className="stat-count text-green">{summary.paid_count}</span>
-                  <span className="stat-label">Paid</span>
+                  <span className="stat-label">{isArabic ? 'مدفوع' : 'Paid'}</span>
                 </div>
                 <div className="stat">
                   <span className="stat-count text-yellow">{summary.partial_count}</span>
-                  <span className="stat-label">Partial</span>
+                  <span className="stat-label">{isArabic ? 'جزئي' : 'Partial'}</span>
                 </div>
                 <div className="stat">
                   <span className="stat-count text-red">{summary.pending_count}</span>
-                  <span className="stat-label">Pending</span>
+                  <span className="stat-label">{isArabic ? 'معلق' : 'Pending'}</span>
                 </div>
               </div>
             </div>
@@ -176,7 +179,7 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
 
       {/* Fees List */}
       <div className="fees-list-header">
-        <h2>Fee Items ({filteredFees.length})</h2>
+        <h2>{isArabic ? `عناصر الرسوم (${filteredFees.length})` : `Fee Items (${filteredFees.length})`}</h2>
         <div className="fees-filters">
           <select
             value={statusFilter}
@@ -184,14 +187,14 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
             className="filter-select"
             aria-label="Filter fees by payment status"
           >
-            <option value="all">All Status</option>
-            <option value="paid">Paid</option>
-            <option value="partial">Partial</option>
-            <option value="pending">Pending</option>
+            <option value="all">{isArabic ? 'جميع الحالات' : 'All Status'}</option>
+            <option value="paid">{isArabic ? 'مدفوع' : 'Paid'}</option>
+            <option value="partial">{isArabic ? 'جزئي' : 'Partial'}</option>
+            <option value="pending">{isArabic ? 'معلق' : 'Pending'}</option>
           </select>
           <input
             type="text"
-            placeholder="Filter by type..."
+            placeholder={isArabic ? 'تصفية حسب النوع...' : 'Filter by type...'}
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className="filter-input"
@@ -202,21 +205,21 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
 
       {filteredFees.length === 0 ? (
         <div className="empty-state">
-          <p>No fees found.</p>
+          <p>{isArabic ? 'لم يتم العثور على رسوم.' : 'No fees found.'}</p>
         </div>
       ) : (
         <div className="fees-table">
           <table>
             <thead>
               <tr>
-                <th>Description</th>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Amount</th>
-                <th>Paid</th>
-                <th>Balance</th>
-                <th>Status</th>
-                <th>Invoice</th>
+                <th>{isArabic ? 'الوصف' : 'Description'}</th>
+                <th>{isArabic ? 'الطالب' : 'Student'}</th>
+                <th>{isArabic ? 'المادة' : 'Course'}</th>
+                <th>{isArabic ? 'المبلغ' : 'Amount'}</th>
+                <th>{isArabic ? 'المدفوع' : 'Paid'}</th>
+                <th>{isArabic ? 'الرصيد' : 'Balance'}</th>
+                <th>{isArabic ? 'الحالة' : 'Status'}</th>
+                <th>{isArabic ? 'الفاتورة' : 'Invoice'}</th>
               </tr>
             </thead>
             <tbody>
@@ -252,7 +255,7 @@ const GradeFeesTab = memo<GradeFeesTabProps>(({
                   </td>
                   <td className="status-cell">
                     <span className={`status-badge ${getStatusColor(fee.status)}`}>
-                      {fee.status}
+                      {isArabic ? (fee.status === 'paid' ? 'مدفوع' : fee.status === 'partial' ? 'جزئي' : fee.status === 'pending' ? 'معلق' : fee.status) : fee.status}
                     </span>
                   </td>
                   <td className="invoice-cell">

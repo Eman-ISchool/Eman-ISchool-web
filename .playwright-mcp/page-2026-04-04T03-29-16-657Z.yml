@@ -1,0 +1,71 @@
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: F
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Fadi
+          - paragraph [ref=e12]: ADMIN
+      - generic [ref=e13]:
+        - link "الرئيسية" [ref=e14] [cursor=pointer]:
+          - /url: /ar/dashboard
+          - generic [ref=e15]: الرئيسية
+          - img [ref=e16]
+        - generic [ref=e21]:
+          - button "الأكاديمي" [ref=e23]:
+            - generic [ref=e24]:
+              - img [ref=e25]
+              - generic [ref=e27]: الأكاديمي
+            - img [ref=e28]
+          - button "الإدارة" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e38]: الإدارة
+            - img [ref=e39]
+          - button "المالية" [ref=e42]:
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - generic [ref=e47]: المالية
+            - img [ref=e48]
+          - button "التواصل" [ref=e51]:
+            - generic [ref=e52]:
+              - img [ref=e53]
+              - generic [ref=e56]: التواصل
+            - img [ref=e57]
+          - button "المحتوى" [ref=e60]:
+            - generic [ref=e61]:
+              - img [ref=e62]
+              - generic [ref=e64]: المحتوى
+            - img [ref=e65]
+          - button "التحليلات" [ref=e68]:
+            - generic [ref=e69]:
+              - img [ref=e70]
+              - generic [ref=e73]: التحليلات
+            - img [ref=e74]
+          - button "إدارة البيانات" [ref=e77]:
+            - generic [ref=e78]:
+              - img [ref=e79]
+              - generic [ref=e81]: إدارة البيانات
+            - img [ref=e82]
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - link "الإعدادات" [ref=e86] [cursor=pointer]:
+            - /url: /ar/dashboard/system-settings
+            - generic [ref=e87]: الإعدادات
+            - img [ref=e88]
+          - link "الملف الشخصي" [ref=e91] [cursor=pointer]:
+            - /url: /ar/dashboard/profile
+            - generic [ref=e92]: الملف الشخصي
+            - img [ref=e93]
+        - button "تسجيل الخروج" [ref=e96]:
+          - generic [ref=e97]: تسجيل الخروج
+          - img [ref=e98]
+  - generic [ref=e102]:
+    - button "إغلاق" [ref=e103]:
+      - img [ref=e104]
+    - generic [ref=e107]:
+      - img [ref=e109]
+      - generic [ref=e112]:
+        - paragraph [ref=e113]: تثبيت التطبيق
+        - paragraph [ref=e114]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+    - button "تثبيت التطبيق" [ref=e115]

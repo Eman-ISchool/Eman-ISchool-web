@@ -19,6 +19,7 @@
  */
 
 import React, { useState, useRef, useEffect, memo } from 'react';
+import { useLocale } from 'next-intl';
 import GradeInfoTab from './GradeInfoTab';
 import GradeCoursesTab from './GradeCoursesTab';
 import GradeStudentsTab from './GradeStudentsTab';
@@ -45,6 +46,8 @@ const GradeDetailTabs = memo<GradeDetailTabsProps>(({
   initialTab = 'info',
   onTabChange,
 }) => {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [activeTab, setActiveTab] = useState<GradeTab>(initialTab);
   const [loading, setLoading] = useState<GradeTab | null>(null);
   const [error, setError] = useState<GradeTab | null>(null);
@@ -64,11 +67,11 @@ const GradeDetailTabs = memo<GradeDetailTabsProps>(({
   };
 
   const tabs: { id: GradeTab; label: string; icon: string }[] = [
-    { id: 'info', label: 'Info', icon: 'ℹ️' },
-    { id: 'courses', label: 'Courses', icon: '📚' },
-    { id: 'schedule', label: 'Schedule', icon: '📅' },
-    { id: 'students', label: 'Students', icon: '👥' },
-    { id: 'fees', label: 'Fees', icon: '💰' },
+    { id: 'info', label: isArabic ? 'المعلومات' : 'Info', icon: 'ℹ️' },
+    { id: 'courses', label: isArabic ? 'المواد' : 'Courses', icon: '📚' },
+    { id: 'schedule', label: isArabic ? 'الجدول' : 'Schedule', icon: '📅' },
+    { id: 'students', label: isArabic ? 'الطلاب' : 'Students', icon: '👥' },
+    { id: 'fees', label: isArabic ? 'الرسوم' : 'Fees', icon: '💰' },
   ];
 
   return (
@@ -147,7 +150,7 @@ const GradeDetailTabs = memo<GradeDetailTabsProps>(({
             className="tab-panel"
           >
             <div className="grade-schedule-tab">
-              <p>Grade schedule calendar will be implemented in Phase 8.</p>
+              <p>{isArabic ? 'سيتم تنفيذ تقويم جدول الفصل في المرحلة 8.' : 'Grade schedule calendar will be implemented in Phase 8.'}</p>
             </div>
           </div>
         )}
@@ -201,15 +204,15 @@ const GradeDetailTabs = memo<GradeDetailTabsProps>(({
       {loading && (
         <div className="tab-loading">
           <div className="spinner" aria-hidden="true" />
-          <span>Loading {loading}...</span>
+          <span>{isArabic ? `جاري تحميل ${loading}...` : `Loading ${loading}...`}</span>
         </div>
       )}
 
       {/* Error State */}
       {error && (
         <div className="tab-error">
-          <p>Failed to load {error}. Please try again.</p>
-          <button onClick={() => setError(null)}>Retry</button>
+          <p>{isArabic ? `فشل تحميل ${error}. يرجى المحاولة مرة أخرى.` : `Failed to load ${error}. Please try again.`}</p>
+          <button onClick={() => setError(null)}>{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
         </div>
       )}
     </div>

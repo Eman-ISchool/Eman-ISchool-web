@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, memo } from 'react';
+import { useLocale } from 'next-intl';
 
 export interface GradeInfoTabProps {
   gradeId: string;
@@ -35,6 +36,8 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
   onLoadingStart,
   onLoadingEnd,
 }) => {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [grade, setGrade] = useState<any>(data?.grade || null);
   const [supervisor, setSupervisor] = useState<any>(data?.supervisor || null);
   const [loading, setLoading] = useState(!data);
@@ -164,23 +167,23 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
     return (
       <div className="grade-info-tab error">
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Retry</button>
+        <button onClick={() => window.location.reload()}>{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
       </div>
     );
   }
 
   if (!grade) {
-    return <div className="grade-info-tab empty">Grade not found</div>;
+    return <div className="grade-info-tab empty">{isArabic ? 'لم يتم العثور على الفصل' : 'Grade not found'}</div>;
   }
 
   return (
     <div className="grade-info-tab">
       {editing ? (
         <div className="grade-info-edit">
-          <h2>Edit Grade Information</h2>
+          <h2>{isArabic ? 'تعديل معلومات الفصل' : 'Edit Grade Information'}</h2>
           <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <div className="form-group">
-              <label htmlFor="name">Name *</label>
+              <label htmlFor="name">{isArabic ? 'الاسم *' : 'Name *'}</label>
               <input
                 type="text"
                 id="name"
@@ -192,7 +195,7 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
             </div>
 
             <div className="form-group">
-              <label htmlFor="name_en">English Name</label>
+              <label htmlFor="name_en">{isArabic ? 'الاسم بالإنجليزية' : 'English Name'}</label>
               <input
                 type="text"
                 id="name_en"
@@ -203,7 +206,7 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Description</label>
+              <label htmlFor="description">{isArabic ? 'الوصف' : 'Description'}</label>
               <textarea
                 id="description"
                 name="description"
@@ -216,21 +219,21 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
             {/* Supervisor selector - hidden for supervisors */}
             {!isSupervisor && (
               <div className="form-group">
-                <label htmlFor="supervisor_id">Supervisor</label>
+                <label htmlFor="supervisor_id">{isArabic ? 'المشرف' : 'Supervisor'}</label>
                 <select
                   id="supervisor_id"
                   name="supervisor_id"
                   value={formData.supervisor_id}
                   onChange={handleInputChange}
                 >
-                  <option value="">No Supervisor</option>
+                  <option value="">{isArabic ? 'بدون مشرف' : 'No Supervisor'}</option>
                   {/* TODO: Load supervisor options */}
                 </select>
               </div>
             )}
 
             <div className="form-group">
-              <label htmlFor="image_url">Image URL</label>
+              <label htmlFor="image_url">{isArabic ? 'رابط الصورة' : 'Image URL'}</label>
               <input
                 type="url"
                 id="image_url"
@@ -249,19 +252,19 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
                 checked={formData.is_active}
                 onChange={handleInputChange}
                 disabled={isSupervisor}
-                title={isSupervisor ? "Only admins can change this setting" : undefined}
+                title={isSupervisor ? (isArabic ? 'فقط المسؤولون يمكنهم تغيير هذا الإعداد' : 'Only admins can change this setting') : undefined}
               />
-              <label htmlFor="is_active" title={isSupervisor ? "Only admins can change this setting" : undefined}>
-                Active
+              <label htmlFor="is_active" title={isSupervisor ? (isArabic ? 'فقط المسؤولون يمكنهم تغيير هذا الإعداد' : 'Only admins can change this setting') : undefined}>
+                {isArabic ? 'نشط' : 'Active'}
               </label>
               {isSupervisor && (
-                <span className="tooltip">Only admins can change this setting</span>
+                <span className="tooltip">{isArabic ? 'فقط المسؤولون يمكنهم تغيير هذا الإعداد' : 'Only admins can change this setting'}</span>
               )}
             </div>
 
             {/* Sort order - disabled for supervisors */}
             <div className={`form-group ${isSupervisor ? 'disabled' : ''}`}>
-              <label htmlFor="sort_order">Sort Order</label>
+              <label htmlFor="sort_order">{isArabic ? 'ترتيب الفرز' : 'Sort Order'}</label>
               <input
                 type="number"
                 id="sort_order"
@@ -269,19 +272,19 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
                 value={formData.sort_order}
                 onChange={handleInputChange}
                 disabled={isSupervisor}
-                title={isSupervisor ? "Only admins can change this setting" : undefined}
+                title={isSupervisor ? (isArabic ? 'فقط المسؤولون يمكنهم تغيير هذا الإعداد' : 'Only admins can change this setting') : undefined}
               />
               {isSupervisor && (
-                <span className="tooltip">Only admins can change this setting</span>
+                <span className="tooltip">{isArabic ? 'فقط المسؤولون يمكنهم تغيير هذا الإعداد' : 'Only admins can change this setting'}</span>
               )}
             </div>
 
             <div className="form-actions">
               <button type="button" onClick={handleCancel} className="btn-secondary">
-                Cancel
+                {isArabic ? 'إلغاء' : 'Cancel'}
               </button>
               <button type="submit" className="btn-primary">
-                Save Changes
+                {isArabic ? 'حفظ التغييرات' : 'Save Changes'}
               </button>
             </div>
           </form>
@@ -296,7 +299,7 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
               <h1>{grade.name}</h1>
               {grade.name_en && <p className="grade-name-en">{grade.name_en}</p>}
               <span className={`grade-status ${grade.is_active ? 'active' : 'inactive'}`}>
-                {grade.is_active ? 'Active' : 'Inactive'}
+                {grade.is_active ? (isArabic ? 'نشط' : 'Active') : (isArabic ? 'غير نشط' : 'Inactive')}
               </span>
             </div>
             <button onClick={handleEdit} className="btn-edit" aria-label="Edit grade">
@@ -306,35 +309,35 @@ const GradeInfoTab = memo<GradeInfoTabProps>(({
 
           {grade.description && (
             <div className="grade-description">
-              <h3>Description</h3>
+              <h3>{isArabic ? 'الوصف' : 'Description'}</h3>
               <p>{grade.description}</p>
             </div>
           )}
 
           <div className="grade-details">
             <div className="detail-item">
-              <span className="detail-label">Supervisor:</span>
+              <span className="detail-label">{isArabic ? 'المشرف:' : 'Supervisor:'}</span>
               <span className="detail-value">
                 {supervisor ? (
                   <a href={`/admin/users/${supervisor.id}`}>{supervisor.name}</a>
                 ) : (
-                  <em>Not assigned</em>
+                  <em>{isArabic ? 'غير معيّن' : 'Not assigned'}</em>
                 )}
               </span>
             </div>
 
             <div className="detail-item">
-              <span className="detail-label">Sort Order:</span>
+              <span className="detail-label">{isArabic ? 'ترتيب الفرز:' : 'Sort Order:'}</span>
               <span className="detail-value">{grade.sort_order}</span>
             </div>
 
             <div className="detail-item">
-              <span className="detail-label">Grade ID:</span>
+              <span className="detail-label">{isArabic ? 'معرف الفصل:' : 'Grade ID:'}</span>
               <span className="detail-value">{grade.id}</span>
             </div>
 
             <div className="detail-item">
-              <span className="detail-label">Slug:</span>
+              <span className="detail-label">{isArabic ? 'الرابط:' : 'Slug:'}</span>
               <span className="detail-value">{grade.slug}</span>
             </div>
           </div>

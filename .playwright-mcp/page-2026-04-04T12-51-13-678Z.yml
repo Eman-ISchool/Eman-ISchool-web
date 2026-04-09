@@ -1,0 +1,127 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: F
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: Fadi
+            - paragraph [ref=e12]: ADMIN
+        - generic [ref=e13]:
+          - link "الرئيسية" [ref=e14] [cursor=pointer]:
+            - /url: /ar/dashboard
+            - generic [ref=e15]: الرئيسية
+            - img [ref=e16]
+          - generic [ref=e21]:
+            - button "الأكاديمي" [ref=e23]:
+              - generic [ref=e24]:
+                - img [ref=e25]
+                - generic [ref=e27]: الأكاديمي
+              - img [ref=e28]
+            - generic [ref=e30]:
+              - button "الإدارة" [ref=e31]:
+                - generic [ref=e32]:
+                  - img [ref=e33]
+                  - generic [ref=e38]: الإدارة
+                - img [ref=e39]
+              - generic [ref=e41]:
+                - link "المستخدمون" [ref=e42] [cursor=pointer]:
+                  - /url: /ar/dashboard/users
+                  - generic [ref=e43]: المستخدمون
+                  - img [ref=e44]
+                - link "الطلبات" [ref=e49] [cursor=pointer]:
+                  - /url: /ar/dashboard/applications
+                  - generic [ref=e50]: الطلبات
+                  - img [ref=e51]
+                - link "البيانات المرجعية" [ref=e53] [cursor=pointer]:
+                  - /url: /ar/dashboard/lookups
+                  - generic [ref=e54]: البيانات المرجعية
+                  - img [ref=e55]
+            - button "المالية" [ref=e60]:
+              - generic [ref=e61]:
+                - img [ref=e62]
+                - generic [ref=e65]: المالية
+              - img [ref=e66]
+            - button "التواصل" [ref=e69]:
+              - generic [ref=e70]:
+                - img [ref=e71]
+                - generic [ref=e74]: التواصل
+              - img [ref=e75]
+            - button "المحتوى" [ref=e78]:
+              - generic [ref=e79]:
+                - img [ref=e80]
+                - generic [ref=e82]: المحتوى
+              - img [ref=e83]
+            - button "التحليلات" [ref=e86]:
+              - generic [ref=e87]:
+                - img [ref=e88]
+                - generic [ref=e91]: التحليلات
+              - img [ref=e92]
+            - button "إدارة البيانات" [ref=e95]:
+              - generic [ref=e96]:
+                - img [ref=e97]
+                - generic [ref=e99]: إدارة البيانات
+              - img [ref=e100]
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - link "الإعدادات" [ref=e104] [cursor=pointer]:
+              - /url: /ar/dashboard/system-settings
+              - generic [ref=e105]: الإعدادات
+              - img [ref=e106]
+            - link "الملف الشخصي" [ref=e109] [cursor=pointer]:
+              - /url: /ar/dashboard/profile
+              - generic [ref=e110]: الملف الشخصي
+              - img [ref=e111]
+          - button "تسجيل الخروج" [ref=e114]:
+            - generic [ref=e115]: تسجيل الخروج
+            - img [ref=e116]
+    - generic [ref=e118]:
+      - generic [ref=e120]:
+        - button "إغلاق" [ref=e121]:
+          - img [ref=e122]
+        - generic [ref=e125]:
+          - img [ref=e127]
+          - generic [ref=e130]:
+            - paragraph [ref=e131]: تثبيت التطبيق
+            - paragraph [ref=e132]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - button "تثبيت التطبيق" [ref=e133]
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - heading "المستخدمون" [level=1] [ref=e136]
+          - paragraph [ref=e137]: إدارة حسابات المستخدمين والصلاحيات
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - heading "المستخدمون" [level=2] [ref=e140]
+            - generic [ref=e141]:
+              - button "تصدير" [ref=e142]:
+                - img [ref=e143]
+                - text: تصدير
+              - button "إضافة مستخدم" [ref=e146]:
+                - img [ref=e147]
+                - text: إضافة مستخدم
+          - generic [ref=e148]:
+            - generic [ref=e149]:
+              - generic [ref=e150]:
+                - generic [ref=e151]:
+                  - img [ref=e152]
+                  - textbox "تصفية المستخدمين..." [ref=e155]
+                - button "الدور" [ref=e157]:
+                  - generic [ref=e158]:
+                    - img [ref=e159]
+                    - generic [ref=e160]: الدور
+                - button "الحالة" [ref=e162]:
+                  - generic [ref=e163]:
+                    - img [ref=e164]
+                    - generic [ref=e165]: الحالة
+              - button "عرض" [ref=e167]:
+                - img [ref=e168]
+                - text: عرض
+            - generic [ref=e170]:
+              - img [ref=e171]
+              - generic [ref=e173]: جاري تحميل المستخدمين...
+            - generic [ref=e174]:
+              - generic [ref=e175]: 0 المحددة من 0 صفوف
+              - generic [ref=e176]:
+                - button "السابق" [disabled]
+                - button "التالي" [disabled]
+  - alert [ref=e177]

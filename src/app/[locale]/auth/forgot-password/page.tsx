@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, Mail, AlertCircle, Send } from 'lucide-react';
+import { Loader2, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { withLocalePrefix } from '@/lib/locale-path';
 
@@ -12,145 +9,106 @@ export default function ForgotPasswordPage({ params: { locale } }: { params: { l
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [error, setError] = useState('');
     const isArabic = locale === 'ar';
 
     const copy = {
         title: isArabic ? 'نسيت كلمة المرور' : 'Forgot Password',
         subtitle: isArabic
-            ? 'أدخل بريدك الإلكتروني لاستلام رابط إعادة التعيين'
-            : 'Enter your email to receive a reset link',
-        email: isArabic ? 'البريد الإلكتروني' : 'Email address',
-        placeholder: isArabic ? 'name@example.com' : 'name@example.com',
-        send: isArabic ? 'إرسال الرابط' : 'Send Reset Link',
+            ? 'أدخل عنوان بريدك الإلكتروني وسنرسل لك رمزًا لإعادة تعيين كلمة المرور.'
+            : 'Enter your email address and we will send you a code to reset your password.',
+        emailLabel: isArabic ? 'أدخل بريدك الإلكتروني' : 'Enter your email',
+        emailPlaceholder: isArabic ? 'أدخل بريدك الإلكتروني' : 'Enter your email',
+        send: isArabic ? 'إرسال الرمز' : 'Send Code',
         sending: isArabic ? 'جارٍ الإرسال...' : 'Sending...',
-        error: isArabic ? 'حدث خطأ ما. حاول مرة أخرى.' : 'Something went wrong. Please try again.',
-        successTitle: isArabic ? 'تحقق من بريدك الإلكتروني' : 'Check your email',
+        back: isArabic ? 'العودة لتسجيل الدخول' : 'Back to Sign In',
+        successTitle: isArabic ? 'تم إرسال الرمز' : 'Code Sent',
         successBody: isArabic
-            ? 'إذا كان هناك حساب مرتبط بـ'
-            : 'If an account exists for',
-        successTail: isArabic
-            ? 'فقد أرسلنا رابط إعادة تعيين كلمة المرور.'
-            : `, we've sent a password reset link.`,
-        retry: isArabic ? 'استخدم بريداً آخر' : 'Try another email',
-        back: isArabic ? 'العودة إلى تسجيل الدخول' : 'Back to Sign In',
+            ? 'تم إرسال رمز إعادة التعيين إلى بريدك الإلكتروني.'
+            : 'A reset code has been sent to your email.',
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
-
         try {
             await fetch('/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }),
             });
-            // Always show success for security
             setIsSubmitted(true);
         } catch {
-            setError(copy.error);
+            // Always show success for security
+            setIsSubmitted(true);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="w-full max-w-md mx-auto px-4 py-8">
-            <div className="overflow-hidden rounded-3xl bg-white shadow-2xl shadow-teal-100/40">
-
-                {/* ── Teal header strip ─────────────────────────────── */}
-                <div className="relative overflow-hidden bg-linear-to-br from-teal-600 to-emerald-500 px-8 py-8 text-center text-white">
-                    <div className="pointer-events-none absolute -top-8 -right-8 h-28 w-28 rounded-full bg-white/10" />
-                    <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-white/10" />
-                    <div className="relative inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm mb-4">
-                        <Mail className="h-7 w-7 text-white" />
+        <div className="min-h-screen bg-white" dir={isArabic ? 'rtl' : 'ltr'}>
+            <div className={`flex min-h-screen ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}>
+                {/* Image side */}
+                <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[#c8e649]" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <ImageIcon className="h-24 w-24 text-white/30" />
                     </div>
-                    <h1 className="text-xl font-extrabold">{copy.title}</h1>
-                    <p className="text-teal-100 text-sm mt-1">
-                        {copy.subtitle}
-                    </p>
                 </div>
 
-                {/* ── Form / Success ────────────────────────────────── */}
-                <div className="px-8 py-8">
-                    {!isSubmitted ? (
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {error && (
-                                <div
-                                    role="alert"
-                                    aria-live="assertive"
-                                    className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-100 p-3.5 text-sm text-red-600 animate-in fade-in slide-in-from-top-2"
-                                >
-                                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                                    <span>{error}</span>
+                {/* Form side */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-10">
+                    <div className="w-full max-w-md">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-3">{copy.title}</h1>
+                        <p className="text-sm text-gray-500 mb-8">{copy.subtitle}</p>
+
+                        {!isSubmitted ? (
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-900">{copy.emailLabel}</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        disabled={isLoading}
+                                        placeholder={copy.emailPlaceholder}
+                                        dir="ltr"
+                                        className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-gray-400"
+                                    />
                                 </div>
-                            )}
 
-                            <div className="space-y-1.5">
-                                <Label htmlFor="email" className="text-gray-700 font-medium text-sm">
-                                    {copy.email}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
+                                <button
+                                    type="submit"
                                     disabled={isLoading}
-                                    placeholder={copy.placeholder}
-                                    dir="ltr"
-                                    className="h-11 border-gray-200 focus-visible:border-teal-500 focus-visible:ring-teal-200 transition-all"
-                                />
+                                    className="w-full h-12 rounded-full bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            {copy.sending}
+                                        </>
+                                    ) : (
+                                        copy.send
+                                    )}
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                                <p className="font-semibold mb-1">{copy.successTitle}</p>
+                                <p>{copy.successBody}</p>
                             </div>
+                        )}
 
-                            <Button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg shadow-teal-600/20 hover:shadow-teal-600/30 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                        <div className="mt-6 text-center">
+                            <Link
+                                href={withLocalePrefix('/login', locale)}
+                                className="text-sm text-gray-500 hover:text-gray-700 transition"
                             >
-                                {isLoading ? (
-                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {copy.sending}</>
-                                ) : (
-                                    <><Send className="mr-2 h-4 w-4" /> {copy.send}</>
-                                )}
-                            </Button>
-                        </form>
-                    ) : (
-                        /* Success state */
-                        <div className="flex flex-col items-center text-center space-y-4 py-2" role="status" aria-live="polite">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                                <Mail className="h-8 w-8 text-emerald-600" />
-                            </div>
-                            <div>
-                                <h3 className="font-extrabold text-lg text-gray-900">{copy.successTitle}</h3>
-                                <p className="text-gray-500 text-sm mt-1.5 max-w-xs">
-                                    {copy.successBody}{' '}
-                                    <span className="font-semibold text-gray-700">{email}</span>{' '}
-                                    {copy.successTail}
-                                </p>
-                            </div>
-                            <Button
-                                variant="outline"
-                                className="w-full h-11 border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                                onClick={() => { setIsSubmitted(false); setEmail(''); }}
-                            >
-                                {copy.retry}
-                            </Button>
+                                {copy.back}
+                            </Link>
                         </div>
-                    )}
-                </div>
-
-                {/* ── Back link ─────────────────────────────────────── */}
-                <div className="border-t border-gray-100 px-8 py-4 text-center">
-                    <Link
-                        href={withLocalePrefix('/login', locale)}
-                        className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        <ArrowLeft className={`h-3.5 w-3.5 ${isArabic ? 'rotate-180' : ''}`} />
-                        {copy.back}
-                    </Link>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,93 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - main [ref=e4]:
+      - generic [ref=e6]:
+        - link "العودة إلى الفصول" [ref=e42] [cursor=pointer]:
+          - /url: /ar/teacher/grades
+          - img [ref=e43]
+          - text: العودة إلى الفصول
+        - generic [ref=e8]:
+          - heading "الصف الأول الابتدائي" [level=1] [ref=e45]
+          - generic [ref=e46]:
+            - generic [ref=e47]: "الرمز: grade-1"
+            - generic [ref=e48]: "المشرف: غير معين"
+            - generic [ref=e49]: "الحالة: نشط"
+        - generic [ref=e9]:
+          - generic [ref=e51]:
+            - button "المعلومات" [ref=e52]:
+              - img [ref=e53]
+              - text: المعلومات
+            - button "المواد الدراسية" [ref=e55]:
+              - img [ref=e56]
+              - text: المواد الدراسية
+            - button "الدروس" [ref=e58]:
+              - img [ref=e59]
+              - text: الدروس
+            - button "التقييمات" [ref=e62]:
+              - img [ref=e63]
+              - text: التقييمات
+            - button "الرسوم" [ref=e66]:
+              - img [ref=e67]
+              - text: الرسوم
+            - button "الطلاب" [ref=e69]:
+              - img [ref=e70]
+              - text: الطلاب
+            - button "الجدول" [ref=e75]:
+              - img [ref=e76]
+              - text: الجدول
+          - generic [ref=e78]:
+            - generic [ref=e79]: فشل جلب المستخدمين
+            - generic [ref=e265]:
+              - generic [ref=e267]:
+                - generic [ref=e268]:
+                  - img
+                  - textbox "بحث الطلاب" [ref=e269]
+                - button "تصدير CSV" [ref=e270]:
+                  - img [ref=e271]
+                  - text: تصدير CSV
+              - generic [ref=e274]:
+                - textbox "student@eduverse.com" [ref=e275]
+                - combobox [ref=e276]:
+                  - option "اختر المادة"
+                  - option "الرياضيات - حساب - الأول الابتدائي" [selected]
+                  - option "الفقه - العبادات - الأول الابتدائي"
+                  - option "القرآن - تجويد - الأول الابتدائي"
+                  - option "إنجليزية - مستوى 2 - الأول الابتدائي"
+                  - option "العلوم - أحياء - الأول الابتدائي"
+                  - option "العربية - قراءة - الأول الابتدائي"
+                  - option "القرآن الكريم - الأول الابتدائي"
+                  - option "اللغة العربية - الأول الابتدائي"
+                  - option "الحديث الشريف - الأول الابتدائي"
+                  - option "الحديث الشريف - الأول الابتدائي"
+                  - option "الحديث الشريف - الأول الابتدائي"
+                  - option "التاريخ الإسلامي - الأول الابتدائي"
+                  - option "الفقه - الأول الابتدائي"
+                  - option "التاريخ الإسلامي - الأول الابتدائي"
+                - button "تسجيل طالب" [disabled] [ref=e277]
+              - generic [ref=e278]: Failed to fetch students
+    - navigation [ref=e233]:
+      - link "الرئيسية" [ref=e234] [cursor=pointer]:
+        - /url: /ar/teacher/home
+        - img [ref=e235]
+        - generic [ref=e240]: الرئيسية
+      - link "فصولي" [ref=e241] [cursor=pointer]:
+        - /url: /ar/teacher/grades
+        - img [ref=e242]
+        - generic [ref=e245]: فصولي
+      - link "التقييمات" [ref=e246] [cursor=pointer]:
+        - /url: /ar/teacher/assessments
+        - img [ref=e247]
+        - generic [ref=e251]: التقييمات
+      - link "الجدول" [ref=e252] [cursor=pointer]:
+        - /url: /ar/teacher/calendar
+        - img [ref=e253]
+        - generic [ref=e255]: الجدول
+      - link "المحادثات" [ref=e256] [cursor=pointer]:
+        - /url: /ar/teacher/chat
+        - img [ref=e257]
+        - generic [ref=e259]: المحادثات
+      - link "الملف الشخصي" [ref=e260] [cursor=pointer]:
+        - /url: /ar/teacher/profile
+        - img [ref=e261]
+        - generic [ref=e264]: الملف الشخصي
+  - alert [ref=e102]

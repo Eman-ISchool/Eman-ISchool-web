@@ -14,30 +14,38 @@ export default function ServiceWorkerRegistration() {
       'serviceWorker' in navigator &&
       process.env.NODE_ENV === 'production'
     ) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('SW registered:', registration.scope);
-
-          // Check for updates periodically
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (
-                  newWorker.state === 'activated' &&
-                  navigator.serviceWorker.controller
-                ) {
-                  // New SW activated, content has been cached for offline
-                  console.log('New SW activated — offline ready');
-                }
-              });
-            }
+      // Defer SW registration until after the page is interactive
+      // to avoid competing with critical resource loading
+      const registerSW = () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            // Check for updates periodically
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (
+                    newWorker.state === 'activated' &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    // New SW activated, content has been cached for offline
+                  }
+                });
+              }
+            });
+          })
+          .catch(() => {
+            // SW registration failed — non-critical, degrade gracefully
           });
-        })
-        .catch((err) => {
-          console.error('SW registration failed:', err);
-        });
+      };
+
+      // Wait until page is idle before registering SW
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(registerSW);
+      } else {
+        setTimeout(registerSW, 2000);
+      }
     }
   }, []);
 

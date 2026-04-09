@@ -1,6 +1,36 @@
+
+
+❯ use this credentials [Image #1] in https://futurelab.school/ar/dashboard/ as teacher role
+
+  and implement same portal in my project
+
+  email student1@eduverse.com
+  phone +971 555555555
+  password 12345678
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Image #1] fix this to be same as reference [Image #2]
+
+  check reference https://futurelab.school/ar/dashboard/users you can go throw it
+  tab by tab and do the action by yourself and fid the difference and implement to
+  make both mirror and indentical to each other
+
 --claude --dangerously-skip-permissions
 
-claude --dangerously-skip-permissions
+**claude --dangerously-skip-permissions**
 
 Email: admin@school.com
 Password: Admin@1234
@@ -8,7 +38,7 @@ Password: Admin@1234
 Admin: admin@eduverse.com / password123
 Teacher: teacher@eduverse.com / password123
 
-Student: stude	nt@eduverse.com / password123
+Student: student@eduverse.com / password123
 
 Email: admin@school.com
 Password: Admin@1234
@@ -2705,9 +2735,9 @@ Extra critical instructions:
 
 You are “ABSOLUTE PARITY ADMIN PORTAL REPLACEMENT ENGINE — COMPLETE COVERAGE MODE / NO‑ELEMENT‑LEFT‑BEHIND MODE”.
 
-You are acting as a senior architect, full‑stack engineer, QA automation engineer, Playwright specialist, RTL specialist, and visual regression engineer. Your mission is to **fully replace** the current admin portal of my project with a new admin portal that **matches** the reference platform at `https://futurelab.school/ar/dashboard` (post‑login) down to every single page, tab, button, action, modal, filter, and state.
+You are acting as a senior architect, full‑stack engineer, QA automation engineer, Playwright specialist, RTL specialist, and visual regression engineer. Your mission is to fully replace the current admin portal of my project with a new admin portal that matches the reference platform at `https://futurelab.school/ar/dashboard` (post‑login) down to every single page, tab, button, action, modal, filter, and state.
 
-This is not just a redesign; it is a **comprehensive, page‑for‑page, button‑for‑button replication**. You must inspect, map, and replicate **every tab, every sub‑tab, every interactive element**, and **every state** from the reference site. The final portal should deliver **pixel‑perfect UI**, **functional parity**, **interaction parity**, **RTL parity**, and **behavioral parity**. Nothing visible or interactive on the reference may be omitted.
+This is not just a redesign; it is a comprehensive, page‑for‑page, button‑for‑button replication. You must inspect, map, and replicate every tab, every sub‑tab, every interactive element, and every state from the reference site. The final portal should deliver pixel‑perfect UI, functional parity, interaction parity, RTL parity, and behavioral parity. Nothing visible or interactive on the reference may be omitted.
 
 =======================================================================
 
@@ -2715,42 +2745,42 @@ GLOBAL DIRECTIVES — NO EXCEPTIONS
 
 =======================================================================
 
-1. **Replicate Every Category, Page, Tab, and Sub‑Page**
+1. Replicate Every Category, Page, Tab, and Sub‑Page
 
    You must map the full admin portal hierarchy. This includes the top‑level categories and all nested pages. From the reference, these categories include but are not limited to:
 
-   - **الرئيسية** (Home/Dashboard): replicating dashboard summaries, date‑range filter, charts, reports button, and any hidden tabs or analytics within the dashboard.
-   - **الأكاديمي** (Academic) with sub‑pages:
+   - الرئيسية (Home/Dashboard): replicating dashboard summaries, date‑range filter, charts, reports button, and any hidden tabs or analytics within the dashboard.
+   - الأكاديمي (Academic) with sub‑pages:
 
-     - **المواد الدراسية** (Courses) – card view & table view, export/import, search bar, create course button, row actions (edit, delete, preview, manage).
-     - **الفئات** (Categories) – list view of course categories, creation and management, filter/search controls, row actions (edit, delete, view).
-     - **الفصول** (Classes) – grid/table of classes, creation, edit, delete, import/export, row actions.
-     - **الامتحانات** (Exam groups) – exam group listing with empty state, create group button, row actions.
-     - **الاختبارات** (Quizzes) – card & table view of quizzes, creation button, search/filter, sort, row actions (manage, view results, edit, delete).
-   - **الإدارة** (Administration) with sub‑pages:
+     - المواد الدراسية (Courses) – card view & table view, export/import, search bar, create course button, row actions (edit, delete, preview, manage).
+     - الفئات (Categories) – list view of course categories, creation and management, filter/search controls, row actions (edit, delete, view).
+     - الفصول (Classes) – grid/table of classes, creation, edit, delete, import/export, row actions.
+     - الامتحانات (Exam groups) – exam group listing with empty state, create group button, row actions.
+     - الاختبارات (Quizzes) – card & table view of quizzes, creation button, search/filter, sort, row actions (manage, view results, edit, delete).
+   - الإدارة (Administration) with sub‑pages:
 
-     - **المستخدمون** (Users) – table of user accounts; filters by roles, status; search bar; row actions (view, edit, delete, disable/enable).
-     - **الطلبات** (Applications/Requests) – table of applications; filters for type, date range, search; row actions; status badges.
-     - **البيانات المرجعية** (Lookups) – table of lookup categories (e.g., expense categories, gender); create/edit/delete; view button; items count; import/export if available.
-   - **المالية** (Finance) with sub‑pages:
+     - المستخدمون (Users) – table of user accounts; filters by roles, status; search bar; row actions (view, edit, delete, disable/enable).
+     - الطلبات (Applications/Requests) – table of applications; filters for type, date range, search; row actions; status badges.
+     - البيانات المرجعية (Lookups) – table of lookup categories (e.g., expense categories, gender); create/edit/delete; view button; items count; import/export if available.
+   - المالية (Finance) with sub‑pages:
 
-     - **المدفوعات** (Payments) – dashboard summary boxes (confirmed payments, pending payments, total amount, total payments); filters (status, payment method, date range); search bar; add payment; table with columns (ID, user, amount, method, status, payment reference, date, actions); row actions (view, edit, delete).
-     - Replicate any additional finance tabs (e.g., **المصروفات** expenses, **الإيرادات** revenues) if present, including charts, summary cards, forms, filters, and row actions.
-   - **التواصل** (Communication) – includes messaging, announcements, notifications; replicate all pages, tabs, message threads, creation screens, templates, and recipient filters. Map each button (send, edit, delete, reply, forward), each tab (inbox, sent, drafts), each filter (by recipient, date, status).
-   - **المحتوى** (Content) – replicate all pages managing digital content (e.g., lessons, resources, attachments). This includes list/table views, card views, search/filter, create content, import/export, preview, edit, delete.
-   - **التحاليل** (Analytics) – replicate analytics dashboards (charts, graphs, metrics), filters, tabbed views, export or download options, date range selectors.
-   - **إدارة البيانات** (Data management) – replicate any pages for managing system data (import/export, backup/restore, archives, logs).
-   - **الإعدادات** (Settings) – replicate all configuration pages: general settings, system preferences, user roles & permissions, localization, integration settings, security settings, notification preferences. Ensure each tab or sub‑section is reproduced: general info, account info, roles, access control lists, and so on.
-   - **الملف الشخصي** (Personal Profile) – replicate the user profile area accessible from the bottom of the sidebar: personal details page, edit profile form, password change, notifications preferences, etc.
-2. **Map and Replicate Every Button & Action**
+     - المدفوعات (Payments) – dashboard summary boxes (confirmed payments, pending payments, total amount, total payments); filters (status, payment method, date range); search bar; add payment; table with columns (ID, user, amount, method, status, payment reference, date, actions); row actions (view, edit, delete).
+     - Replicate any additional finance tabs (e.g., المصروفات expenses, الإيرادات revenues) if present, including charts, summary cards, forms, filters, and row actions.
+   - التواصل (Communication) – includes messaging, announcements, notifications; replicate all pages, tabs, message threads, creation screens, templates, and recipient filters. Map each button (send, edit, delete, reply, forward), each tab (inbox, sent, drafts), each filter (by recipient, date, status).
+   - المحتوى (Content) – replicate all pages managing digital content (e.g., lessons, resources, attachments). This includes list/table views, card views, search/filter, create content, import/export, preview, edit, delete.
+   - التحاليل (Analytics) – replicate analytics dashboards (charts, graphs, metrics), filters, tabbed views, export or download options, date range selectors.
+   - إدارة البيانات (Data management) – replicate any pages for managing system data (import/export, backup/restore, archives, logs).
+   - الإعدادات (Settings) – replicate all configuration pages: general settings, system preferences, user roles & permissions, localization, integration settings, security settings, notification preferences. Ensure each tab or sub‑section is reproduced: general info, account info, roles, access control lists, and so on.
+   - الملف الشخصي (Personal Profile) – replicate the user profile area accessible from the bottom of the sidebar: personal details page, edit profile form, password change, notifications preferences, etc.
+2. Map and Replicate Every Button & Action
 
-   For **every page** and **every table row**, identify all buttons and actions: create, edit, delete, view, manage, import, export, print, send, download, preview, filter, search, refresh, back, save, cancel, confirm, close, expand, collapse, activate, deactivate, assign, unassign, sort, paginate, navigate, etc. Recreate them precisely:
+   For every page and every table row, identify all buttons and actions: create, edit, delete, view, manage, import, export, print, send, download, preview, filter, search, refresh, back, save, cancel, confirm, close, expand, collapse, activate, deactivate, assign, unassign, sort, paginate, navigate, etc. Recreate them precisely:
 
    - Buttons must be the same color, size, label, icon, and placement.
    - Each button’s hover/focus/active/disabled state must match the reference.
    - Each action must result in the same behavior: opening modals, drawers, forms, new tabs, or confirmation dialogs.
    - Row‑level actions hidden under kebab (three‑dot) menus must be replicated: edit, delete, duplicate, view details, assign roles, reset password, etc.
-3. **Replicate All Forms and Modals**
+3. Replicate All Forms and Modals
 
    For every creation and editing action across all pages (e.g., creating a course, user, lookup item, payment, quiz, exam group, class, category, setting), you must:
 
@@ -2759,14 +2789,14 @@ GLOBAL DIRECTIVES — NO EXCEPTIONS
    - Implement the validation logic: required vs optional, numeric ranges, date ranges, patterns, error messages, success messages, and button disable/enable states.
    - Recreate modal/drawer layout: header, body, footer with action buttons (save, cancel, delete, close), icons, spacing, and sizes.
    - Ensure forms handle empty state defaults, pre‑filled values when editing, and state resets upon cancel.
-4. **Replicate All Tables & Views**
+4. Replicate All Tables & Views
 
    - Each list/table must include identical columns, row ordering, sorting options, filters, search fields, pagination, selection checkboxes (if present), row hover effects, and row actions.
    - Each table header must replicate icons and alignment (left, center, right).
    - Tables with “Cards/Table” toggle (like Courses and Quizzes pages) must implement both views.
    - Search and filter controls must mimic reference behavior, including multi‑select filters, drop‑down filter categories, date range pickers, and clear/reset buttons.
    - Status badges must reflect color and text (e.g., green “مؤكد” for confirmed, red “قيد الانتظار” for pending, etc.).
-5. **Replicate All Summary Cards & Dashboards**
+5. Replicate All Summary Cards & Dashboards
 
    For pages showing summary cards (dashboard, payments, etc.), replicate:
 
@@ -2774,40 +2804,40 @@ GLOBAL DIRECTIVES — NO EXCEPTIONS
    - Any sub‑labels or breakdowns (e.g., “المطالبات المؤكدة 1 / المعلقة 0”, breakdown of fees vs due amounts).
    - Hover interactions or clickable actions on summary cards (e.g., clicking a metric navigates to filtered lists).
    - Charts or graphs (e.g., revenue trends, student activity trends) must be recreated using the same type (bar chart, line chart, pie chart) and tooltips, axes labels, color codes, and date range filters.
-6. **Replicate All Search & Filter Features**
+6. Replicate All Search & Filter Features
 
    - For each page, implement search bars (free‑text search by name, ID, phone, guardian name, etc.) exactly as the reference.
    - Filters by status, category, role, method, state, or any other drop‑down must be faithfully reproduced (multi‑select or single‑select).
    - Date range pickers must replicate the calendar style (choose start and end), disabled dates, preset ranges (today, this week, this month), and apply logic.
    - A “Clear All Filters” button must reset all filters to default states.
-7. **Replicate All State Indicators & Empty States**
+7. Replicate All State Indicators & Empty States
 
    - Confirmed/pending/cancelled statuses with colored tags (e.g., green “موافق”, red “قيد الانتظار”, yellow “معلق”).
    - Payment statuses with icons and colors (e.g., confirmed vs refunded vs reversed).
    - Empty states when lists have no results (e.g., “لم يتم العثور على مجموعات اختبارات” with an icon and “ابدأ بإنشاء أول مجموعة اختبارات” call to action).
    - Loading states with skeleton loaders or spinners.
    - Error states with messages and retry buttons.
-8. **Replicate All Sidebar & Navigation Behavior**
+8. Replicate All Sidebar & Navigation Behavior
 
    - The right‑aligned sidebar must mirror the reference: width, collapsed vs expanded behavior, nested arrow icons, active/hover states, tooltips on icons, and section grouping.
    - Nested items must appear/disappear with smooth transitions.
    - When a main category (e.g., “الأكاديمي”, “الإدارة”, “المالية”, “التواصل”) is clicked, collapse any previously open categories to prevent scroll confusion if that is what the reference does.
    - The user profile section (with name, role, avatar, drop‑down for profile & logout) must match styling and placement.
    - The “تثبيت التطبيق” banner must show exactly as in the reference, with dismiss or call‑to‑action behavior as applicable.
-9. **Replicate All Routing & Navigation Flows**
+9. Replicate All Routing & Navigation Flows
 
    - Ensure every click or action leads to the exact same route or page path as the reference.
    - Use nested routing to match breadcrumbs and URL segments (e.g., `/ar/dashboard/quizzes`, `/ar/dashboard/users`, `/ar/dashboard/payments`).
    - Preserve query parameters for filters (e.g., page number, sort order, search term, status) if present in the reference.
-10. **Replicate All Interactions & Micro‑interactions**
+10. Replicate All Interactions & Micro‑interactions
 
     - Hover states (button color changes, table row highlighting, dropdown expansions).
     - Focus states (tab index order, outlines, keyboard navigation).
     - Transition animations (dropdown open/close, modal slide in/out, page transitions if present).
     - Drag-and-drop or reorderable lists if present.
-11. **Use Playwright & All Tools for Validation**
+11. Use Playwright & All Tools for Validation
 
-    - Write Playwright scripts to click **every single button** across the entire admin portal: top bar actions, summary cards, create buttons, row actions, icons, filter toggles, pagination controls, modal buttons.
+    - Write Playwright scripts to click every single button across the entire admin portal: top bar actions, summary cards, create buttons, row actions, icons, filter toggles, pagination controls, modal buttons.
     - Validate that each click yields the same result as the reference (navigation, modal open, status change, filtered result).
     - Validate that every tab (main tabs, nested tabs, card/table toggles) switches the view and keeps controls consistent.
     - Validate each form’s validation rules by submitting invalid and valid data.
@@ -2815,17 +2845,17 @@ GLOBAL DIRECTIVES — NO EXCEPTIONS
     - Validate filter resets, search results, and pagination boundaries.
     - Capture screenshots for every page state to run visual regression against the reference.
     - Confirm there are no uncaught exceptions, console errors, or network errors.
-12. **Arabic & RTL Excellence**
+12. Arabic & RTL Excellence
 
     - Maintain right‑to‑left flow across the portal: sidebar on the right, text alignment right, icons aligned properly relative to labels.
     - Use Arabic labels exactly as displayed; ensure punctuation, numbers, currency, and dates format properly.
     - Fix any mixed LTR/RTL issues, including in tables and forms.
-13. **Performance & Code Quality**
+13. Performance & Code Quality
 
     - Keep code maintainable: modular components for cards, tables, forms, filters, summary boxes, badges, modals.
     - Optimize re‑renders, lazy‑load large components, avoid duplication.
     - Ensure the new portal is stable and ready for production use.
-14. **Deliver Evidence & Documentation**
+14. Deliver Evidence & Documentation
 
     - Provide route inventories, parity maps, component maps, action maps, and full Playwright validation results.
     - Provide a final report enumerating every page/tab/button replicated and validated, including any edge cases and how they were handled.
@@ -2836,11 +2866,11 @@ FINAL COMMAND
 
 =======================================================================
 
-1. Open the reference portal and systematically expand **every sidebar category** and **every nested item**. List every page, tab, and sub‑tab you find.
+1. Open the reference portal and systematically expand every sidebar category and every nested item. List every page, tab, and sub‑tab you find.
 2. For each discovered page, record all components, buttons, filters, search fields, tables, cards, modals, and forms. Record all actions (create, edit, delete, import, export, send, approve, decline, etc.).
 3. Open the corresponding pages in the local project, note differences, and implement the missing elements and behaviors until they match the reference precisely.
 4. Repeat this process for every page, tab, and action across the admin portal: “الرئيسية”, “الأكاديمي” (every sub‑page: المواد الدراسية, الفئات, الفصول, الامتحانات, الاختبارات), “الإدارة” (المستخدمون, الطلبات, البيانات المرجعية), “المالية” (all payment and financial pages), “التواصل”, “المحتوى”, “التحاليل”, “إدارة البيانات”, “الإعدادات”, and the user “الملف الشخصي”.
-5. Use Playwright continuously to verify that **each button and each action** behaves exactly like the reference.
+5. Use Playwright continuously to verify that each button and each action behaves exactly like the reference.
 6. Validate all forms and edge cases.
 7. Perform exhaustive visual comparisons and fix any remaining mismatches.
 8. Provide final evidence and deliverables as specified.

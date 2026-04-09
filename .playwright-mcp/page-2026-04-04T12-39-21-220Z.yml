@@ -1,0 +1,52 @@
+- generic [active] [ref=e1]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - navigation [ref=e8]
+      - main [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - heading "إدارة المدفوعات" [level=1] [ref=e23]
+              - paragraph [ref=e24]: إدارة وتتبع جميع المعاملات المالية
+            - button "إضافة دفعة" [ref=e25]:
+              - img
+              - text: إضافة دفعة
+          - generic [ref=e26]:
+            - heading "Filters" [level=3] [ref=e28]:
+              - img [ref=e29]
+              - text: Filters
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - text: بحث...
+                - generic [ref=e34]:
+                  - img [ref=e35]
+                  - textbox "البحث في المدفوعات..." [ref=e39]
+              - generic [ref=e40]:
+                - text: تصفية حسب الحالة
+                - combobox [ref=e41]:
+                  - generic: الكل
+                  - img [ref=e42]
+              - generic [ref=e44]:
+                - text: تصفية حسب طريقة الدفع
+                - combobox [ref=e45]:
+                  - generic: الكل
+                  - img [ref=e46]
+              - generic [ref=e48]:
+                - text: تاريخ البداية
+                - button "اختر التاريخ" [ref=e49]:
+                  - img
+                  - text: اختر التاريخ
+              - generic [ref=e50]:
+                - text: تاريخ النهاية
+                - button "اختر التاريخ" [ref=e51]:
+                  - img
+                  - text: اختر التاريخ
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - heading "إدارة المدفوعات" [level=3] [ref=e54]
+              - paragraph [ref=e55]: إدارة وتتبع جميع المعاملات المالية
+            - generic [ref=e58]: جاري تحميل المدفوعات...
+      - region "Notifications (F8)":
+        - list
+  - region "Notifications alt+T"
+  - alert [ref=e59]

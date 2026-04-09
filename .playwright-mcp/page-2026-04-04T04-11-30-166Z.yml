@@ -1,0 +1,44 @@
+- generic [active] [ref=e1]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - img [ref=e12]
+            - generic [ref=e14]:
+              - paragraph [ref=e15]: تثبيت التطبيق
+              - paragraph [ref=e16]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+              - button "تثبيت التطبيق" [ref=e17]:
+                - img
+                - text: تثبيت التطبيق
+          - button [ref=e19]:
+            - img
+        - generic [ref=e24]:
+          - tablist [ref=e27]:
+            - tab "تسجيل الدخول" [selected] [ref=e28]
+            - tab "تسجيل" [ref=e29]
+          - tabpanel "تسجيل الدخول" [ref=e30]:
+            - heading "تسجيل الدخول إلى حسابك" [level=1] [ref=e32]
+            - generic [ref=e33]:
+              - generic [ref=e34]:
+                - text: رقم الهاتف
+                - generic [ref=e36]:
+                  - combobox [ref=e37]:
+                    - generic [ref=e38]:
+                      - generic [ref=e39]: 🇦🇪
+                      - generic [ref=e40]: "+971"
+                    - img
+                  - spinbutton "رقم الهاتف" [ref=e42]
+              - generic [ref=e43]:
+                - text: أدخل كلمة المرور
+                - generic [ref=e45]:
+                  - img [ref=e47]
+                  - textbox "أدخل كلمة المرور" [ref=e51]
+                  - button [ref=e53]:
+                    - img
+              - button "تسجيل الدخول" [ref=e54]
+              - link "نسيت كلمة المرور؟" [ref=e56] [cursor=pointer]:
+                - /url: /forgot-password
+      - img "Authentication background" [ref=e58]
+  - region "Notifications alt+T"
+  - alert [ref=e59]

@@ -1,0 +1,536 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: ا
+          - generic [ref=e11]:
+            - paragraph [ref=e12]: ابراهيم محمد
+            - paragraph [ref=e13]: ADMIN
+        - generic [ref=e14]:
+          - link "الرئيسية" [ref=e15] [cursor=pointer]:
+            - /url: /ar/dashboard
+            - generic [ref=e16]: الرئيسية
+            - img [ref=e17]
+          - generic [ref=e22]:
+            - generic [ref=e23]:
+              - button "الأكاديمي" [ref=e24]:
+                - generic [ref=e25]:
+                  - img [ref=e26]
+                  - generic [ref=e28]: الأكاديمي
+                - img [ref=e29]
+              - generic [ref=e31]:
+                - link "المواد الدراسية" [ref=e32] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses
+                  - generic [ref=e33]: المواد الدراسية
+                  - img [ref=e34]
+                - link "الفئات" [ref=e36] [cursor=pointer]:
+                  - /url: /ar/dashboard/categories
+                  - generic [ref=e37]: الفئات
+                  - img [ref=e38]
+                - link "الفصول" [ref=e40] [cursor=pointer]:
+                  - /url: /ar/dashboard/bundles
+                  - generic [ref=e41]: الفصول
+                  - img [ref=e42]
+                - link "الامتحانات" [ref=e44] [cursor=pointer]:
+                  - /url: /ar/dashboard/exams
+                  - generic [ref=e45]: الامتحانات
+                  - img [ref=e46]
+                - link "الاختبارات" [ref=e49] [cursor=pointer]:
+                  - /url: /ar/dashboard/quizzes
+                  - generic [ref=e50]: الاختبارات
+                  - img [ref=e51]
+            - button "الإدارة" [ref=e55]:
+              - generic [ref=e56]:
+                - img [ref=e57]
+                - generic [ref=e62]: الإدارة
+              - img [ref=e63]
+            - button "المالية" [ref=e66]:
+              - generic [ref=e67]:
+                - img [ref=e68]
+                - generic [ref=e71]: المالية
+              - img [ref=e72]
+            - button "التواصل" [ref=e75]:
+              - generic [ref=e76]:
+                - img [ref=e77]
+                - generic [ref=e80]: التواصل
+              - img [ref=e81]
+            - button "المحتوى" [ref=e84]:
+              - generic [ref=e85]:
+                - img [ref=e86]
+                - generic [ref=e88]: المحتوى
+              - img [ref=e89]
+            - button "التحليلات" [ref=e92]:
+              - generic [ref=e93]:
+                - img [ref=e94]
+                - generic [ref=e97]: التحليلات
+              - img [ref=e98]
+            - button "إدارة البيانات" [ref=e101]:
+              - generic [ref=e102]:
+                - img [ref=e103]
+                - generic [ref=e105]: إدارة البيانات
+              - img [ref=e106]
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - link "الإعدادات" [ref=e110] [cursor=pointer]:
+              - /url: /ar/dashboard/system-settings
+              - generic [ref=e111]: الإعدادات
+              - img [ref=e112]
+            - link "الملف الشخصي" [ref=e115] [cursor=pointer]:
+              - /url: /ar/dashboard/profile
+              - generic [ref=e116]: الملف الشخصي
+              - img [ref=e117]
+          - button "تسجيل الخروج" [ref=e120]:
+            - generic [ref=e121]: تسجيل الخروج
+            - img [ref=e122]
+    - generic [ref=e124]:
+      - generic [ref=e126]:
+        - button "إغلاق" [ref=e127]:
+          - img [ref=e128]
+        - generic [ref=e131]:
+          - img [ref=e133]
+          - generic [ref=e136]:
+            - paragraph [ref=e137]: تثبيت التطبيق
+            - paragraph [ref=e138]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - button "تثبيت التطبيق" [ref=e139]
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - heading "المواد الدراسية" [level=1] [ref=e143]
+          - paragraph [ref=e144]: إدارة والوصول إلى المواد الدراسية
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - img [ref=e148]
+              - textbox "بحث عن المواد..." [ref=e151]
+            - button "استيراد" [ref=e152]:
+              - img [ref=e153]
+              - text: استيراد
+            - button "تصدير" [ref=e156]:
+              - img [ref=e157]
+              - text: تصدير
+          - link "إنشاء مادة دراسية" [ref=e161] [cursor=pointer]:
+            - /url: /ar/dashboard/courses/create
+            - img [ref=e162]
+            - text: إنشاء مادة دراسية
+        - generic [ref=e189]:
+          - generic [ref=e190]:
+            - img [ref=e192]
+            - generic [ref=e194]:
+              - heading "عربية - إنشاء - الخامس الابتدائي" [level=3] [ref=e195]
+              - paragraph [ref=e196]: دورة شاملة في عربية - إنشاء لطلاب الخامس الابتدائي
+              - paragraph [ref=e197]: أ. نورة الخالدي
+            - generic [ref=e198]:
+              - generic [ref=e199]:
+                - button "حذف المادة الدراسية" [ref=e200]:
+                  - img [ref=e201]
+                  - generic [ref=e204]: حذف المادة الدراسية
+                - link [ref=e205] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=5e9de328-3d17-4059-b2cd-d74f54b6d6de
+                  - img [ref=e206]
+                - link [ref=e208] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/5e9de328-3d17-4059-b2cd-d74f54b6d6de?tab=live
+                  - img [ref=e209]
+              - link "معاينة" [active] [ref=e212] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/5e9de328-3d17-4059-b2cd-d74f54b6d6de
+                - img [ref=e213]
+                - text: معاينة
+          - generic [ref=e216]:
+            - img [ref=e218]
+            - generic [ref=e220]:
+              - heading "علوم - فيزياء - الرابع الابتدائي" [level=3] [ref=e221]
+              - paragraph [ref=e222]: دورة شاملة في علوم - فيزياء لطلاب الرابع الابتدائي
+              - paragraph [ref=e223]: أ. يوسف القحطاني
+            - generic [ref=e224]:
+              - generic [ref=e225]:
+                - button "حذف المادة الدراسية" [ref=e226]:
+                  - img [ref=e227]
+                  - generic [ref=e230]: حذف المادة الدراسية
+                - link [ref=e231] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=95c2848a-d84e-47a3-969d-3e23eaf075ed
+                  - img [ref=e232]
+                - link [ref=e234] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/95c2848a-d84e-47a3-969d-3e23eaf075ed?tab=live
+                  - img [ref=e235]
+              - link "معاينة" [ref=e238] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/95c2848a-d84e-47a3-969d-3e23eaf075ed
+                - img [ref=e239]
+                - text: معاينة
+          - generic [ref=e242]:
+            - img [ref=e244]
+            - generic [ref=e246]:
+              - heading "رياضيات - جبر - الأول الابتدائي" [level=3] [ref=e247]
+              - paragraph [ref=e248]: دورة شاملة في رياضيات - جبر لطلاب الأول الابتدائي
+              - paragraph [ref=e249]: أ. إبراهيم الزهراني
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - button "حذف المادة الدراسية" [ref=e252]:
+                  - img [ref=e253]
+                  - generic [ref=e256]: حذف المادة الدراسية
+                - link [ref=e257] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=e311ba27-4781-40d6-9de8-8bbe48dbb244
+                  - img [ref=e258]
+                - link [ref=e260] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/e311ba27-4781-40d6-9de8-8bbe48dbb244?tab=live
+                  - img [ref=e261]
+              - link "معاينة" [ref=e264] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/e311ba27-4781-40d6-9de8-8bbe48dbb244
+                - img [ref=e265]
+                - text: معاينة
+          - generic [ref=e268]:
+            - img [ref=e270]
+            - generic [ref=e272]:
+              - heading "القرآن - تفسير - السادس الابتدائي" [level=3] [ref=e273]
+              - paragraph [ref=e274]: دورة شاملة في القرآن - تفسير لطلاب السادس الابتدائي
+              - paragraph [ref=e275]: أ. إبراهيم الزهراني
+            - generic [ref=e276]:
+              - generic [ref=e277]:
+                - button "حذف المادة الدراسية" [ref=e278]:
+                  - img [ref=e279]
+                  - generic [ref=e282]: حذف المادة الدراسية
+                - link [ref=e283] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=8271f55f-a2b5-4cc4-9fa1-f2c5ddedd4bc
+                  - img [ref=e284]
+                - link [ref=e286] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/8271f55f-a2b5-4cc4-9fa1-f2c5ddedd4bc?tab=live
+                  - img [ref=e287]
+              - link "معاينة" [ref=e290] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/8271f55f-a2b5-4cc4-9fa1-f2c5ddedd4bc
+                - img [ref=e291]
+                - text: معاينة
+          - generic [ref=e294]:
+            - img [ref=e296]
+            - generic [ref=e298]:
+              - heading "إنجليزية - مستوى 2 - السادس الابتدائي" [level=3] [ref=e299]
+              - paragraph [ref=e300]: دورة شاملة في إنجليزية - مستوى 2 لطلاب السادس الابتدائي
+              - paragraph [ref=e301]: أ. ليلى الخالدي
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - button "حذف المادة الدراسية" [ref=e304]:
+                  - img [ref=e305]
+                  - generic [ref=e308]: حذف المادة الدراسية
+                - link [ref=e309] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=6e49aba6-b9d7-49c8-8389-3da79820d682
+                  - img [ref=e310]
+                - link [ref=e312] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/6e49aba6-b9d7-49c8-8389-3da79820d682?tab=live
+                  - img [ref=e313]
+              - link "معاينة" [ref=e316] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/6e49aba6-b9d7-49c8-8389-3da79820d682
+                - img [ref=e317]
+                - text: معاينة
+          - generic [ref=e320]:
+            - img [ref=e322]
+            - generic [ref=e324]:
+              - heading "إنجليزية - مستوى 1 - الخامس الابتدائي" [level=3] [ref=e325]
+              - paragraph [ref=e326]: دورة شاملة في إنجليزية - مستوى 1 لطلاب الخامس الابتدائي
+              - paragraph [ref=e327]: أ. حسين المنصور
+            - generic [ref=e328]:
+              - generic [ref=e329]:
+                - button "حذف المادة الدراسية" [ref=e330]:
+                  - img [ref=e331]
+                  - generic [ref=e334]: حذف المادة الدراسية
+                - link [ref=e335] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=09f38950-23c9-4020-9e28-43c7e243bbb8
+                  - img [ref=e336]
+                - link [ref=e338] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/09f38950-23c9-4020-9e28-43c7e243bbb8?tab=live
+                  - img [ref=e339]
+              - link "معاينة" [ref=e342] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/09f38950-23c9-4020-9e28-43c7e243bbb8
+                - img [ref=e343]
+                - text: معاينة
+          - generic [ref=e346]:
+            - img [ref=e348]
+            - generic [ref=e350]:
+              - heading "العلوم - أحياء - السادس الابتدائي" [level=3] [ref=e351]
+              - paragraph [ref=e352]: دورة شاملة في العلوم - أحياء لطلاب السادس الابتدائي
+              - paragraph [ref=e353]: أ. مريم الخالدي
+            - generic [ref=e354]:
+              - generic [ref=e355]:
+                - button "حذف المادة الدراسية" [ref=e356]:
+                  - img [ref=e357]
+                  - generic [ref=e360]: حذف المادة الدراسية
+                - link [ref=e361] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=b807c023-5bce-441a-bcba-f0eab1c5a002
+                  - img [ref=e362]
+                - link [ref=e364] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/b807c023-5bce-441a-bcba-f0eab1c5a002?tab=live
+                  - img [ref=e365]
+              - link "معاينة" [ref=e368] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/b807c023-5bce-441a-bcba-f0eab1c5a002
+                - img [ref=e369]
+                - text: معاينة
+          - generic [ref=e372]:
+            - img [ref=e374]
+            - generic [ref=e376]:
+              - heading "الرياضيات - حساب - السادس الابتدائي" [level=3] [ref=e377]
+              - paragraph [ref=e378]: دورة شاملة في الرياضيات - حساب لطلاب السادس الابتدائي
+              - paragraph [ref=e379]: أ. أحمد القحطاني
+            - generic [ref=e380]:
+              - generic [ref=e381]:
+                - button "حذف المادة الدراسية" [ref=e382]:
+                  - img [ref=e383]
+                  - generic [ref=e386]: حذف المادة الدراسية
+                - link [ref=e387] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=6b2c9443-c6f1-4dd3-aeb8-1ef53aa0d31e
+                  - img [ref=e388]
+                - link [ref=e390] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/6b2c9443-c6f1-4dd3-aeb8-1ef53aa0d31e?tab=live
+                  - img [ref=e391]
+              - link "معاينة" [ref=e394] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/6b2c9443-c6f1-4dd3-aeb8-1ef53aa0d31e
+                - img [ref=e395]
+                - text: معاينة
+          - generic [ref=e398]:
+            - img [ref=e400]
+            - generic [ref=e402]:
+              - heading "الحديث - الأربعون - الخامس الابتدائي" [level=3] [ref=e403]
+              - paragraph [ref=e404]: دورة شاملة في الحديث - الأربعون لطلاب الخامس الابتدائي
+              - paragraph [ref=e405]: أ. فاطمة الحربي
+            - generic [ref=e406]:
+              - generic [ref=e407]:
+                - button "حذف المادة الدراسية" [ref=e408]:
+                  - img [ref=e409]
+                  - generic [ref=e412]: حذف المادة الدراسية
+                - link [ref=e413] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=2042950c-b4cf-4bab-a22c-8bf7380e1566
+                  - img [ref=e414]
+                - link [ref=e416] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/2042950c-b4cf-4bab-a22c-8bf7380e1566?tab=live
+                  - img [ref=e417]
+              - link "معاينة" [ref=e420] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/2042950c-b4cf-4bab-a22c-8bf7380e1566
+                - img [ref=e421]
+                - text: معاينة
+          - generic [ref=e424]:
+            - img [ref=e426]
+            - generic [ref=e428]:
+              - heading "التاريخ - السيرة - الثالث الابتدائي" [level=3] [ref=e429]
+              - paragraph [ref=e430]: دورة شاملة في التاريخ - السيرة لطلاب الثالث الابتدائي
+              - paragraph [ref=e431]: أ. عمر الدوسري
+            - generic [ref=e432]:
+              - generic [ref=e433]:
+                - button "حذف المادة الدراسية" [ref=e434]:
+                  - img [ref=e435]
+                  - generic [ref=e438]: حذف المادة الدراسية
+                - link [ref=e439] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=915d4881-8a01-4a5a-8ebc-162e9ee65726
+                  - img [ref=e440]
+                - link [ref=e442] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/915d4881-8a01-4a5a-8ebc-162e9ee65726?tab=live
+                  - img [ref=e443]
+              - link "معاينة" [ref=e446] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/915d4881-8a01-4a5a-8ebc-162e9ee65726
+                - img [ref=e447]
+                - text: معاينة
+          - generic [ref=e450]:
+            - img [ref=e452]
+            - generic [ref=e454]:
+              - heading "الفقه - العبادات - السادس الابتدائي" [level=3] [ref=e455]
+              - paragraph [ref=e456]: دورة شاملة في الفقه - العبادات لطلاب السادس الابتدائي
+              - paragraph [ref=e457]: أ. ليلى الخالدي
+            - generic [ref=e458]:
+              - generic [ref=e459]:
+                - button "حذف المادة الدراسية" [ref=e460]:
+                  - img [ref=e461]
+                  - generic [ref=e464]: حذف المادة الدراسية
+                - link [ref=e465] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=5bb79e13-0c02-4cdf-a907-50762bc8b5f0
+                  - img [ref=e466]
+                - link [ref=e468] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/5bb79e13-0c02-4cdf-a907-50762bc8b5f0?tab=live
+                  - img [ref=e469]
+              - link "معاينة" [ref=e472] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/5bb79e13-0c02-4cdf-a907-50762bc8b5f0
+                - img [ref=e473]
+                - text: معاينة
+          - generic [ref=e476]:
+            - img [ref=e478]
+            - generic [ref=e480]:
+              - heading "العربية - قراءة - الرابع الابتدائي" [level=3] [ref=e481]
+              - paragraph [ref=e482]: دورة شاملة في العربية - قراءة لطلاب الرابع الابتدائي
+              - paragraph [ref=e483]: أ. فاطمة الحربي
+            - generic [ref=e484]:
+              - generic [ref=e485]:
+                - button "حذف المادة الدراسية" [ref=e486]:
+                  - img [ref=e487]
+                  - generic [ref=e490]: حذف المادة الدراسية
+                - link [ref=e491] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=dd95fec6-cb33-472d-b9ed-ed969b0a60a5
+                  - img [ref=e492]
+                - link [ref=e494] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/dd95fec6-cb33-472d-b9ed-ed969b0a60a5?tab=live
+                  - img [ref=e495]
+              - link "معاينة" [ref=e498] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/dd95fec6-cb33-472d-b9ed-ed969b0a60a5
+                - img [ref=e499]
+                - text: معاينة
+          - generic [ref=e502]:
+            - img [ref=e504]
+            - generic [ref=e506]:
+              - heading "العربية - نحو - الثاني الابتدائي" [level=3] [ref=e507]
+              - paragraph [ref=e508]: دورة شاملة في العربية - نحو لطلاب الثاني الابتدائي
+              - paragraph [ref=e509]: أ. حسين الخالدي
+            - generic [ref=e510]:
+              - generic [ref=e511]:
+                - button "حذف المادة الدراسية" [ref=e512]:
+                  - img [ref=e513]
+                  - generic [ref=e516]: حذف المادة الدراسية
+                - link [ref=e517] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=61853b58-b8db-452a-a22c-01870048c1b8
+                  - img [ref=e518]
+                - link [ref=e520] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/61853b58-b8db-452a-a22c-01870048c1b8?tab=live
+                  - img [ref=e521]
+              - link "معاينة" [ref=e524] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/61853b58-b8db-452a-a22c-01870048c1b8
+                - img [ref=e525]
+                - text: معاينة
+          - generic [ref=e528]:
+            - img [ref=e530]
+            - generic [ref=e532]:
+              - heading "القرآن - تجويد - الأول الابتدائي" [level=3] [ref=e533]
+              - paragraph [ref=e534]: دورة شاملة في القرآن - تجويد لطلاب الأول الابتدائي
+              - paragraph [ref=e535]: أ. ليلى الخالدي
+            - generic [ref=e536]:
+              - generic [ref=e537]:
+                - button "حذف المادة الدراسية" [ref=e538]:
+                  - img [ref=e539]
+                  - generic [ref=e542]: حذف المادة الدراسية
+                - link [ref=e543] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=f7c26a13-1401-4460-bb11-99e4379fd3af
+                  - img [ref=e544]
+                - link [ref=e546] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/f7c26a13-1401-4460-bb11-99e4379fd3af?tab=live
+                  - img [ref=e547]
+              - link "معاينة" [ref=e550] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/f7c26a13-1401-4460-bb11-99e4379fd3af
+                - img [ref=e551]
+                - text: معاينة
+          - generic [ref=e554]:
+            - img [ref=e556]
+            - generic [ref=e558]:
+              - heading "القرآن - حفظ - الخامس الابتدائي" [level=3] [ref=e559]
+              - paragraph [ref=e560]: دورة شاملة في القرآن - حفظ لطلاب الخامس الابتدائي
+              - paragraph [ref=e561]: أ. إبراهيم الزهراني
+            - generic [ref=e562]:
+              - generic [ref=e563]:
+                - button "حذف المادة الدراسية" [ref=e564]:
+                  - img [ref=e565]
+                  - generic [ref=e568]: حذف المادة الدراسية
+                - link [ref=e569] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=18fbc54d-6bd5-4986-8b04-b3ee8d3fa176
+                  - img [ref=e570]
+                - link [ref=e572] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/18fbc54d-6bd5-4986-8b04-b3ee8d3fa176?tab=live
+                  - img [ref=e573]
+              - link "معاينة" [ref=e576] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/18fbc54d-6bd5-4986-8b04-b3ee8d3fa176
+                - img [ref=e577]
+                - text: معاينة
+          - generic [ref=e580]:
+            - img [ref=e582]
+            - generic [ref=e584]:
+              - heading "عربية - إنشاء - الرابع الابتدائي" [level=3] [ref=e585]
+              - paragraph [ref=e586]: دورة شاملة في عربية - إنشاء لطلاب الرابع الابتدائي
+              - paragraph [ref=e587]: أ. مريم المنصور
+            - generic [ref=e588]:
+              - generic [ref=e589]:
+                - button "حذف المادة الدراسية" [ref=e590]:
+                  - img [ref=e591]
+                  - generic [ref=e594]: حذف المادة الدراسية
+                - link [ref=e595] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=12ec361d-e2ea-457c-b86b-6a10e05c0a58
+                  - img [ref=e596]
+                - link [ref=e598] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/12ec361d-e2ea-457c-b86b-6a10e05c0a58?tab=live
+                  - img [ref=e599]
+              - link "معاينة" [ref=e602] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/12ec361d-e2ea-457c-b86b-6a10e05c0a58
+                - img [ref=e603]
+                - text: معاينة
+          - generic [ref=e606]:
+            - img [ref=e608]
+            - generic [ref=e610]:
+              - heading "علوم - فيزياء - الخامس الابتدائي" [level=3] [ref=e611]
+              - paragraph [ref=e612]: دورة شاملة في علوم - فيزياء لطلاب الخامس الابتدائي
+              - paragraph [ref=e613]: أ. أحمد القحطاني
+            - generic [ref=e614]:
+              - generic [ref=e615]:
+                - button "حذف المادة الدراسية" [ref=e616]:
+                  - img [ref=e617]
+                  - generic [ref=e620]: حذف المادة الدراسية
+                - link [ref=e621] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=488a1314-b2f1-4961-a18d-bee88781b7c5
+                  - img [ref=e622]
+                - link [ref=e624] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/488a1314-b2f1-4961-a18d-bee88781b7c5?tab=live
+                  - img [ref=e625]
+              - link "معاينة" [ref=e628] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/488a1314-b2f1-4961-a18d-bee88781b7c5
+                - img [ref=e629]
+                - text: معاينة
+          - generic [ref=e632]:
+            - img [ref=e634]
+            - generic [ref=e636]:
+              - heading "رياضيات - جبر - الرابع الابتدائي" [level=3] [ref=e637]
+              - paragraph [ref=e638]: دورة شاملة في رياضيات - جبر لطلاب الرابع الابتدائي
+              - paragraph [ref=e639]: أ. حسين الخالدي
+            - generic [ref=e640]:
+              - generic [ref=e641]:
+                - button "حذف المادة الدراسية" [ref=e642]:
+                  - img [ref=e643]
+                  - generic [ref=e646]: حذف المادة الدراسية
+                - link [ref=e647] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=90361306-8b21-41ed-95c6-806991f7fe2d
+                  - img [ref=e648]
+                - link [ref=e650] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/90361306-8b21-41ed-95c6-806991f7fe2d?tab=live
+                  - img [ref=e651]
+              - link "معاينة" [ref=e654] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/90361306-8b21-41ed-95c6-806991f7fe2d
+                - img [ref=e655]
+                - text: معاينة
+          - generic [ref=e658]:
+            - img [ref=e660]
+            - generic [ref=e662]:
+              - heading "القرآن - تفسير - الرابع الابتدائي" [level=3] [ref=e663]
+              - paragraph [ref=e664]: دورة شاملة في القرآن - تفسير لطلاب الرابع الابتدائي
+              - paragraph [ref=e665]: أ. سارة العمري
+            - generic [ref=e666]:
+              - generic [ref=e667]:
+                - button "حذف المادة الدراسية" [ref=e668]:
+                  - img [ref=e669]
+                  - generic [ref=e672]: حذف المادة الدراسية
+                - link [ref=e673] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=f407e305-e041-4894-8c42-d983a4bb7652
+                  - img [ref=e674]
+                - link [ref=e676] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/f407e305-e041-4894-8c42-d983a4bb7652?tab=live
+                  - img [ref=e677]
+              - link "معاينة" [ref=e680] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/f407e305-e041-4894-8c42-d983a4bb7652
+                - img [ref=e681]
+                - text: معاينة
+          - generic [ref=e684]:
+            - img [ref=e686]
+            - generic [ref=e688]:
+              - heading "إنجليزية - مستوى 2 - الثاني الابتدائي" [level=3] [ref=e689]
+              - paragraph [ref=e690]: دورة شاملة في إنجليزية - مستوى 2 لطلاب الثاني الابتدائي
+              - paragraph [ref=e691]: أ. خالد القحطاني
+            - generic [ref=e692]:
+              - generic [ref=e693]:
+                - button "حذف المادة الدراسية" [ref=e694]:
+                  - img [ref=e695]
+                  - generic [ref=e698]: حذف المادة الدراسية
+                - link [ref=e699] [cursor=pointer]:
+                  - /url: /ar/dashboard/messages?course=b1011343-930b-4690-bd59-e7fc1aef1292
+                  - img [ref=e700]
+                - link [ref=e702] [cursor=pointer]:
+                  - /url: /ar/dashboard/courses/b1011343-930b-4690-bd59-e7fc1aef1292?tab=live
+                  - img [ref=e703]
+              - link "معاينة" [ref=e706] [cursor=pointer]:
+                - /url: /ar/dashboard/courses/b1011343-930b-4690-bd59-e7fc1aef1292
+                - img [ref=e707]
+                - text: معاينة
+  - alert [ref=e188]

@@ -4,6 +4,13 @@ import bcrypt from 'bcryptjs';
 
 const PHONE_USERS = [
   {
+    email: 'fadi@eduverse.local',
+    name: 'Fadi',
+    phone: '+962790320149',
+    password: '12345678',
+    role: 'admin',
+  },
+  {
     email: 'student-phone@eduverse.local',
     name: 'Student User',
     phone: '+962790320148',

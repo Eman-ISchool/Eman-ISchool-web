@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, memo } from 'react';
+import { useLocale } from 'next-intl';
 
 export interface GradeCoursesTabProps {
   gradeId: string;
@@ -33,6 +34,8 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
   onLoadingStart,
   onLoadingEnd,
 }) => {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [courses, setCourses] = useState<any[]>(data?.courses || []);
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState<string | null>(null);
@@ -181,7 +184,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
     return (
       <div className="grade-courses-tab error">
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Retry</button>
+        <button onClick={() => window.location.reload()}>{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
       </div>
     );
   }
@@ -189,11 +192,11 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
   return (
     <div className="grade-courses-tab">
       <div className="courses-header">
-        <h2>Courses ({filteredCourses.length})</h2>
+        <h2>{isArabic ? `المواد (${filteredCourses.length})` : `Courses (${filteredCourses.length})`}</h2>
         <div className="courses-actions">
           <input
             type="text"
-            placeholder="Search courses..."
+            placeholder={isArabic ? 'بحث المواد...' : 'Search courses...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -205,14 +208,14 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
             className="filter-select"
             aria-label="Filter courses by status"
           >
-            <option value="all">All Courses</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
+            <option value="all">{isArabic ? 'جميع المواد' : 'All Courses'}</option>
+            <option value="published">{isArabic ? 'منشور' : 'Published'}</option>
+            <option value="draft">{isArabic ? 'مسودة' : 'Draft'}</option>
           </select>
           {/* Create Course button - hidden for supervisors */}
           {!isSupervisor && (
             <button onClick={handleCreateCourse} className="btn-primary">
-              + Create Course
+              {isArabic ? '+ إنشاء مادة' : '+ Create Course'}
             </button>
           )}
           {/* Supervisor sees disabled button with tooltip */}
@@ -221,10 +224,10 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               onClick={handleCreateCourse}
               className="btn-primary disabled"
               disabled
-              title="Course creation requires admin access"
-              aria-label="Course creation requires admin access"
+              title={isArabic ? 'إنشاء المادة يتطلب صلاحية المسؤول' : 'Course creation requires admin access'}
+              aria-label={isArabic ? 'إنشاء المادة يتطلب صلاحية المسؤول' : 'Course creation requires admin access'}
             >
-              + Create Course
+              {isArabic ? '+ إنشاء مادة' : '+ Create Course'}
             </button>
           )}
         </div>
@@ -232,10 +235,10 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
 
       {filteredCourses.length === 0 ? (
         <div className="empty-state">
-          <p>No courses found.</p>
+          <p>{isArabic ? 'لم يتم العثور على مواد.' : 'No courses found.'}</p>
           {!isSupervisor && (
             <button onClick={handleCreateCourse} className="btn-primary">
-              Create First Course
+              {isArabic ? 'إنشاء أول مادة' : 'Create First Course'}
             </button>
           )}
         </div>
@@ -255,7 +258,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
                   </div>
                 )}
                 <span className={`course-status ${course.is_published ? 'published' : 'draft'}`}>
-                  {course.is_published ? 'Published' : 'Draft'}
+                  {course.is_published ? (isArabic ? 'منشور' : 'Published') : (isArabic ? 'مسودة' : 'Draft')}
                 </span>
               </div>
 
@@ -273,7 +276,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
 
                 <div className="course-meta">
                   <div className="meta-item">
-                    <span className="meta-label">Price:</span>
+                    <span className="meta-label">{isArabic ? 'السعر:' : 'Price:'}</span>
                     <span className="meta-value">
                       {course.price} {course.currency}
                     </span>
@@ -281,13 +284,13 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
 
                   {course.teacher_id && (
                     <div className="meta-item">
-                      <span className="meta-label">Teacher:</span>
-                      <span className="meta-value">Assigned</span>
+                      <span className="meta-label">{isArabic ? 'المعلم:' : 'Teacher:'}</span>
+                      <span className="meta-value">{isArabic ? 'معيّن' : 'Assigned'}</span>
                     </div>
                   )}
 
                   <div className="meta-item">
-                    <span className="meta-label">Students:</span>
+                    <span className="meta-label">{isArabic ? 'الطلاب:' : 'Students:'}</span>
                     <span className="meta-value">
                       {course.enrollments?.count || '-'}
                     </span>
@@ -299,7 +302,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
                     onClick={() => handleViewCourse(course.id)}
                     className="btn-secondary"
                   >
-                    View Details
+                    {isArabic ? 'عرض التفاصيل' : 'View Details'}
                   </button>
                   {/* Edit button - visible for admin and supervisor */}
                   {(isAdmin || isSupervisor) && (
@@ -307,7 +310,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
                       onClick={() => handleEditCourse(course)}
                       className="btn-secondary"
                     >
-                      Edit
+                      {isArabic ? 'تعديل' : 'Edit'}
                     </button>
                   )}
                 </div>
@@ -322,14 +325,14 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
         <div className="modal-overlay" onClick={handleCancelEdit}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Course</h2>
+              <h2>{isArabic ? 'تعديل المادة' : 'Edit Course'}</h2>
               <button onClick={handleCancelEdit} className="btn-close" aria-label="Close modal">
                 ×
               </button>
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label htmlFor="edit-title">Title *</label>
+                <label htmlFor="edit-title">{isArabic ? 'العنوان *' : 'Title *'}</label>
                 <input
                   type="text"
                   id="edit-title"
@@ -341,7 +344,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-description">Description</label>
+                <label htmlFor="edit-description">{isArabic ? 'الوصف' : 'Description'}</label>
                 <textarea
                   id="edit-description"
                   name="description"
@@ -352,7 +355,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-image_url">Image URL</label>
+                <label htmlFor="edit-image_url">{isArabic ? 'رابط الصورة' : 'Image URL'}</label>
                 <input
                   type="url"
                   id="edit-image_url"
@@ -363,7 +366,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-thumbnail_url">Thumbnail URL</label>
+                <label htmlFor="edit-thumbnail_url">{isArabic ? 'رابط الصورة المصغرة' : 'Thumbnail URL'}</label>
                 <input
                   type="url"
                   id="edit-thumbnail_url"
@@ -374,7 +377,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-price">Price</label>
+                <label htmlFor="edit-price">{isArabic ? 'السعر' : 'Price'}</label>
                 <input
                   type="number"
                   id="edit-price"
@@ -386,7 +389,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-duration_hours">Duration (hours)</label>
+                <label htmlFor="edit-duration_hours">{isArabic ? 'المدة (ساعات)' : 'Duration (hours)'}</label>
                 <input
                   type="number"
                   id="edit-duration_hours"
@@ -398,7 +401,7 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-max_students">Max Students</label>
+                <label htmlFor="edit-max_students">{isArabic ? 'الحد الأقصى للطلاب' : 'Max Students'}</label>
                 <input
                   type="number"
                   id="edit-max_students"
@@ -412,14 +415,14 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
               {/* Teacher selector - only for admin */}
               {!isSupervisor && (
                 <div className="form-group">
-                  <label htmlFor="edit-teacher_id">Teacher</label>
+                  <label htmlFor="edit-teacher_id">{isArabic ? 'المعلم' : 'Teacher'}</label>
                   <select
                     id="edit-teacher_id"
                     name="teacher_id"
                     value={editFormData.teacher_id}
                     onChange={handleEditInputChange}
                   >
-                    <option value="">Unassigned</option>
+                    <option value="">{isArabic ? 'غير معيّن' : 'Unassigned'}</option>
                     {/* TODO: Load teacher options */}
                   </select>
                 </div>
@@ -427,10 +430,10 @@ const GradeCoursesTab = memo<GradeCoursesTabProps>(({
             </div>
             <div className="modal-footer">
               <button type="button" onClick={handleCancelEdit} className="btn-secondary">
-                Cancel
+                {isArabic ? 'إلغاء' : 'Cancel'}
               </button>
               <button type="button" onClick={handleSaveEdit} className="btn-primary">
-                Save Changes
+                {isArabic ? 'حفظ التغييرات' : 'Save Changes'}
               </button>
             </div>
           </div>

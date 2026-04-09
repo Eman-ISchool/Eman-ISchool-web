@@ -148,7 +148,7 @@ export async function PATCH(req: Request) {
     }
 }
 
-// POST - Bulk actions on users (Admin only)
+// POST - Create user or bulk actions on users (Admin only)
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
@@ -164,21 +164,91 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+        }
+
+        // Create single user flow
+        if (body.name && body.email && body.password) {
+            const bcrypt = (await import('bcryptjs')).default;
+            const passwordHash = await bcrypt.hash(body.password, 10);
+
+            // Core fields (always exist in the DB)
+            const coreData: Record<string, unknown> = {
+                name: body.name,
+                email: body.email,
+                password_hash: passwordHash,
+                role: body.role || 'student',
+                phone: body.phone || null,
+                is_active: true,
+            };
+            if (body.image) coreData.image = body.image;
+
+            // Extended fields (may not exist yet — migration required)
+            const extendedFields: Record<string, unknown> = {};
+            if (body.base_salary) extendedFields.base_salary = body.base_salary;
+            if (body.price_per_lesson) extendedFields.price_per_lesson = body.price_per_lesson;
+            if (body.bank_name) extendedFields.bank_name = body.bank_name;
+            if (body.bank_account) extendedFields.bank_account = body.bank_account;
+            if (body.address) extendedFields.address = body.address;
+            if (body.birth_date) extendedFields.birth_date = body.birth_date;
+            if (body.salary_currency) extendedFields.salary_currency = body.salary_currency;
+            if (body.previous_education) extendedFields.previous_education = body.previous_education;
+            if (body.guardian_name) extendedFields.guardian_name = body.guardian_name;
+            if (body.guardian_email) extendedFields.guardian_email = body.guardian_email;
+            if (body.guardian_phone) extendedFields.guardian_phone = body.guardian_phone;
+
+            // Try full insert (core + extended), fallback to core-only if columns missing
+            let insertData = { ...coreData, ...extendedFields };
+            let { data: user, error } = await (supabaseAdmin as any)
+                .from('users')
+                .insert(insertData)
+                .select()
+                .single();
+
+            // If insert failed due to unknown column, retry with core fields only
+            if (error && (error.message?.includes('column') || error.code === '42703' || error.code === 'PGRST204')) {
+                console.warn('Extended columns missing, retrying with core fields only:', error.message);
+                const retryResult = await (supabaseAdmin as any)
+                    .from('users')
+                    .insert(coreData)
+                    .select()
+                    .single();
+                user = retryResult.data;
+                error = retryResult.error;
+            }
+
+            if (error) {
+                console.error('Error creating user:', error);
+                if (error.code === '23505') {
+                    return NextResponse.json({ error: 'البريد الإلكتروني مسجل بالفعل' }, { status: 409 });
+                }
+                return NextResponse.json({ error: error.message || 'فشل إنشاء المستخدم' }, { status: 500 });
+            }
+
+            await supabaseAdmin.from('audit_logs').insert({
+                action: 'create',
+                table_name: 'users',
+                record_id: user.id,
+                user_id: currentUser.id,
+                new_data: { ...user, password_hash: '[REDACTED]' },
+            } as any);
+
+            return NextResponse.json({ user, message: 'تم إنشاء المستخدم بنجاح' });
+        }
+
+        // Bulk actions flow
         const { action, userIds } = body;
 
         if (!action || !userIds || !Array.isArray(userIds)) {
             return NextResponse.json({ error: 'البيانات غير صالحة' }, { status: 400 });
         }
 
-        // Remove current user from the list to prevent self-modification
         const safeUserIds = userIds.filter((id: string) => id !== currentUser.id);
 
         if (safeUserIds.length === 0) {
             return NextResponse.json({ error: 'لا يوجد مستخدمين لتحديثهم' }, { status: 400 });
-        }
-
-        if (!supabaseAdmin) {
-            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
         }
 
         let updates: any = {};
@@ -210,7 +280,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'فشل تحديث المستخدمين' }, { status: 500 });
         }
 
-        // Log the bulk action
         await supabaseAdmin.from('audit_logs').insert({
             action: 'bulk_update',
             table_name: 'users',
@@ -223,7 +292,7 @@ export async function POST(req: Request) {
             message: `تم تحديث ${safeUserIds.length} مستخدم بنجاح`
         });
     } catch (error) {
-        console.error('Error bulk updating users:', error);
-        return NextResponse.json({ error: 'فشل تحديث المستخدمين' }, { status: 500 });
+        console.error('Error in users POST:', error);
+        return NextResponse.json({ error: 'فشل تنفيذ العملية' }, { status: 500 });
     }
 }

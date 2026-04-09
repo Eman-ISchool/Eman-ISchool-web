@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect, memo } from 'react';
+import { useLocale } from 'next-intl';
 
 export interface GradeStudentsTabProps {
   gradeId: string;
@@ -30,6 +31,8 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
   onLoadingStart,
   onLoadingEnd,
 }) => {
+  const locale = useLocale();
+  const isArabic = locale === 'ar';
   const [students, setStudents] = useState<any[]>(data?.students || []);
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +133,7 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
     return (
       <div className="grade-students-tab error">
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Retry</button>
+        <button onClick={() => window.location.reload()}>{isArabic ? 'إعادة المحاولة' : 'Retry'}</button>
       </div>
     );
   }
@@ -138,11 +141,11 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
   return (
     <div className="grade-students-tab">
       <div className="students-header">
-        <h2>Students ({filteredStudents.length})</h2>
+        <h2>{isArabic ? `الطلاب (${filteredStudents.length})` : `Students (${filteredStudents.length})`}</h2>
         <div className="students-actions">
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder={isArabic ? 'بحث الطلاب...' : 'Search students...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -154,10 +157,10 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
             className="filter-select"
             aria-label="Filter students by enrollment status"
           >
-            <option value="all">All Students</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="dropped">Dropped</option>
+            <option value="all">{isArabic ? 'جميع الطلاب' : 'All Students'}</option>
+            <option value="active">{isArabic ? 'نشط' : 'Active'}</option>
+            <option value="completed">{isArabic ? 'مكتمل' : 'Completed'}</option>
+            <option value="dropped">{isArabic ? 'انسحب' : 'Dropped'}</option>
           </select>
           <button
             onClick={handleExportCSV}
@@ -165,14 +168,14 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
             className="btn-secondary"
             aria-label="Export students to CSV"
           >
-            {exporting ? 'Exporting...' : 'Export CSV'}
+            {exporting ? (isArabic ? 'جاري التصدير...' : 'Exporting...') : (isArabic ? 'تصدير CSV' : 'Export CSV')}
           </button>
         </div>
       </div>
 
       {filteredStudents.length === 0 ? (
         <div className="empty-state">
-          <p>No students found.</p>
+          <p>{isArabic ? 'لم يتم العثور على طلاب.' : 'No students found.'}</p>
         </div>
       ) : (
         <div className="students-list">
@@ -197,14 +200,14 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
 
                 <div className="student-stats">
                   <div className="stat-item">
-                    <span className="stat-label">Enrollments:</span>
+                    <span className="stat-label">{isArabic ? 'التسجيلات:' : 'Enrollments:'}</span>
                     <span className="stat-value">{student.enrollment_count}</span>
                   </div>
                 </div>
 
                 {student.courses && student.courses.length > 0 && (
                   <div className="student-courses">
-                    <span className="courses-label">Courses:</span>
+                    <span className="courses-label">{isArabic ? 'المواد:' : 'Courses:'}</span>
                     <div className="courses-list">
                       {student.courses.slice(0, 3).map((course: any) => (
                         <span key={course.id} className="course-tag">
@@ -213,7 +216,7 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
                       ))}
                       {student.courses.length > 3 && (
                         <span className="course-tag more">
-                          +{student.courses.length - 3} more
+                          {isArabic ? `+${student.courses.length - 3} أخرى` : `+${student.courses.length - 3} more`}
                         </span>
                       )}
                     </div>
@@ -227,7 +230,7 @@ const GradeStudentsTab = memo<GradeStudentsTabProps>(({
                   className="btn-secondary"
                   aria-label={`View details for ${student.name}`}
                 >
-                  View Details
+                  {isArabic ? 'عرض التفاصيل' : 'View Details'}
                 </button>
               </div>
             </div>

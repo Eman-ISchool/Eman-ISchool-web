@@ -22,6 +22,7 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const teacherId = searchParams.get('teacherId');
         const courseId = searchParams.get('courseId');
+        const assessmentType = searchParams.get('type');
 
         let query = supabaseAdmin
             .from('assessments')
@@ -37,6 +38,11 @@ export async function GET(req: Request) {
         // Filter by course if specified
         if (courseId) {
             query = query.eq('course_id', courseId);
+        }
+
+        // Filter by assessment type (quiz or exam)
+        if (assessmentType === 'quiz' || assessmentType === 'exam') {
+            query = query.eq('assessment_type', assessmentType);
         }
 
         // Admins see all assessments; teachers see only their own
@@ -81,11 +87,13 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { title, description, schedule, status: assessmentStatus } = body;
+        const { title, description, schedule, status: assessmentStatus, assessment_type } = body;
 
         if (!title?.trim()) {
             return NextResponse.json({ error: 'Title is required' }, { status: 400 });
         }
+
+        const type = assessment_type === 'quiz' ? 'quiz' : 'exam';
 
         const { data, error } = await supabaseAdmin
             .from('assessments')
@@ -94,9 +102,9 @@ export async function POST(req: Request) {
                 short_description: description?.trim() || null,
                 description: description?.trim() || null,
                 teacher_id: currentUser.id,
-                assessment_type: 'exam',
+                assessment_type: type,
                 is_published: assessmentStatus === 'active',
-                attempt_limit: 1,
+                attempt_limit: type === 'quiz' ? 3 : 1,
                 late_submissions_allowed: false,
             } as any)
             .select()

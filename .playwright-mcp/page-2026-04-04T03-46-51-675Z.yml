@@ -1,0 +1,146 @@
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: F
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Fadi
+          - paragraph [ref=e12]: ADMIN
+      - generic [ref=e13]:
+        - link "الرئيسية" [ref=e14] [cursor=pointer]:
+          - /url: /ar/dashboard
+          - generic [ref=e15]: الرئيسية
+          - img [ref=e16]
+        - generic [ref=e21]:
+          - button "الأكاديمي" [ref=e23]:
+            - generic [ref=e24]:
+              - img [ref=e25]
+              - generic [ref=e27]: الأكاديمي
+            - img [ref=e28]
+          - button "الإدارة" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e38]: الإدارة
+            - img [ref=e39]
+          - button "المالية" [ref=e42]:
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - generic [ref=e47]: المالية
+            - img [ref=e48]
+          - button "التواصل" [ref=e51]:
+            - generic [ref=e52]:
+              - img [ref=e53]
+              - generic [ref=e56]: التواصل
+            - img [ref=e57]
+          - button "المحتوى" [ref=e60]:
+            - generic [ref=e61]:
+              - img [ref=e62]
+              - generic [ref=e64]: المحتوى
+            - img [ref=e65]
+          - button "التحليلات" [ref=e68]:
+            - generic [ref=e69]:
+              - img [ref=e70]
+              - generic [ref=e73]: التحليلات
+            - img [ref=e74]
+          - button "إدارة البيانات" [ref=e77]:
+            - generic [ref=e78]:
+              - img [ref=e79]
+              - generic [ref=e81]: إدارة البيانات
+            - img [ref=e82]
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - link "الإعدادات" [ref=e86] [cursor=pointer]:
+            - /url: /ar/dashboard/system-settings
+            - generic [ref=e87]: الإعدادات
+            - img [ref=e88]
+          - link "الملف الشخصي" [ref=e91] [cursor=pointer]:
+            - /url: /ar/dashboard/profile
+            - generic [ref=e92]: الملف الشخصي
+            - img [ref=e93]
+        - button "تسجيل الخروج" [ref=e96]:
+          - generic [ref=e97]: تسجيل الخروج
+          - img [ref=e98]
+  - generic [ref=e100]:
+    - generic [ref=e102]:
+      - button "إغلاق" [ref=e103]:
+        - img [ref=e104]
+      - generic [ref=e107]:
+        - img [ref=e109]
+        - generic [ref=e112]:
+          - paragraph [ref=e113]: تثبيت التطبيق
+          - paragraph [ref=e114]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+      - button "تثبيت التطبيق" [ref=e115]
+    - generic [ref=e116]:
+      - heading "المدفوعات" [level=1] [ref=e118]
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - button "إضافة دفعة" [ref=e121]:
+            - img [ref=e122]
+            - text: إضافة دفعة
+          - heading "المدفوعات" [level=1] [ref=e123]
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - generic [ref=e126]:
+              - generic [ref=e127]: إجمالي المدفوعات
+              - img [ref=e128]
+            - paragraph [ref=e130]: "1"
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: إجمالي المبلغ
+              - img [ref=e134]
+            - paragraph [ref=e136]: $100.00
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e139]: المدفوعات المؤكدة
+              - img [ref=e140]
+            - paragraph [ref=e143]: "1"
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - img [ref=e146]
+            - generic [ref=e148]: تصفية
+          - generic [ref=e149]:
+            - generic [ref=e150]:
+              - generic [ref=e151]: بحث...
+              - textbox "بحث..." [ref=e152]
+            - generic [ref=e153]:
+              - generic [ref=e154]: تصفية حسب الحالة
+              - combobox [ref=e155]:
+                - option "الكل" [selected]
+                - option "مؤكد"
+                - option "معلق"
+            - generic [ref=e156]:
+              - generic [ref=e157]: تصفية حسب طريقة الدفع
+              - combobox [ref=e158]:
+                - option "الكل" [selected]
+                - option "تحويل بنكي"
+                - option "بطاقة ائتمان"
+            - generic [ref=e159]:
+              - generic [ref=e160]: تاريخ البداية
+              - textbox [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e163]: تاريخ النهاية
+              - textbox [ref=e164]
+        - generic [ref=e165]:
+          - heading "إدارة المدفوعات" [level=2] [ref=e167]
+          - table [ref=e170]:
+            - rowgroup [ref=e171]:
+              - row "المعرف المستخدم المبلغ طريقة الدفع الحالة رقم المعاملة تاريخ الإنشاء الإجراءات" [ref=e172]:
+                - columnheader "المعرف" [ref=e173]
+                - columnheader "المستخدم" [ref=e174]
+                - columnheader "المبلغ" [ref=e175]
+                - columnheader "طريقة الدفع" [ref=e176]
+                - columnheader "الحالة" [ref=e177]
+                - columnheader "رقم المعاملة" [ref=e178]
+                - columnheader "تاريخ الإنشاء" [ref=e179]
+                - columnheader "الإجراءات" [ref=e180]
+            - rowgroup [ref=e181]:
+              - row "#PAY-001 أسيل خليل $300.00 تحويل بنكي مؤكد BT_P000001_PAYALLL0070001 ٣٠ نوفمبر ٢٠٢٥، ١١:١٤ ص ..." [ref=e182]:
+                - cell "#PAY-001" [ref=e183]
+                - cell "أسيل خليل" [ref=e184]
+                - cell "$300.00" [ref=e185]
+                - cell "تحويل بنكي" [ref=e186]
+                - cell "مؤكد" [ref=e187]
+                - cell "BT_P000001_PAYALLL0070001" [ref=e188]
+                - cell "٣٠ نوفمبر ٢٠٢٥، ١١:١٤ ص" [ref=e189]
+                - cell "..." [ref=e190]:
+                  - button "..." [ref=e191]

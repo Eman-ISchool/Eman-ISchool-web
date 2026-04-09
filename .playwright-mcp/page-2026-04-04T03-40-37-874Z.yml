@@ -1,0 +1,85 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - main [ref=e4]:
+      - generic [ref=e280]:
+        - link "Back to Classes" [ref=e281] [cursor=pointer]:
+          - /url: /ar/teacher/grades
+          - img [ref=e282]
+          - text: Back to Classes
+        - generic [ref=e284]:
+          - heading "الصف الأول الابتدائي" [level=1] [ref=e285]
+          - generic [ref=e286]:
+            - generic [ref=e287]: "Code: grade-1"
+            - generic [ref=e288]: "Supervisor: Unassigned"
+            - generic [ref=e289]: "Status: Active"
+        - generic [ref=e290]:
+          - generic [ref=e292]:
+            - button "Info" [ref=e293]:
+              - img [ref=e294]
+              - text: Info
+            - button "Courses" [ref=e296]:
+              - img [ref=e297]
+              - text: Courses
+            - button "Lessons" [ref=e299]:
+              - img [ref=e300]
+              - text: Lessons
+            - button "Assessments" [ref=e303]:
+              - img [ref=e304]
+              - text: Assessments
+            - button "Fees" [ref=e307]:
+              - img [ref=e308]
+              - text: Fees
+            - button "Students" [ref=e310]:
+              - img [ref=e311]
+              - text: Students
+            - button "Schedule" [ref=e316]:
+              - img [ref=e317]
+              - text: Schedule
+          - generic [ref=e319]:
+            - generic [ref=e320]: فشل جلب المستخدمين
+            - generic [ref=e322]:
+              - generic [ref=e323]:
+                - paragraph [ref=e324]: Grade name
+                - paragraph [ref=e325]: الصف الأول الابتدائي
+              - generic [ref=e326]:
+                - paragraph [ref=e327]: Grade code
+                - paragraph [ref=e328]: grade-1
+              - generic [ref=e329]:
+                - paragraph [ref=e330]: Supervisor
+                - paragraph [ref=e331]: Unassigned
+              - generic [ref=e332]:
+                - paragraph [ref=e333]: Status
+                - paragraph [ref=e334]: Active
+              - generic [ref=e335]:
+                - paragraph [ref=e336]: Created
+                - paragraph [ref=e337]: 3/16/2026, 7:17:20 PM
+              - generic [ref=e338]:
+                - paragraph [ref=e339]: Updated
+                - paragraph [ref=e340]: "-"
+              - button "Edit grade" [ref=e342]
+    - navigation [ref=e247]:
+      - link "الرئيسية" [ref=e248] [cursor=pointer]:
+        - /url: /ar/teacher/home
+        - img [ref=e249]
+        - generic [ref=e254]: الرئيسية
+      - link "My Classes" [ref=e255] [cursor=pointer]:
+        - /url: /ar/teacher/grades
+        - img [ref=e256]
+        - generic [ref=e259]: My Classes
+      - link "Assessments" [ref=e260] [cursor=pointer]:
+        - /url: /ar/teacher/assessments
+        - img [ref=e261]
+        - generic [ref=e265]: Assessments
+      - link "الجدول" [ref=e266] [cursor=pointer]:
+        - /url: /ar/teacher/calendar
+        - img [ref=e267]
+        - generic [ref=e269]: الجدول
+      - link "المحادثات" [ref=e270] [cursor=pointer]:
+        - /url: /ar/teacher/chat
+        - img [ref=e271]
+        - generic [ref=e273]: المحادثات
+      - link "الملف الشخصي" [ref=e274] [cursor=pointer]:
+        - /url: /ar/teacher/profile
+        - img [ref=e275]
+        - generic [ref=e278]: الملف الشخصي
+  - alert [ref=e279]

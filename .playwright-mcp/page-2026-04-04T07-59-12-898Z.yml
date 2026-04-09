@@ -1,0 +1,179 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: ا
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: ابراهيم محمد
+            - paragraph [ref=e12]: ADMIN
+        - generic [ref=e13]:
+          - link "الرئيسية" [ref=e14] [cursor=pointer]:
+            - /url: /ar/dashboard
+            - generic [ref=e15]: الرئيسية
+            - img [ref=e16]
+          - generic [ref=e21]:
+            - button "الأكاديمي" [ref=e23]:
+              - generic [ref=e24]:
+                - img [ref=e25]
+                - generic [ref=e27]: الأكاديمي
+              - img [ref=e28]
+            - button "الإدارة" [ref=e31]:
+              - generic [ref=e32]:
+                - img [ref=e33]
+                - generic [ref=e38]: الإدارة
+              - img [ref=e39]
+            - generic [ref=e41]:
+              - button "المالية" [ref=e42]:
+                - generic [ref=e43]:
+                  - img [ref=e44]
+                  - generic [ref=e47]: المالية
+                - img [ref=e48]
+              - generic [ref=e281]:
+                - link "المدفوعات" [ref=e282] [cursor=pointer]:
+                  - /url: /ar/dashboard/payments
+                  - generic [ref=e283]: المدفوعات
+                  - img [ref=e284]
+                - link "الرواتب" [ref=e287] [cursor=pointer]:
+                  - /url: /ar/dashboard/salaries
+                  - generic [ref=e288]: الرواتب
+                  - img [ref=e289]
+                - link "قسائم الراتب" [ref=e292] [cursor=pointer]:
+                  - /url: /ar/dashboard/payslips
+                  - generic [ref=e293]: قسائم الراتب
+                  - img [ref=e294]
+                - link "البنوك" [ref=e296] [cursor=pointer]:
+                  - /url: /ar/dashboard/banks
+                  - generic [ref=e297]: البنوك
+                  - img [ref=e298]
+                - link "العملات" [ref=e301] [cursor=pointer]:
+                  - /url: /ar/dashboard/currencies
+                  - generic [ref=e302]: العملات
+                  - img [ref=e303]
+                - link "المصروفات" [ref=e306] [cursor=pointer]:
+                  - /url: /ar/dashboard/expenses
+                  - generic [ref=e307]: المصروفات
+                  - img [ref=e308]
+                - link "الكوبونات" [ref=e311] [cursor=pointer]:
+                  - /url: /ar/dashboard/coupons
+                  - generic [ref=e312]: الكوبونات
+                  - img [ref=e313]
+            - button "التواصل" [ref=e51]:
+              - generic [ref=e52]:
+                - img [ref=e53]
+                - generic [ref=e56]: التواصل
+              - img [ref=e57]
+            - button "المحتوى" [ref=e60]:
+              - generic [ref=e61]:
+                - img [ref=e62]
+                - generic [ref=e64]: المحتوى
+              - img [ref=e65]
+            - button "التحليلات" [ref=e68]:
+              - generic [ref=e69]:
+                - img [ref=e70]
+                - generic [ref=e73]: التحليلات
+              - img [ref=e74]
+            - button "إدارة البيانات" [ref=e77]:
+              - generic [ref=e78]:
+                - img [ref=e79]
+                - generic [ref=e81]: إدارة البيانات
+              - img [ref=e82]
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - link "الإعدادات" [ref=e86] [cursor=pointer]:
+              - /url: /ar/dashboard/system-settings
+              - generic [ref=e87]: الإعدادات
+              - img [ref=e88]
+            - link "الملف الشخصي" [ref=e91] [cursor=pointer]:
+              - /url: /ar/dashboard/profile
+              - generic [ref=e92]: الملف الشخصي
+              - img [ref=e93]
+          - button "تسجيل الخروج" [ref=e96]:
+            - generic [ref=e97]: تسجيل الخروج
+            - img [ref=e98]
+    - generic [ref=e100]:
+      - generic [ref=e102]:
+        - button "إغلاق" [ref=e103]:
+          - img [ref=e104]
+        - generic [ref=e107]:
+          - img [ref=e109]
+          - generic [ref=e112]:
+            - paragraph [ref=e113]: تثبيت التطبيق
+            - paragraph [ref=e114]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - button "تثبيت التطبيق" [ref=e115]
+      - generic [ref=e116]:
+        - heading "المدفوعات" [level=1] [ref=e118]
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - button "إضافة دفعة" [ref=e121]:
+              - img [ref=e122]
+              - text: إضافة دفعة
+            - heading "المدفوعات" [level=1] [ref=e123]
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]: إجمالي المدفوعات
+                - img [ref=e128]
+              - paragraph [ref=e130]: "0"
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - generic [ref=e134]: إجمالي المبلغ
+                - img [ref=e135]
+              - paragraph [ref=e137]: AED 0.00
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - generic [ref=e141]: المدفوعات المؤكدة
+                - img [ref=e142]
+              - paragraph [ref=e145]: "0"
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]: المدفوعات المعلقة
+                - img [ref=e150]
+              - paragraph [ref=e153]: "0"
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - img [ref=e157]
+              - generic [ref=e159]: تصفية
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - generic [ref=e162]: البحث في المدفوعات...
+                - generic [ref=e163]:
+                  - img [ref=e164]
+                  - textbox "بحث..." [ref=e167]
+              - generic [ref=e168]:
+                - generic [ref=e169]: تصفية حسب الحالة
+                - combobox [ref=e170]:
+                  - option "الكل" [selected]
+                  - option "مؤكد"
+                  - option "معلق"
+                  - option "مرفوض"
+              - generic [ref=e171]:
+                - generic [ref=e172]: تصفية حسب طريقة الدفع
+                - combobox [ref=e173]:
+                  - option "الكل" [selected]
+                  - option "تحويل بنكي"
+                  - option "بطاقة ائتمان"
+                  - option "نقداً"
+              - generic [ref=e174]:
+                - generic [ref=e175]: تاريخ البداية
+                - textbox [ref=e176]
+              - generic [ref=e177]:
+                - generic [ref=e178]: تاريخ النهاية
+                - textbox [ref=e179]
+          - generic [ref=e180]:
+            - heading "إدارة المدفوعات" [level=2] [ref=e182]
+            - table [ref=e184]:
+              - rowgroup [ref=e185]:
+                - row "المعرف المستخدم المبلغ طريقة الدفع الحالة رقم المعاملة تاريخ الإنشاء الإجراءات" [ref=e186]:
+                  - columnheader "المعرف" [ref=e187]
+                  - columnheader "المستخدم" [ref=e188]
+                  - columnheader "المبلغ" [ref=e189]
+                  - columnheader "طريقة الدفع" [ref=e190]
+                  - columnheader "الحالة" [ref=e191]
+                  - columnheader "رقم المعاملة" [ref=e192]
+                  - columnheader "تاريخ الإنشاء" [ref=e193]
+                  - columnheader "الإجراءات" [ref=e194]
+              - rowgroup [ref=e195]:
+                - row "لا توجد مدفوعات" [ref=e315]:
+                  - cell "لا توجد مدفوعات" [ref=e316]
+  - alert [ref=e317]

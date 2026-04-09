@@ -1,0 +1,254 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Eman ISchool" [ref=e5] [cursor=pointer]:
+          - /url: /ar
+          - img "Eman ISchool" [ref=e7]
+        - navigation [ref=e8]:
+          - link "الرئيسية" [ref=e9] [cursor=pointer]:
+            - /url: /ar
+          - link "حولنا" [ref=e10] [cursor=pointer]:
+            - /url: /ar/about
+          - link "خدماتنا" [ref=e11] [cursor=pointer]:
+            - /url: /ar/services
+          - link "اتصل بنا" [ref=e12] [cursor=pointer]:
+            - /url: /ar/contact
+        - generic [ref=e13]:
+          - button "English" [ref=e14]
+          - link "تسجيل الدخول" [ref=e15] [cursor=pointer]:
+            - /url: /ar/login
+          - link "انضم" [ref=e16] [cursor=pointer]:
+            - /url: /ar/join
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - img [ref=e21]
+          - generic [ref=e23]:
+            - paragraph [ref=e24]: تثبيت التطبيق
+            - paragraph [ref=e25]: احصل على تجربة التطبيق الكاملة مع الوصول دون اتصال وتحميل أسرع
+        - generic [ref=e26]:
+          - button "تثبيت التطبيق" [ref=e27]:
+            - img [ref=e28]
+            - text: تثبيت التطبيق
+          - button [ref=e31]:
+            - img [ref=e32]
+      - generic [ref=e35]:
+        - img [ref=e40]
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - button "تسجيل الدخول" [ref=e47]
+            - button "تسجيل" [ref=e48]
+          - heading "تسجيل الدخول إلى حسابك" [level=1] [ref=e49]
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - text: رقم الهاتف
+              - generic [ref=e52]:
+                - generic [ref=e53]:
+                  - button "🇦🇪 +971" [ref=e54]:
+                    - generic [ref=e55]: 🇦🇪
+                    - generic [ref=e56]: "+971"
+                    - img [ref=e57]
+                  - generic [ref=e95]:
+                    - generic [ref=e96]:
+                      - img [ref=e97]
+                      - textbox "ابحث" [active] [ref=e100]
+                    - generic [ref=e101]:
+                      - button "🇺🇸 الولايات المتحدة 1" [ref=e102]:
+                        - generic [ref=e103]:
+                          - generic [ref=e104]: 🇺🇸
+                          - generic [ref=e105]: الولايات المتحدة
+                          - generic [ref=e106]: "1"
+                      - button "🇬🇧 المملكة المتحدة 44" [ref=e107]:
+                        - generic [ref=e108]:
+                          - generic [ref=e109]: 🇬🇧
+                          - generic [ref=e110]: المملكة المتحدة
+                          - generic [ref=e111]: "44"
+                      - button "🇸🇩 السودان 249" [ref=e112]:
+                        - generic [ref=e113]:
+                          - generic [ref=e114]: 🇸🇩
+                          - generic [ref=e115]: السودان
+                          - generic [ref=e116]: "249"
+                      - button "🇸🇦 المملكة العربية السعودية 966" [ref=e117]:
+                        - generic [ref=e118]:
+                          - generic [ref=e119]: 🇸🇦
+                          - generic [ref=e120]: المملكة العربية السعودية
+                          - generic [ref=e121]: "966"
+                      - button "🇪🇬 مصر 20" [ref=e122]:
+                        - generic [ref=e123]:
+                          - generic [ref=e124]: 🇪🇬
+                          - generic [ref=e125]: مصر
+                          - generic [ref=e126]: "20"
+                      - button "🇦🇪 الإمارة العربية المتحدة 971" [ref=e127]:
+                        - generic [ref=e128]:
+                          - generic [ref=e129]: 🇦🇪
+                          - generic [ref=e130]: الإمارة العربية المتحدة
+                          - generic [ref=e131]: "971"
+                        - img [ref=e132]
+                      - button "🇶🇦 قطر 974" [ref=e134]:
+                        - generic [ref=e135]:
+                          - generic [ref=e136]: 🇶🇦
+                          - generic [ref=e137]: قطر
+                          - generic [ref=e138]: "974"
+                      - button "🇰🇼 الكويت 965" [ref=e139]:
+                        - generic [ref=e140]:
+                          - generic [ref=e141]: 🇰🇼
+                          - generic [ref=e142]: الكويت
+                          - generic [ref=e143]: "965"
+                      - button "🇧🇭 البحرين 973" [ref=e144]:
+                        - generic [ref=e145]:
+                          - generic [ref=e146]: 🇧🇭
+                          - generic [ref=e147]: البحرين
+                          - generic [ref=e148]: "973"
+                      - button "🇴🇲 عمان 968" [ref=e149]:
+                        - generic [ref=e150]:
+                          - generic [ref=e151]: 🇴🇲
+                          - generic [ref=e152]: عمان
+                          - generic [ref=e153]: "968"
+                      - button "🇯🇴 الأردن 962" [ref=e154]:
+                        - generic [ref=e155]:
+                          - generic [ref=e156]: 🇯🇴
+                          - generic [ref=e157]: الأردن
+                          - generic [ref=e158]: "962"
+                      - button "🇱🇧 لبنان 961" [ref=e159]:
+                        - generic [ref=e160]:
+                          - generic [ref=e161]: 🇱🇧
+                          - generic [ref=e162]: لبنان
+                          - generic [ref=e163]: "961"
+                      - button "🇮🇶 العراق 964" [ref=e164]:
+                        - generic [ref=e165]:
+                          - generic [ref=e166]: 🇮🇶
+                          - generic [ref=e167]: العراق
+                          - generic [ref=e168]: "964"
+                      - button "🇾🇪 اليمن 967" [ref=e169]:
+                        - generic [ref=e170]:
+                          - generic [ref=e171]: 🇾🇪
+                          - generic [ref=e172]: اليمن
+                          - generic [ref=e173]: "967"
+                      - button "🇸🇾 سوريا 963" [ref=e174]:
+                        - generic [ref=e175]:
+                          - generic [ref=e176]: 🇸🇾
+                          - generic [ref=e177]: سوريا
+                          - generic [ref=e178]: "963"
+                      - button "🇵🇸 فلسطين 970" [ref=e179]:
+                        - generic [ref=e180]:
+                          - generic [ref=e181]: 🇵🇸
+                          - generic [ref=e182]: فلسطين
+                          - generic [ref=e183]: "970"
+                      - button "🇱🇾 ليبيا 218" [ref=e184]:
+                        - generic [ref=e185]:
+                          - generic [ref=e186]: 🇱🇾
+                          - generic [ref=e187]: ليبيا
+                          - generic [ref=e188]: "218"
+                      - button "🇹🇳 تونس 216" [ref=e189]:
+                        - generic [ref=e190]:
+                          - generic [ref=e191]: 🇹🇳
+                          - generic [ref=e192]: تونس
+                          - generic [ref=e193]: "216"
+                      - button "🇩🇿 الجزائر 213" [ref=e194]:
+                        - generic [ref=e195]:
+                          - generic [ref=e196]: 🇩🇿
+                          - generic [ref=e197]: الجزائر
+                          - generic [ref=e198]: "213"
+                      - button "🇲🇦 موريتانيا 212" [ref=e199]:
+                        - generic [ref=e200]:
+                          - generic [ref=e201]: 🇲🇦
+                          - generic [ref=e202]: موريتانيا
+                          - generic [ref=e203]: "212"
+                      - button "🇺🇬 أوغندا 256" [ref=e204]:
+                        - generic [ref=e205]:
+                          - generic [ref=e206]: 🇺🇬
+                          - generic [ref=e207]: أوغندا
+                          - generic [ref=e208]: "256"
+                      - button "🇹🇿 تنزانيا 255" [ref=e209]:
+                        - generic [ref=e210]:
+                          - generic [ref=e211]: 🇹🇿
+                          - generic [ref=e212]: تنزانيا
+                          - generic [ref=e213]: "255"
+                      - button "🇰🇪 كينيا 254" [ref=e214]:
+                        - generic [ref=e215]:
+                          - generic [ref=e216]: 🇰🇪
+                          - generic [ref=e217]: كينيا
+                          - generic [ref=e218]: "254"
+                      - button "🇳🇬 نيجيريا 234" [ref=e219]:
+                        - generic [ref=e220]:
+                          - generic [ref=e221]: 🇳🇬
+                          - generic [ref=e222]: نيجيريا
+                          - generic [ref=e223]: "234"
+                      - button "🇬🇭 غانا 233" [ref=e224]:
+                        - generic [ref=e225]:
+                          - generic [ref=e226]: 🇬🇭
+                          - generic [ref=e227]: غانا
+                          - generic [ref=e228]: "233"
+                      - button "🇸🇳 سنغال 221" [ref=e229]:
+                        - generic [ref=e230]:
+                          - generic [ref=e231]: 🇸🇳
+                          - generic [ref=e232]: سنغال
+                          - generic [ref=e233]: "221"
+                      - button "🇹🇩 تشاد 235" [ref=e234]:
+                        - generic [ref=e235]:
+                          - generic [ref=e236]: 🇹🇩
+                          - generic [ref=e237]: تشاد
+                          - generic [ref=e238]: "235"
+                      - button "🇷🇼 رواندا 250" [ref=e239]:
+                        - generic [ref=e240]:
+                          - generic [ref=e241]: 🇷🇼
+                          - generic [ref=e242]: رواندا
+                          - generic [ref=e243]: "250"
+                      - button "🇧🇮 بوروندي 257" [ref=e244]:
+                        - generic [ref=e245]:
+                          - generic [ref=e246]: 🇧🇮
+                          - generic [ref=e247]: بوروندي
+                          - generic [ref=e248]: "257"
+                      - button "🇿🇲 زامبيا 260" [ref=e249]:
+                        - generic [ref=e250]:
+                          - generic [ref=e251]: 🇿🇲
+                          - generic [ref=e252]: زامبيا
+                          - generic [ref=e253]: "260"
+                      - button "🇿🇼 زيمبابوي 263" [ref=e254]:
+                        - generic [ref=e255]:
+                          - generic [ref=e256]: 🇿🇼
+                          - generic [ref=e257]: زيمبابوي
+                          - generic [ref=e258]: "263"
+                      - button "🇸🇸 جنوب السودان 211" [ref=e259]:
+                        - generic [ref=e260]:
+                          - generic [ref=e261]: 🇸🇸
+                          - generic [ref=e262]: جنوب السودان
+                          - generic [ref=e263]: "211"
+                - textbox "رقم الهاتف" [ref=e59]
+            - generic [ref=e60]:
+              - text: أدخل كلمة المرور
+              - generic [ref=e61]:
+                - img [ref=e63]
+                - textbox "أدخل كلمة المرور" [ref=e66]
+                - button [ref=e67]:
+                  - img [ref=e68]
+            - button "تسجيل الدخول" [ref=e71]
+            - link "نسيت كلمة المرور؟" [ref=e73] [cursor=pointer]:
+              - /url: /ar/forgot-password
+    - contentinfo [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - heading "Eduverse" [level=2] [ref=e77]
+          - paragraph [ref=e78]: "تجربة عامة مبسطة مستوحاة من المرجع: تعريف سريع، مسارات دخول واضحة، وصفحات عامة مباشرة."
+        - generic [ref=e79]:
+          - heading "روابط سريعة" [level=3] [ref=e80]
+          - generic [ref=e81]:
+            - link "حولنا" [ref=e82] [cursor=pointer]:
+              - /url: /ar/about
+            - link "خدماتنا" [ref=e83] [cursor=pointer]:
+              - /url: /ar/services
+            - link "اتصل بنا" [ref=e84] [cursor=pointer]:
+              - /url: /ar/contact
+            - link "تسجيل الدخول" [ref=e85] [cursor=pointer]:
+              - /url: /ar/login
+            - link "انضم" [ref=e86] [cursor=pointer]:
+              - /url: /ar/join
+        - generic [ref=e87]:
+          - heading "تواصل" [level=3] [ref=e88]
+          - generic [ref=e89]:
+            - paragraph [ref=e90]: hello@eduverse.local
+            - paragraph [ref=e91]: +962 79 000 0000
+            - paragraph [ref=e92]: دبي / عمّان / الرياض
+      - generic [ref=e93]: © 2026 Eduverse
+  - alert [ref=e94]

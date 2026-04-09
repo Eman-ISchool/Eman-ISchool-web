@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+/* ============================================
+   Coffee Gathering Theme
+   ============================================ */
+
+@theme {
+  /* --- Coffee Color Palette --- */
+  --color-coffee-50: #fdf8f0;
+  --color-coffee-100: #f9edd9;
+  --color-coffee-200: #f2d9b0;
+  --color-coffee-300: #e8bf7e;
+  --color-coffee-400: #dea04e;
+  --color-coffee-500: #d4852f;
+  --color-coffee-600: #b86a24;
+  --color-coffee-700: #995220;
+  --color-coffee-800: #7d4220;
+  --color-coffee-900: #67381e;
+  --color-coffee-950: #3a1c0e;
+
+  /* --- Cream / Warm Neutrals --- */
+  --color-cream-50: #fefdfb;
+  --color-cream-100: #fdf9f0;
+  --color-cream-200: #faf1de;
+  --color-cream-300: #f5e4c4;
+  --color-cream-400: #efd3a2;
+  --color-cream-500: #e8be7a;
+
+  /* --- Warm Accents --- */
+  --color-mocha-500: #6f4e37;
+  --color-mocha-600: #5c3d2a;
+  --color-mocha-700: #4a2e1f;
+  --color-latte-400: #c8a882;
+  --color-latte-500: #b5926a;
+  --color-espresso-800: #2c1a0e;
+  --color-espresso-900: #1a0f08;
+
+  /* --- Status Colors --- */
+  --color-online: #22c55e;
+  --color-away: #eab308;
+  --color-busy: #ef4444;
+
+  /* --- Spacing & Radius --- */
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+}
+
+/* ============================================
+   CSS Custom Properties (runtime)
+   ============================================ */
+
+:root {
+  --bg-primary: var(--color-cream-50);
+  --bg-secondary: var(--color-cream-100);
+  --bg-card: #ffffff;
+  --bg-card-hover: var(--color-cream-200);
+
+  --text-primary: var(--color-espresso-800);
+  --text-secondary: var(--color-mocha-500);
+  --text-muted: var(--color-latte-500);
+
+  --border-default: var(--color-cream-300);
+  --border-focus: var(--color-coffee-400);
+
+  --accent: var(--color-coffee-500);
+  --accent-hover: var(--color-coffee-600);
+  --accent-soft: var(--color-coffee-100);
+
+  --shadow-card: 0 1px 3px rgba(106, 78, 55, 0.08), 0 1px 2px rgba(106, 78, 55, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(106, 78, 55, 0.12), 0 2px 4px rgba(106, 78, 55, 0.08);
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* ============================================
+   Card Component
+   ============================================ */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-coffee-200);
+}
+
+/* ============================================
+   Meeting Room UI Utilities
+   ============================================ */
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.participant-ring {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-coffee-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-cream-200);
+  font-weight: 600;
+  color: var(--color-mocha-600);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.participant-ring[data-speaking="true"] {
+  border-color: var(--color-online);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.status-dot--online {
+  background-color: var(--color-online);
+}
+
+.status-dot--away {
+  background-color: var(--color-away);
+}
+
+.status-dot--busy {
+  background-color: var(--color-busy);
+}
+
+/* ============================================
+   Warm Button Variants
+   ============================================ */
+
+.btn-coffee {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 0.875rem;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-coffee:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-coffee:active {
+  transform: scale(0.98);
+}
+
+.btn-coffee-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 0.875rem;
+  background-color: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--color-coffee-300);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-coffee-outline:hover {
+  background-color: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* ============================================
+   Room Waiting Animation
+   ============================================ */
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.waiting-pulse {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-cream-100);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-coffee-300);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-coffee-400);
+}
+
+/* ============================================
+   Mobile-Safe Viewport Utilities
+   ============================================ */
+
+/* Dynamic viewport height for modern mobile browsers */
+.min-h-screen-safe {
+  min-height: 100vh;
+}
+
+@supports (min-height: 100dvh) {
+  .min-h-screen-safe {
+    min-height: 100dvh;
+  }
+}
+
+/* iOS safe area padding for bottom-anchored elements */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pb-safe-extra {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Touch target minimum sizing utility */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Consistent mobile section spacing */
+.mobile-section {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* ============================================
+   Room Grid Mobile Override
+   ============================================ */
+
+@media (max-width: 639px) {
+  .room-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

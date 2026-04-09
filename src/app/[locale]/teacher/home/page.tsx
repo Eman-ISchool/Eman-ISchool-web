@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
-import TeacherHomeClient from './TeacherHomeClient';
+import ReferenceTeacherHome from '@/components/teacher/ReferenceTeacherHome';
 
 export default async function TeacherHomePage() {
     const session = await getServerSession(authOptions);
@@ -91,7 +91,7 @@ export default async function TeacherHomePage() {
     }
 
     return (
-        <TeacherHomeClient
+        <ReferenceTeacherHome
             initialStats={stats}
             initialLessons={upcomingLessons}
             user={currentUser}

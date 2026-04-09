@@ -1,0 +1,29 @@
+- generic [active] [ref=e1]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - navigation [ref=e9]:
+        - link "A" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e13]: A
+        - generic [ref=e14]:
+          - list [ref=e15]:
+            - listitem [ref=e16]:
+              - link "حولنا" [ref=e17] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e18]:
+              - link "اتصل بنا" [ref=e19] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e20]:
+              - link "خدماتنا" [ref=e21] [cursor=pointer]:
+                - /url: /services
+          - generic [ref=e22]:
+            - button "English" [ref=e23]
+            - button "العربية" [ref=e24]
+          - generic [ref=e25]:
+            - button "تسجيل الدخول" [ref=e26]
+            - button "انضم" [ref=e27]
+      - main [ref=e28]:
+        - main [ref=e30]:
+          - img [ref=e33]
+  - region "Notifications alt+T"
+  - alert [ref=e35]

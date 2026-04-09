@@ -1,10 +1,5 @@
-import dynamic from 'next/dynamic';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-
-const ReferenceFinanceWorkspace = dynamic(
-  () => import('@/components/dashboard/ReferenceFinanceWorkspace'),
-  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-gray-100 rounded-xl" /> }
-);
+import ReferenceFinanceWorkspace from '@/components/dashboard/ReferenceFinanceWorkspace';
 
 interface Props {
   params: { locale: string };

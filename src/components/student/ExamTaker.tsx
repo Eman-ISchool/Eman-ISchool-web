@@ -181,7 +181,7 @@ export function ExamTaker({
                                 </div>
                                 {q.image_url && (
                                     <div className="mt-4 relative h-48 w-full max-w-md bg-white border rounded p-2">
-                                        <Image src={q.image_url} alt="Question image" fill className="object-contain" />
+                                        <Image src={q.image_url} alt="Question image" fill sizes="(max-width: 768px) 100vw, 448px" className="object-contain" />
                                     </div>
                                 )}
                             </CardHeader>

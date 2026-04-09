@@ -8,28 +8,36 @@ import {
   referenceDashboardAliasRoutes,
 } from '@/lib/reference-route-inventory';
 
-// Dynamic imports — only the visited page's code is loaded
-const ReferenceDashboardOverview = dynamic(() => import('@/components/dashboard/ReferenceDashboardOverview'));
-const ReferenceAssessmentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceAssessmentWorkspace'));
-const ReferenceCatalogWorkspace = dynamic(() => import('@/components/dashboard/ReferenceCatalogWorkspace'));
-const ReferenceContentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceContentWorkspace'));
-const ReferenceFinanceWorkspace = dynamic(() => import('@/components/dashboard/ReferenceFinanceWorkspace'));
-const ReferencePeopleWorkspace = dynamic(() => import('@/components/dashboard/ReferencePeopleWorkspace'));
-const ReferenceReportsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceReportsWorkspace'));
-const ReferenceScheduleWorkspace = dynamic(() => import('@/components/dashboard/ReferenceScheduleWorkspace'));
-const ReferenceSettingsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceSettingsWorkspace'));
+// Shared loading skeleton to reduce CLS during code-splitting
+const PageSkeleton = () => (
+  <div className="animate-pulse space-y-4 p-6">
+    <div className="h-8 w-48 rounded bg-slate-200" />
+    <div className="h-64 rounded-xl bg-slate-100" />
+  </div>
+);
 
-const ContentPage = dynamic(() => import('../../admin/content/page'));
-const EnrollmentApplicationsPage = dynamic(() => import('../../admin/enrollment-applications/page'));
-const EnrollmentReportsPage = dynamic(() => import('../../admin/enrollment-reports/page'));
-const CouponsExpensesPage = dynamic(() => import('../../admin/coupons-expenses/page'));
-const CurrencyComparePage = dynamic(() => import('../../admin/currency-compare/page'));
-const FeesPage = dynamic(() => import('../../admin/fees/page'));
-const CalendarPage = dynamic(() => import('../../admin/calendar/page'));
-const LessonsPage = dynamic(() => import('../../admin/lessons/page'));
-const QuizzesExamsPage = dynamic(() => import('../../admin/quizzes-exams/page'));
-const SettingsPage = dynamic(() => import('../../admin/settings/page'));
-const StudentsPage = dynamic(() => import('../../admin/students/page'));
+// Dynamic imports — only the visited page's code is loaded
+const ReferenceDashboardOverview = dynamic(() => import('@/components/dashboard/ReferenceDashboardOverview'), { loading: PageSkeleton });
+const ReferenceAssessmentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceAssessmentWorkspace'), { loading: PageSkeleton });
+const ReferenceCatalogWorkspace = dynamic(() => import('@/components/dashboard/ReferenceCatalogWorkspace'), { loading: PageSkeleton });
+const ReferenceContentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceContentWorkspace'), { loading: PageSkeleton });
+const ReferenceFinanceWorkspace = dynamic(() => import('@/components/dashboard/ReferenceFinanceWorkspace'), { loading: PageSkeleton });
+const ReferencePeopleWorkspace = dynamic(() => import('@/components/dashboard/ReferencePeopleWorkspace'), { loading: PageSkeleton });
+const ReferenceReportsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceReportsWorkspace'), { loading: PageSkeleton });
+const ReferenceScheduleWorkspace = dynamic(() => import('@/components/dashboard/ReferenceScheduleWorkspace'), { loading: PageSkeleton });
+const ReferenceSettingsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceSettingsWorkspace'), { loading: PageSkeleton });
+
+const ContentPage = dynamic(() => import('../../admin/content/page'), { loading: PageSkeleton });
+const EnrollmentApplicationsPage = dynamic(() => import('../../admin/enrollment-applications/page'), { loading: PageSkeleton });
+const EnrollmentReportsPage = dynamic(() => import('../../admin/enrollment-reports/page'), { loading: PageSkeleton });
+const CouponsExpensesPage = dynamic(() => import('../../admin/coupons-expenses/page'), { loading: PageSkeleton });
+const CurrencyComparePage = dynamic(() => import('../../admin/currency-compare/page'), { loading: PageSkeleton });
+const FeesPage = dynamic(() => import('../../admin/fees/page'), { loading: PageSkeleton });
+const CalendarPage = dynamic(() => import('../../admin/calendar/page'), { loading: PageSkeleton });
+const LessonsPage = dynamic(() => import('../../admin/lessons/page'), { loading: PageSkeleton });
+const QuizzesExamsPage = dynamic(() => import('../../admin/quizzes-exams/page'), { loading: PageSkeleton });
+const SettingsPage = dynamic(() => import('../../admin/settings/page'), { loading: PageSkeleton });
+const StudentsPage = dynamic(() => import('../../admin/students/page'), { loading: PageSkeleton });
 
 interface DashboardCatchAllPageProps {
   params: {

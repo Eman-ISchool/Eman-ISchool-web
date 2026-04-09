@@ -168,7 +168,7 @@ export default async function ParentCourseDetailsPage({
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden relative">
                                             {course.teacher.image ? (
-                                                <Image src={course.teacher.image} alt={course.teacher.name} fill />
+                                                <Image src={course.teacher.image} alt={course.teacher.name} fill sizes="40px" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600 font-bold">
                                                     {course.teacher.name.charAt(0)}

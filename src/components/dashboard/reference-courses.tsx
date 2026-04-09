@@ -36,6 +36,8 @@ import {
   X,
   Mail,
   MoreHorizontal,
+  ExternalLink,
+  Check,
 } from 'lucide-react';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
@@ -470,7 +472,7 @@ function UploadPanel() {
       />
       {preview ? (
         <div className="relative mb-4">
-          <img src={preview} alt="Preview" className="h-32 w-32 rounded-xl object-cover shadow-sm" />
+          <img src={preview} alt="Preview" loading="lazy" decoding="async" width={128} height={128} className="h-32 w-32 rounded-xl object-cover shadow-sm" />
           <button
             type="button"
             onClick={() => { setPreview(null); setFileName(null); }}
@@ -935,135 +937,95 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
       setCourseLoading(true);
       setCourseError(null);
       try {
-        // No single-course GET endpoint exists; fetch list with max limit and find by ID
-        const res = await fetch(`/api/courses?limit=50`);
+        // Fetch course directly by ID
+        const res = await fetch(`/api/courses/${courseId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (cancelled) return;
-        const courses = json.courses || [];
-        // First try exact ID match, then slug-based for known numeric IDs, then index fallback
-        let course = courses.find((c: any) => String(c.id) === String(courseId));
-        if (!course && /^\d+$/.test(courseId)) {
-          // Map known numeric IDs to slugs matching reference site
-          const slugMap: Record<string, string> = { '1': 'basics-english-level-1', '2': 'electronic-teacher-course', '3': 'basics-english-level-2' };
-          const targetSlug = slugMap[courseId];
-          if (targetSlug) {
-            course = courses.find((c: any) => c.slug === targetSlug);
-          }
-          // Fallback to index-based lookup
-          if (!course) {
-            const idx = parseInt(courseId, 10) - 1;
-            if (idx >= 0 && idx < courses.length) {
-              course = courses[idx];
-            }
-          }
-        }
-        if (course) {
-          const resolvedId = course.id;
-          setTitle(course.title || '');
-          setTeacher(course.teacher_name || course.teacher?.name || 'ابراهيم محمد');
-          setDetails(course.description || '');
-          setMeetingLink(course.meet_link || '');
-
-          // Fetch lessons for both lessons tab and live sessions calendar
-          let liveSessions: CourseLiveSessionItem[] = [];
-          let fetchedLessons: CourseLessonItem[] = [];
-          try {
-            const lessonsRes = await fetch(`/api/courses/${resolvedId}/lessons?limit=50`);
-            if (lessonsRes.ok) {
-              const lessonsJson = await lessonsRes.json();
-              const allLessons = lessonsJson.lessons || [];
-              // Map to lesson items for the Lessons tab
-              fetchedLessons = allLessons.map((l: any) => ({
-                id: l.id,
-                title: l.title || 'درس بدون عنوان',
-                description: l.description || '',
-                date: l.start_date_time ? new Date(l.start_date_time).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
-                status: (l.status === 'scheduled' ? 'draft' : l.status === 'completed' ? 'published' : l.status === 'live' ? 'published' : 'draft') as 'published' | 'draft',
-              }));
-              // Auto-fix: if any lessons lack meet_link, call fix endpoint then re-fetch
-              if (allLessons.some((l: any) => !l.meet_link)) {
-                try {
-                  await fetch('/api/admin/fix-meet-links?course=' + resolvedId);
-                  const r2 = await fetch('/api/courses/' + resolvedId + '/lessons?limit=50');
-                  if (r2.ok) {
-                    const d2 = await r2.json();
-                    const fixed = d2.lessons || [];
-                    allLessons.splice(0, allLessons.length, ...fixed);
-                    fetchedLessons = fixed.map((l: any) => ({
-                      id: l.id,
-                      title: l.title || 'درس بدون عنوان',
-                      description: l.description || '',
-                      date: l.start_date_time ? new Date(l.start_date_time).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
-                      status: l.status === 'completed' || l.status === 'live' ? 'published' as const : 'draft' as const,
-                    }));
-                  }
-                } catch (_e) { /* ignore */ }
-              }
-
-              // Map all lessons as live sessions for the calendar
-              liveSessions = allLessons.map((l: any) => ({
-                  id: l.id,
-                  day: new Date(l.start_date_time).getDate(),
-                  time: new Date(l.start_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Amman' }),
-                  title: `${course.title}\n${course.description || ''}`,
-                  teacher: l.teacher?.name || course.teacher_name || course.teacher?.name || 'ابراهيم محمد',
-                  meetLink: l.meet_link || null,
-                }));
-            }
-          } catch (_e) {}
-
-          if (!cancelled) {
-            setLessons(fetchedLessons);
-          }
-
-          // Fetch assessments (assignments + exams) for this course
-          let fetchedAssignments: CourseAssignmentItem[] = [];
-          let fetchedExams: CourseExamItem[] = [];
-          try {
-            const aRes = await fetch(`/api/assessments?courseId=${resolvedId}`);
-            if (aRes.ok) {
-              const courseAssessments = await aRes.json() || [];
-              fetchedAssignments = courseAssessments
-                .filter((a: any) => a.assessment_type === 'quiz')
-                .map((a: any) => ({
-                  id: a.id,
-                  title: a.title || 'واجب بدون عنوان',
-                  dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
-                  description: a.short_description || a.title || '',
-                  submissions: a.assessment_submissions?.[0]?.count || 0,
-                }));
-              fetchedExams = courseAssessments
-                .filter((a: any) => a.assessment_type === 'exam')
-                .map((a: any) => ({
-                  id: a.id,
-                  title: a.title || 'اختبار بدون عنوان',
-                  dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
-                  attempts: a.attempt_limit || 1,
-                  status: a.is_published ? 'نشط' : 'مسودة',
-                }));
-            }
-          } catch (_e) {}
-
-          if (!cancelled) {
-            setAssignments(fetchedAssignments);
-            setExams(fetchedExams);
-          }
-
-          setCourseData({
-            id: resolvedId,
-            title: course.title || '',
-            teacher: course.teacher_name || course.teacher?.name || '',
-            details: course.description || '',
-            meetingLink: course.meet_link || '',
-            lessons: fetchedLessons,
-            assignments: fetchedAssignments,
-            exams: fetchedExams,
-            liveSessions,
-          });
-        } else {
+        const course = json.course;
+        if (!course) {
           if (!cancelled) setCourseError('لم يتم العثور على المادة الدراسية');
+          return;
         }
+
+        const resolvedId = course.id;
+        setTitle(course.title || '');
+        setTeacher(course.teacher_name || course.teacher?.name || 'ابراهيم محمد');
+        setDetails(course.description || '');
+        setMeetingLink(course.meet_link || '');
+
+        // Fetch lessons and assessments in parallel
+        const [lessonsResult, assessmentsResult] = await Promise.allSettled([
+          fetch(`/api/courses/${resolvedId}/lessons?limit=50`).then(r => r.ok ? r.json() : null),
+          fetch(`/api/assessments?courseId=${resolvedId}`).then(r => r.ok ? r.json() : null),
+        ]);
+        if (cancelled) return;
+
+        // Process lessons
+        let liveSessions: CourseLiveSessionItem[] = [];
+        let fetchedLessons: CourseLessonItem[] = [];
+        const lessonsJson = lessonsResult.status === 'fulfilled' ? lessonsResult.value : null;
+        if (lessonsJson) {
+          const allLessons = lessonsJson.lessons || [];
+          fetchedLessons = allLessons.map((l: any) => ({
+            id: l.id,
+            title: l.title || 'درس بدون عنوان',
+            description: l.description || '',
+            date: l.start_date_time ? new Date(l.start_date_time).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+            status: (l.status === 'scheduled' ? 'draft' : l.status === 'completed' ? 'published' : l.status === 'live' ? 'published' : 'draft') as 'published' | 'draft',
+          }));
+          liveSessions = allLessons.map((l: any) => ({
+            id: l.id,
+            day: new Date(l.start_date_time).getDate(),
+            time: new Date(l.start_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Amman' }),
+            title: `${course.title}\n${course.description || ''}`,
+            teacher: l.teacher?.name || course.teacher_name || course.teacher?.name || 'ابراهيم محمد',
+            meetLink: l.meet_link || null,
+          }));
+        }
+
+        // Process assessments
+        let fetchedAssignments: CourseAssignmentItem[] = [];
+        let fetchedExams: CourseExamItem[] = [];
+        const courseAssessments = assessmentsResult.status === 'fulfilled' ? assessmentsResult.value : null;
+        if (courseAssessments && Array.isArray(courseAssessments)) {
+          fetchedAssignments = courseAssessments
+            .filter((a: any) => a.assessment_type === 'quiz')
+            .map((a: any) => ({
+              id: a.id,
+              title: a.title || 'واجب بدون عنوان',
+              dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+              description: a.short_description || a.title || '',
+              submissions: a.assessment_submissions?.[0]?.count || 0,
+            }));
+          fetchedExams = courseAssessments
+            .filter((a: any) => a.assessment_type === 'exam')
+            .map((a: any) => ({
+              id: a.id,
+              title: a.title || 'اختبار بدون عنوان',
+              dueDate: a.created_at ? new Date(a.created_at).toLocaleDateString('ar', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+              attempts: a.attempt_limit || 1,
+              status: a.is_published ? 'نشط' : 'مسودة',
+            }));
+        }
+
+        if (!cancelled) {
+          setLessons(fetchedLessons);
+          setAssignments(fetchedAssignments);
+          setExams(fetchedExams);
+        }
+
+        setCourseData({
+          id: resolvedId,
+          title: course.title || '',
+          teacher: course.teacher_name || course.teacher?.name || '',
+          details: course.description || '',
+          meetingLink: course.meet_link || '',
+          lessons: fetchedLessons,
+          assignments: fetchedAssignments,
+          exams: fetchedExams,
+          liveSessions,
+        });
       } catch (_err) {
         if (!cancelled) setCourseError('فشل في تحميل بيانات المادة الدراسية');
       } finally {
@@ -1081,7 +1043,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [addSection, setAddSection] = useState<'lesson' | 'assignment' | 'exam' | 'live' | null>(null);
-  const [liveViewMode, setLiveViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [liveViewMode, setLiveViewMode] = useState<'cards' | 'list'>('cards');
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemContent, setNewItemContent] = useState('');
   const [newItemVideoUrl, setNewItemVideoUrl] = useState('');
@@ -1154,7 +1116,7 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
   }, []);
 
   const handleAddItem = useCallback(async () => {
-    if (!newItemTitle.trim()) return;
+    if (addSection !== 'live' && !newItemTitle.trim()) return;
     const id = Date.now().toString();
     if (addSection === 'lesson') {
       setLessons((prev) => [...prev, { id, title: newItemTitle.trim(), description: newItemContent.trim(), date: newLessonDate || new Date().toLocaleDateString('ar-SA'), status: newItemPublish ? 'published' : 'draft' }]);
@@ -1166,12 +1128,11 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
       // Create live session via API
       const resolvedId = courseData?.id || courseId;
       if (!resolvedId || !newItemDueDate) { resetModal(); return; }
-      const dateStr = newItemDueDate; // YYYY-MM-DD
-      const timeStr = newItemTime || '08:00'; // HH:mm
-      const start = new Date(`${dateStr}T${timeStr}:00`);
-      const end = new Date(start.getTime() + 60 * 60000); // 1 hour default
+      // datetime-local inputs give "YYYY-MM-DDTHH:mm" directly
+      const start = new Date(newItemDueDate);
+      const end = newItemTime ? new Date(newItemTime) : new Date(start.getTime() + 60 * 60000);
       const payload: Record<string, any> = {
-        title: newItemTitle.trim(),
+        title: newItemTitle.trim() || `${courseData?.title || ''} - درس مباشر`,
         start_date_time: start.toISOString(),
         end_date_time: end.toISOString(),
       };
@@ -1448,24 +1409,93 @@ export function ReferenceCourseEditorPage({ courseId }: { courseId?: string }) {
                   إضافة درس مباشر
                 </Button>
 
-                <div className="flex items-center gap-3">
-                  <h2 className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-lg font-semibold text-slate-800">الفصول المباشرة</h2>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setLiveViewMode(liveViewMode === 'calendar' ? 'list' : 'calendar')}
-                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition cursor-pointer ${
+                    onClick={() => setLiveViewMode('list')}
+                    className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition cursor-pointer ${
                       liveViewMode === 'list'
-                        ? 'bg-[#171717] text-white'
+                        ? 'border border-slate-300 bg-white text-slate-800 shadow-sm'
                         : 'bg-[#f4f4f4] text-slate-500 hover:bg-slate-200'
                     }`}
                   >
-                    عرض القائمة
+                    <List className="h-4 w-4" />
+                    dashboard.common.view
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLiveViewMode('cards')}
+                    className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition cursor-pointer ${
+                      liveViewMode === 'cards'
+                        ? 'border border-slate-300 bg-white text-slate-800 shadow-sm'
+                        : 'bg-[#f4f4f4] text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    الفصول المباشرة
                   </button>
                 </div>
               </div>
 
-              {liveViewMode === 'calendar' ? (
-                <CalendarMonthView liveSessions={courseData?.liveSessions || []} />
+              {liveViewMode === 'cards' ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {(courseData?.liveSessions || []).length > 0 ? (
+                    (courseData?.liveSessions || []).map((session) => (
+                      <div key={session.id} className="flex flex-col justify-between rounded-[1.2rem] border border-amber-200/80 bg-gradient-to-bl from-amber-50 via-orange-50 to-amber-100 p-5 shadow-sm">
+                        <div>
+                          <div className="flex items-start justify-between">
+                            <button type="button" className="rounded-full p-1 text-slate-500 hover:bg-amber-200/50 hover:text-slate-700">
+                              <MoreHorizontal className="h-5 w-5" />
+                            </button>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-md">
+                              <Video className="h-5 w-5" />
+                            </div>
+                          </div>
+
+                          <div className="mt-3 text-right">
+                            <h3 className="text-lg font-bold text-slate-900">{session.title}</h3>
+                            <p className="mt-1 text-sm font-semibold text-slate-700">
+                              PM - {session.time}
+                            </p>
+                          </div>
+
+                          <p className="mt-2 text-right text-xs leading-relaxed text-slate-600 line-clamp-2">
+                            {title}
+                          </p>
+
+                          <div className="mt-3 flex items-center justify-end gap-1.5">
+                            <span className="text-sm text-slate-600">{session.teacher}</span>
+                            <Check className="h-3.5 w-3.5 text-slate-400" />
+                          </div>
+                        </div>
+
+                        <div className="mt-4 border-t border-amber-200/60 pt-3">
+                          {session.meetLink ? (
+                            <a
+                              href={session.meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-end gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+                            >
+                              انضمام إلى الفصل
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          ) : (
+                            <span className="flex items-center justify-end gap-2 text-sm text-slate-400">
+                              انضمام إلى الفصل
+                              <ExternalLink className="h-4 w-4" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full flex flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-slate-200 bg-white py-16 text-center">
+                      <Video className="mb-4 h-12 w-12 text-slate-300" />
+                      <p className="text-sm text-slate-500">لا توجد دروس مباشرة مجدولة</p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="rounded-[1.5rem] border border-slate-200 bg-white shadow-sm">
                   <div className="overflow-hidden rounded-[1.5rem]">
@@ -2191,7 +2221,7 @@ function BundleListCard({
     <div className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-sm">
       {/* Image area — only when image exists */}
       {imageUrl && (
-        <img src={imageUrl} alt={name} className="h-40 w-full object-cover" />
+        <img src={imageUrl} alt={name} loading="lazy" decoding="async" className="h-40 w-full object-cover" style={{ aspectRatio: '16/9' }} />
       )}
 
       {/* Content */}

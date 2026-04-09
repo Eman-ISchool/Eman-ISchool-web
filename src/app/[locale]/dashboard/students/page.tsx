@@ -1,10 +1,5 @@
-import dynamic from 'next/dynamic';
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-
-const ReferencePeopleWorkspace = dynamic(
-  () => import('@/components/dashboard/ReferencePeopleWorkspace'),
-  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-gray-100 rounded-xl" /> }
-);
+import ReferencePeopleWorkspace from '@/components/dashboard/ReferencePeopleWorkspace';
 
 interface Props {
   params: { locale: string };
