@@ -1,11 +1,6 @@
-import LoginForm from '@/components/auth/LoginForm';
+import { redirect } from 'next/navigation';
+import { withLocalePrefix } from '@/lib/locale-path';
 
-export default function StudentLoginPage() {
-    return (
-        <LoginForm
-            role="student"
-            title="تسجيل دخول الطالب"
-            description="مرحباً بك في رحلتك التعليمية"
-        />
-    );
+export default function StudentLoginRedirect({ params }: { params: { locale: string } }) {
+  redirect(withLocalePrefix('/login', params.locale));
 }

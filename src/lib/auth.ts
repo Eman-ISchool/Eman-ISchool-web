@@ -69,27 +69,85 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Authentication service unavailable");
                 }
                 try {
-                    const userQuery = supabaseAdmin.from('users').select('*');
-                    const { data: user, error } = loginByEmail
-                        ? await userQuery.eq('email', identifier.toLowerCase()).maybeSingle()
-                        : await userQuery.in(
-                              'phone',
-                              getPhoneCandidates(
-                                  credentials.phone as string | undefined || identifier,
-                                  countryCode,
-                              ),
-                          ).maybeSingle();
+                    let user: any = null;
 
-                    if (error || !user) {
-                        console.error("User not found or error:", error?.message);
+                    if (loginByEmail) {
+                        const { data, error } = await supabaseAdmin
+                            .from('users')
+                            .select('*')
+                            .eq('email', identifier.toLowerCase())
+                            .maybeSingle();
+                        if (error) {
+                            console.error("[AUTH] Email lookup error:", error.message);
+                        }
+                        user = data;
+                    } else {
+                        // Phone login: use array query instead of maybeSingle
+                        // to avoid errors when multiple phone format variants match
+                        const phoneCandidates = getPhoneCandidates(
+                            credentials.phone as string | undefined || identifier,
+                            countryCode,
+                        );
+                        const { data: matches, error } = await supabaseAdmin
+                            .from('users')
+                            .select('*')
+                            .in('phone', phoneCandidates)
+                            .limit(5);
+
+                        if (error) {
+                            console.error("[AUTH] Phone lookup error:", error.message);
+                        }
+
+                        if (matches && matches.length > 0) {
+                            // Prefer exact match with full international format
+                            const fullPhone = countryCode
+                                ? `+${countryCode.replace(/\D/g, '')}${(credentials.phone as string || identifier).replace(/\D/g, '')}`
+                                : null;
+                            user = (fullPhone && matches.find((m: any) => m.phone === fullPhone))
+                                || matches[0];
+                        }
+
+                        console.log("[AUTH] Phone lookup:", {
+                            candidates: phoneCandidates,
+                            matchCount: matches?.length || 0,
+                            foundUser: user?.email || null,
+                            storedPhone: user?.phone || null,
+                        });
+                    }
+
+                    if (!user) {
+                        console.error("[AUTH] User not found for identifier:", identifier);
                         throw new Error("Invalid email/phone or password");
                     }
-                    // Verify password
+
+                    // Check if user account is active
+                    if (user.is_active === false) {
+                        console.error('[AUTH] Account deactivated for:', user.email);
+                        throw new Error("Account is deactivated");
+                    }
+
+                    // Verify password — reject if no password_hash is set (e.g. Google-only accounts)
+                    if (!user.password_hash) {
+                        console.error('[AUTH] No password_hash for:', user.email);
+                        throw new Error("No password set for this account. Try Google sign-in.");
+                    }
+
+                    const passwordInput = credentials.password as string;
                     const isValidPassword = await bcrypt.compare(
-                        credentials.password as string,
-                        user.password_hash || ''
+                        passwordInput,
+                        user.password_hash
                     );
                     if (!isValidPassword) {
+                        // Debug: verify bcrypt itself works by re-hashing and comparing
+                        const testHash = await bcrypt.hash(passwordInput, 10);
+                        const testCompare = await bcrypt.compare(passwordInput, testHash);
+                        console.error('[AUTH] Invalid password for:', user.email, {
+                            inputLength: passwordInput.length,
+                            inputChars: Array.from(passwordInput).map(c => c.charCodeAt(0)),
+                            hashPrefix: user.password_hash.substring(0, 7),
+                            hashLength: user.password_hash.length,
+                            bcryptSelfTest: testCompare, // should always be true
+                        });
                         throw new Error("Invalid email or password");
                     }
                     return {
@@ -99,14 +157,28 @@ export const authOptions: NextAuthOptions = {
                         image: user.image,
                         role: user.role,
                     };
-                } catch (error) {
-                    console.error("Credentials auth error:", error);
-                    throw new Error("Authentication failed");
+                } catch (error: any) {
+                    console.error("[AUTH] Credentials auth error:", error?.message || error);
+                    // Re-throw with the original message so it's visible in logs
+                    throw error instanceof Error ? error : new Error("Authentication failed");
                 }
             },
         }),
     ],
     callbacks: {
+        async redirect({ url, baseUrl }) {
+            // Always land authenticated users at /<locale>/dashboard.
+            // url may be a full URL or a relative path; parse defensively.
+            let path = url;
+            try {
+                path = new URL(url, baseUrl).pathname;
+            } catch {
+                path = url;
+            }
+            const localeMatch = path.match(/^\/(ar|en)(\/|$)/);
+            const locale = localeMatch?.[1] ?? 'ar';
+            return `${baseUrl}/${locale}/dashboard`;
+        },
         async signIn({ user, account }) {
             if (!user.email) return false;
             // Skip Supabase sync if not configured
@@ -235,8 +307,8 @@ export const authOptions: NextAuthOptions = {
         },
     },
     pages: {
-        signIn: '/auth/signin',
-        error: '/auth/error',
+        signIn: '/en/login',
+        error: '/en/login',
     },
     session: {
         strategy: "jwt",

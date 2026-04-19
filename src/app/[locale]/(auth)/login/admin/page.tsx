@@ -1,11 +1,6 @@
-import LoginForm from '@/components/auth/LoginForm';
+import { redirect } from 'next/navigation';
+import { withLocalePrefix } from '@/lib/locale-path';
 
-export default function AdminLoginPage() {
-    return (
-        <LoginForm
-            role="admin"
-            title="تسجيل دخول الإدارة"
-            description="يرجى إدخال بيانات حساب المسؤول"
-        />
-    );
+export default function AdminLoginRedirect({ params }: { params: { locale: string } }) {
+  redirect(withLocalePrefix('/login', params.locale));
 }
