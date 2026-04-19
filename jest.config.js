@@ -15,6 +15,7 @@ module.exports = {
   },
   testMatch: [
     "<rootDir>/tests/unit/**/*.spec.ts",
+    "<rootDir>/tests/lib/**/*.spec.ts",
     "<rootDir>/src/__tests__/**/*.test.ts",
   ],
   testPathIgnorePatterns: ["/node_modules/", "/.auto-claude/", "/.worktrees/"],
