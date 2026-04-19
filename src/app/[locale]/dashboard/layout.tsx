@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions, getCurrentUser } from '@/lib/auth';
+import { authOptions } from '@/lib/auth';
 import { withLocalePrefix } from '@/lib/locale-path';
 
 interface DashboardLayoutProps {
@@ -16,20 +16,6 @@ export default async function DashboardLayout({
 
   if (!session?.user) {
     redirect(withLocalePrefix('/login', locale));
-  }
-
-  const currentUser = await getCurrentUser(session);
-  const role = currentUser?.role?.toLowerCase();
-
-  // Redirect non-admin users to their portal
-  if (role === 'student') {
-    redirect(withLocalePrefix('/student/home', locale));
-  }
-  if (role === 'teacher') {
-    redirect(withLocalePrefix('/teacher/home', locale));
-  }
-  if (role === 'parent') {
-    redirect(withLocalePrefix('/parent/home', locale));
   }
 
   return <>{children}</>;
