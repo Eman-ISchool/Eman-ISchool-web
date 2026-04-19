@@ -1,14 +1,9 @@
-import { ComponentType } from 'react';
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-import {
-  DashboardModuleKey,
-  referenceDashboardAliasRoutes,
-} from '@/lib/reference-route-inventory';
+import { referenceDashboardAliasRoutes } from '@/lib/reference-route-inventory';
 
-// Shared loading skeleton to reduce CLS during code-splitting
 const PageSkeleton = () => (
   <div className="animate-pulse space-y-4 p-6">
     <div className="h-8 w-48 rounded bg-slate-200" />
@@ -16,7 +11,6 @@ const PageSkeleton = () => (
   </div>
 );
 
-// Dynamic imports — only the visited page's code is loaded
 const ReferenceDashboardOverview = dynamic(() => import('@/components/dashboard/ReferenceDashboardOverview'), { loading: PageSkeleton });
 const ReferenceAssessmentWorkspace = dynamic(() => import('@/components/dashboard/ReferenceAssessmentWorkspace'), { loading: PageSkeleton });
 const ReferenceCatalogWorkspace = dynamic(() => import('@/components/dashboard/ReferenceCatalogWorkspace'), { loading: PageSkeleton });
@@ -27,38 +21,12 @@ const ReferenceReportsWorkspace = dynamic(() => import('@/components/dashboard/R
 const ReferenceScheduleWorkspace = dynamic(() => import('@/components/dashboard/ReferenceScheduleWorkspace'), { loading: PageSkeleton });
 const ReferenceSettingsWorkspace = dynamic(() => import('@/components/dashboard/ReferenceSettingsWorkspace'), { loading: PageSkeleton });
 
-const ContentPage = dynamic(() => import('../../admin/content/page'), { loading: PageSkeleton });
-const EnrollmentApplicationsPage = dynamic(() => import('../../admin/enrollment-applications/page'), { loading: PageSkeleton });
-const EnrollmentReportsPage = dynamic(() => import('../../admin/enrollment-reports/page'), { loading: PageSkeleton });
-const CouponsExpensesPage = dynamic(() => import('../../admin/coupons-expenses/page'), { loading: PageSkeleton });
-const CurrencyComparePage = dynamic(() => import('../../admin/currency-compare/page'), { loading: PageSkeleton });
-const FeesPage = dynamic(() => import('../../admin/fees/page'), { loading: PageSkeleton });
-const CalendarPage = dynamic(() => import('../../admin/calendar/page'), { loading: PageSkeleton });
-const LessonsPage = dynamic(() => import('../../admin/lessons/page'), { loading: PageSkeleton });
-const QuizzesExamsPage = dynamic(() => import('../../admin/quizzes-exams/page'), { loading: PageSkeleton });
-const SettingsPage = dynamic(() => import('../../admin/settings/page'), { loading: PageSkeleton });
-const StudentsPage = dynamic(() => import('../../admin/students/page'), { loading: PageSkeleton });
-
 interface DashboardCatchAllPageProps {
   params: {
     locale: string;
     slug: string[];
   };
 }
-const moduleComponentMap: Record<DashboardModuleKey, ComponentType> = {
-  adminHome: ReferenceDashboardOverview,
-  calendar: CalendarPage,
-  content: ContentPage,
-  couponsExpenses: CouponsExpensesPage,
-  currencyCompare: CurrencyComparePage,
-  enrollmentApplications: EnrollmentApplicationsPage,
-  enrollmentReports: EnrollmentReportsPage,
-  fees: FeesPage,
-  lessons: LessonsPage,
-  quizzesExams: QuizzesExamsPage,
-  settings: SettingsPage,
-  students: StudentsPage,
-};
 
 export default function DashboardCatchAllPage({
   params: { locale, slug },
@@ -72,19 +40,20 @@ export default function DashboardCatchAllPage({
 
   const isArabic = locale === 'ar';
 
-  const customPage =
-    // --- Analytics ---
-    slugKey === 'reports' ? (
+  const body =
+    slugKey === 'reports' || slugKey === 'admin/reports' ? (
       <ReferenceReportsWorkspace />
-    ) : // --- Content ---
-    slugKey === 'announcements' ? (
+    ) : slugKey === 'stats' ? (
+      <ReferenceDashboardOverview />
+    ) : slugKey === 'announcements' ? (
       <ReferenceContentWorkspace scope="announcements" />
     ) : slugKey === 'blogs' ? (
       <ReferenceContentWorkspace scope="blogs" />
     ) : slugKey === 'cms' ? (
       <ReferenceContentWorkspace scope="blogs" />
-    ) : // --- Finance ---
-    slugKey === 'payments' ? (
+    ) : slugKey === 'messages' ? (
+      <ReferenceContentWorkspace scope="announcements" />
+    ) : slugKey === 'payments' ? (
       <ReferenceFinanceWorkspace scope="payments" />
     ) : slugKey === 'banks' ? (
       <ReferenceFinanceWorkspace scope="banks" />
@@ -98,8 +67,7 @@ export default function DashboardCatchAllPage({
       <ReferenceFinanceWorkspace scope="salaries" />
     ) : slugKey === 'payslips' ? (
       <ReferenceFinanceWorkspace scope="payslips" />
-    ) : // --- Catalog ---
-    slugKey === 'courses' ? (
+    ) : slugKey === 'courses' ? (
       <ReferenceCatalogWorkspace scope="courses" />
     ) : slugKey === 'bundles' ? (
       <ReferenceCatalogWorkspace scope="bundles" />
@@ -107,42 +75,38 @@ export default function DashboardCatchAllPage({
       <ReferenceCatalogWorkspace scope="categories" />
     ) : slugKey === 'teacher/courses' ? (
       <ReferenceCatalogWorkspace scope="teacherCourses" />
-    ) : // --- Assessments ---
-    slugKey === 'quizzes' ? (
+    ) : slugKey === 'quizzes' ? (
       <ReferenceAssessmentWorkspace scope="quizzes" />
     ) : slugKey === 'exams' ? (
       <ReferenceAssessmentWorkspace scope="exams" />
-    ) : // --- People ---
-    slugKey === 'users' ? (
+    ) : slugKey === 'users' || slugKey === 'applications' ? (
       <ReferencePeopleWorkspace scope="students" />
     ) : slugKey === 'teacher/students' ? (
       <ReferencePeopleWorkspace scope="teacherStudents" />
-    ) : // --- Settings ---
-    slugKey === 'lookups' ? (
+    ) : slugKey === 'lookups' ? (
       <ReferenceSettingsWorkspace scope="lookups" />
     ) : slugKey === 'backup' ? (
       <ReferenceSettingsWorkspace scope="backup" />
     ) : slugKey === 'translations' ? (
       <ReferenceSettingsWorkspace scope="translations" />
-    ) : slugKey === 'system-settings' ? (
+    ) : slugKey === 'system-settings' || slugKey === 'profile' ? (
       <ReferenceSettingsWorkspace scope="lookups" />
-    ) : // --- Schedule ---
-    slugKey === 'upcoming-classes' ? (
+    ) : slugKey === 'upcoming-classes' ? (
       <ReferenceScheduleWorkspace scope="upcomingClasses" />
     ) : slugKey === 'calendar' ? (
       <ReferenceScheduleWorkspace scope="calendar" />
     ) : slugKey === 'live' ? (
       <ReferenceScheduleWorkspace scope="live" />
-    ) : null;
-
-  const Page = moduleComponentMap[config.module];
+    ) : (
+      <ReferenceDashboardOverview />
+    );
 
   return (
     <ReferenceDashboardShell
       pageTitle={config.title[isArabic ? 'ar' : 'en']}
       pageSubtitle={config.subtitle[isArabic ? 'ar' : 'en']}
     >
-      {customPage ?? <Page />}
+      {body}
     </ReferenceDashboardShell>
   );
 }
