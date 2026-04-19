@@ -36,95 +36,123 @@ interface ReferenceDashboardShellProps {
   pageSubtitle?: string;
 }
 
+type DashRole = 'admin' | 'teacher' | 'student' | 'parent' | 'supervisor';
+
 interface NavItem {
   href: string;
   label: { ar: string; en: string };
   icon: typeof LayoutDashboard;
+  roles: DashRole[];
 }
 
 interface NavGroup {
   id: string;
   label: { ar: string; en: string };
+  roles: DashRole[];
   items: NavItem[];
 }
+
+const ALL: DashRole[] = ['admin', 'teacher', 'student', 'parent', 'supervisor'];
+const ADMIN_ONLY: DashRole[] = ['admin'];
+const ADMIN_SUPER: DashRole[] = ['admin', 'supervisor'];
+const STAFF: DashRole[] = ['admin', 'teacher', 'supervisor'];
 
 const dashboardOverviewItem: NavItem = {
   href: '/dashboard',
   label: { ar: 'الرئيسية', en: 'Overview' },
   icon: LayoutDashboard,
+  roles: ALL,
 };
 
 const navGroups: NavGroup[] = [
   {
     id: 'academic',
     label: { ar: 'الأكاديمي', en: 'Academic' },
+    roles: ALL,
     items: [
-      { href: '/dashboard/courses', label: { ar: 'المواد الدراسية', en: 'Courses' }, icon: BookOpen },
-      { href: '/dashboard/categories', label: { ar: 'الفئات', en: 'Categories' }, icon: FolderKanban },
-      { href: '/dashboard/bundles', label: { ar: 'الفصول', en: 'Bundles' }, icon: CalendarDays },
-      { href: '/dashboard/exams', label: { ar: 'الامتحانات', en: 'Exams' }, icon: FileBarChart2 },
-      { href: '/dashboard/quizzes', label: { ar: 'الاختبارات', en: 'Quizzes' }, icon: FileQuestion },
+      { href: '/dashboard/courses', label: { ar: 'المواد الدراسية', en: 'Courses' }, icon: BookOpen, roles: ALL },
+      { href: '/dashboard/categories', label: { ar: 'الفئات', en: 'Categories' }, icon: FolderKanban, roles: ADMIN_SUPER },
+      { href: '/dashboard/bundles', label: { ar: 'الفصول', en: 'Bundles' }, icon: CalendarDays, roles: STAFF },
+      { href: '/dashboard/exams', label: { ar: 'الامتحانات', en: 'Exams' }, icon: FileBarChart2, roles: ['admin', 'teacher', 'student', 'supervisor'] },
+      { href: '/dashboard/quizzes', label: { ar: 'الاختبارات', en: 'Quizzes' }, icon: FileQuestion, roles: ['admin', 'teacher', 'student', 'supervisor'] },
     ],
   },
   {
     id: 'management',
     label: { ar: 'الإدارة', en: 'Management' },
+    roles: ['admin', 'supervisor', 'parent'],
     items: [
-      { href: '/dashboard/users', label: { ar: 'المستخدمون', en: 'Users' }, icon: Users },
-      { href: '/dashboard/applications', label: { ar: 'الطلبات', en: 'Applications' }, icon: ReceiptText },
-      { href: '/dashboard/lookups', label: { ar: 'البيانات المرجعية', en: 'Lookups' }, icon: Database },
+      { href: '/dashboard/users', label: { ar: 'المستخدمون', en: 'Users' }, icon: Users, roles: ADMIN_ONLY },
+      { href: '/dashboard/applications', label: { ar: 'الطلبات', en: 'Applications' }, icon: ReceiptText, roles: ['admin', 'supervisor', 'parent'] },
+      { href: '/dashboard/lookups', label: { ar: 'البيانات المرجعية', en: 'Lookups' }, icon: Database, roles: ADMIN_ONLY },
     ],
   },
   {
     id: 'finance',
     label: { ar: 'المالية', en: 'Finance' },
+    roles: ['admin', 'teacher', 'parent'],
     items: [
-      { href: '/dashboard/payments', label: { ar: 'المدفوعات', en: 'Payments' }, icon: Wallet },
-      { href: '/dashboard/salaries', label: { ar: 'الرواتب', en: 'Salaries' }, icon: CircleDollarSign },
-      { href: '/dashboard/payslips', label: { ar: 'قسائم الراتب', en: 'Payslips' }, icon: ReceiptText },
-      { href: '/dashboard/banks', label: { ar: 'البنوك', en: 'Banks' }, icon: Wallet },
-      { href: '/dashboard/currencies', label: { ar: 'العملات', en: 'Currencies' }, icon: CircleDollarSign },
-      { href: '/dashboard/expenses', label: { ar: 'المصروفات', en: 'Expenses' }, icon: Wallet },
-      { href: '/dashboard/coupons', label: { ar: 'الكوبونات', en: 'Coupons' }, icon: ReceiptText },
+      { href: '/dashboard/payments', label: { ar: 'المدفوعات', en: 'Payments' }, icon: Wallet, roles: ['admin', 'parent'] },
+      { href: '/dashboard/salaries', label: { ar: 'الرواتب', en: 'Salaries' }, icon: CircleDollarSign, roles: ['admin', 'teacher'] },
+      { href: '/dashboard/payslips', label: { ar: 'قسائم الراتب', en: 'Payslips' }, icon: ReceiptText, roles: ['admin', 'teacher'] },
+      { href: '/dashboard/banks', label: { ar: 'البنوك', en: 'Banks' }, icon: Wallet, roles: ADMIN_ONLY },
+      { href: '/dashboard/currencies', label: { ar: 'العملات', en: 'Currencies' }, icon: CircleDollarSign, roles: ADMIN_ONLY },
+      { href: '/dashboard/expenses', label: { ar: 'المصروفات', en: 'Expenses' }, icon: Wallet, roles: ADMIN_ONLY },
+      { href: '/dashboard/coupons', label: { ar: 'الكوبونات', en: 'Coupons' }, icon: ReceiptText, roles: ADMIN_ONLY },
     ],
   },
   {
     id: 'communication',
     label: { ar: 'التواصل', en: 'Communication' },
+    roles: ALL,
     items: [
-      { href: '/dashboard/announcements', label: { ar: 'الإعلانات', en: 'Announcements' }, icon: Bell },
-      { href: '/dashboard/messages', label: { ar: 'الرسائل', en: 'Messages' }, icon: MessageSquare },
+      { href: '/dashboard/announcements', label: { ar: 'الإعلانات', en: 'Announcements' }, icon: Bell, roles: ALL },
+      { href: '/dashboard/messages', label: { ar: 'الرسائل', en: 'Messages' }, icon: MessageSquare, roles: ALL },
     ],
   },
   {
     id: 'content',
     label: { ar: 'المحتوى', en: 'Content' },
+    roles: ADMIN_ONLY,
     items: [
-      { href: '/dashboard/cms', label: { ar: 'إدارة المحتوى', en: 'CMS' }, icon: FolderKanban },
-      { href: '/dashboard/blogs', label: { ar: 'المدونات', en: 'Blogs' }, icon: BookOpen },
-      { href: '/dashboard/translations', label: { ar: 'الترجمة', en: 'Translations' }, icon: FileQuestion },
+      { href: '/dashboard/cms', label: { ar: 'إدارة المحتوى', en: 'CMS' }, icon: FolderKanban, roles: ADMIN_ONLY },
+      { href: '/dashboard/blogs', label: { ar: 'المدونات', en: 'Blogs' }, icon: BookOpen, roles: ADMIN_ONLY },
+      { href: '/dashboard/translations', label: { ar: 'الترجمة', en: 'Translations' }, icon: FileQuestion, roles: ADMIN_ONLY },
     ],
   },
   {
     id: 'analytics',
     label: { ar: 'التحليلات', en: 'Analytics' },
+    roles: ['admin', 'teacher', 'supervisor'],
     items: [
-      { href: '/dashboard/reports', label: { ar: 'التقارير', en: 'Reports' }, icon: FileBarChart2 },
+      { href: '/dashboard/reports', label: { ar: 'التقارير', en: 'Reports' }, icon: FileBarChart2, roles: ['admin', 'teacher', 'supervisor'] },
     ],
   },
   {
     id: 'data',
     label: { ar: 'إدارة البيانات', en: 'Data management' },
+    roles: ADMIN_ONLY,
     items: [
-      { href: '/dashboard/backup', label: { ar: 'النسخ الاحتياطي والاستعادة', en: 'Backup and restore' }, icon: Shield },
+      { href: '/dashboard/backup', label: { ar: 'النسخ الاحتياطي والاستعادة', en: 'Backup and restore' }, icon: Shield, roles: ADMIN_ONLY },
     ],
   },
 ];
 
 const footerItems: NavItem[] = [
-  { href: '/dashboard/system-settings', label: { ar: 'الإعدادات', en: 'Settings' }, icon: Settings },
-  { href: '/dashboard/profile', label: { ar: 'الملف الشخصي', en: 'Profile' }, icon: User },
+  { href: '/dashboard/system-settings', label: { ar: 'الإعدادات', en: 'Settings' }, icon: Settings, roles: ADMIN_ONLY },
+  { href: '/dashboard/profile', label: { ar: 'الملف الشخصي', en: 'Profile' }, icon: User, roles: ALL },
 ];
+
+function filterItemsByRole(items: NavItem[], role: DashRole): NavItem[] {
+  return items.filter((item) => item.roles.includes(role));
+}
+
+function filterGroupsByRole(groups: NavGroup[], role: DashRole): NavGroup[] {
+  return groups
+    .filter((group) => group.roles.includes(role))
+    .map((group) => ({ ...group, items: filterItemsByRole(group.items, role) }))
+    .filter((group) => group.items.length > 0);
+}
 
 function navItemActive(pathname: string, href: string, locale: string) {
   const localizedHref = withLocalePrefix(href, locale);
@@ -148,24 +176,30 @@ export default function ReferenceDashboardShell({
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const isOverview = navItemActive(pathname, dashboardOverviewItem.href, locale);
 
+  const userName = session?.user?.name || (isArabic ? 'Fadi' : 'Fadi');
+  const sessionRoleRaw = (session?.user as { role?: string } | undefined)?.role;
+  const KNOWN_ROLES: DashRole[] = ['admin', 'teacher', 'student', 'parent', 'supervisor'];
+  const lowered = (sessionRoleRaw || '').toLowerCase();
+  const sessionRole: DashRole = (KNOWN_ROLES as string[]).includes(lowered) ? (lowered as DashRole) : 'student';
+  const userRole = sessionRole.toUpperCase();
+  const visibleGroups = useMemo(() => filterGroupsByRole(navGroups, sessionRole), [sessionRole]);
+  const visibleFooterItems = useMemo(() => filterItemsByRole(footerItems, sessionRole), [sessionRole]);
+  const mobileLinks = useMemo(
+    () => [dashboardOverviewItem, ...visibleGroups.flatMap((group) => group.items), ...visibleFooterItems],
+    [visibleGroups, visibleFooterItems],
+  );
+
   useEffect(() => {
-    const matchedGroup = navGroups.find((group) =>
+    const matchedGroup = visibleGroups.find((group) =>
       group.items.some((item) => navItemActive(pathname, item.href, locale)),
     );
 
     setExpandedGroup(matchedGroup?.id ?? null);
-  }, [locale, pathname]);
+  }, [locale, pathname, visibleGroups]);
 
   const logout = async () => {
     await signOut({ callbackUrl: withLocalePrefix('/', locale) });
   };
-
-  const userName = session?.user?.name || (isArabic ? 'Fadi' : 'Fadi');
-  const userRole = ((session?.user as { role?: string } | undefined)?.role || 'admin').toUpperCase();
-  const mobileLinks = useMemo(
-    () => [dashboardOverviewItem, ...navGroups.flatMap((group) => group.items), ...footerItems],
-    [],
-  );
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -196,7 +230,7 @@ export default function ReferenceDashboardShell({
         </Link>
 
         <div className="space-y-1">
-          {navGroups.map((group) => {
+          {visibleGroups.map((group) => {
             const active = group.items.some((item) => navItemActive(pathname, item.href, locale));
             const open = expandedGroup === group.id;
             const GroupIcon = group.items[0]?.icon || LayoutDashboard;
@@ -259,7 +293,7 @@ export default function ReferenceDashboardShell({
 
       <div className="border-t border-slate-200 p-4">
         <div className="space-y-1">
-          {footerItems.map((item) => {
+          {visibleFooterItems.map((item) => {
             const active = navItemActive(pathname, item.href, locale);
             return (
               <Link
