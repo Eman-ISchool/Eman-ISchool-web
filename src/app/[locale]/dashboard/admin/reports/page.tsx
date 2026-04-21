@@ -1,20 +1,10 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { withLocalePrefix } from '@/lib/locale-path';
 
-import { useLocale } from 'next-intl';
-
-import ReferenceDashboardShell from '@/components/dashboard/ReferenceDashboardShell';
-import ReferenceReportsWorkspace from '@/components/dashboard/ReferenceReportsWorkspace';
-
-export default function DashboardAdminReportsPage() {
-  const locale = useLocale();
-  const isArabic = locale === 'ar';
-
-  return (
-    <ReferenceDashboardShell
-      pageTitle={isArabic ? 'التقارير والتحليلات' : 'Reports and analytics'}
-      pageSubtitle={isArabic ? 'لوحة تحليلات وتقارير شاملة' : 'Comprehensive analytics and reporting'}
-    >
-      <ReferenceReportsWorkspace />
-    </ReferenceDashboardShell>
-  );
+export default function DashboardAdminReportsRedirect({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  redirect(withLocalePrefix('/dashboard/reports', locale));
 }

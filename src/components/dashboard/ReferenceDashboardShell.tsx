@@ -1,5 +1,8 @@
 'use client';
 
+// Build tag: 2026-04-19-unified-dashboard-refactor-v4
+if (typeof window !== 'undefined') console.log('[Shell module load v4]');
+
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -168,6 +171,7 @@ export default function ReferenceDashboardShell({
   pageTitle,
   pageSubtitle,
 }: ReferenceDashboardShellProps) {
+  if (typeof window !== 'undefined') console.log('[Shell v2026-04-19-fix3]');
   const pathname = usePathname();
   const { data: session } = useSession();
   const locale = pathname.split('/')[1] === 'en' ? 'en' : 'ar';
@@ -177,25 +181,27 @@ export default function ReferenceDashboardShell({
   const isOverview = navItemActive(pathname, dashboardOverviewItem.href, locale);
 
   const userName = session?.user?.name || (isArabic ? 'Fadi' : 'Fadi');
-  const sessionRoleRaw = (session?.user as { role?: string } | undefined)?.role;
-  const KNOWN_ROLES: DashRole[] = ['admin', 'teacher', 'student', 'parent', 'supervisor'];
-  const lowered = (sessionRoleRaw || '').toLowerCase();
-  const sessionRole: DashRole = (KNOWN_ROLES as string[]).includes(lowered) ? (lowered as DashRole) : 'student';
-  const userRole = sessionRole.toUpperCase();
-  const visibleGroups = useMemo(() => filterGroupsByRole(navGroups, sessionRole), [sessionRole]);
-  const visibleFooterItems = useMemo(() => filterItemsByRole(footerItems, sessionRole), [sessionRole]);
-  const mobileLinks = useMemo(
-    () => [dashboardOverviewItem, ...visibleGroups.flatMap((group) => group.items), ...visibleFooterItems],
-    [visibleGroups, visibleFooterItems],
-  );
+  const roleInput = (session?.user as { role?: string } | undefined)?.role;
+  const validRoles: DashRole[] = ['admin', 'teacher', 'student', 'parent', 'supervisor'];
+  const roleLower = (roleInput || '').toLowerCase();
+  const activeRole: DashRole = (validRoles as string[]).includes(roleLower) ? (roleLower as DashRole) : 'student';
+  const userRole = activeRole.toUpperCase();
+
+  const navForRole = filterGroupsByRole(navGroups, activeRole);
+  const footerForRole = filterItemsByRole(footerItems, activeRole);
+  const mobileLinks = [
+    dashboardOverviewItem,
+    ...navForRole.flatMap((g) => g.items),
+    ...footerForRole,
+  ];
 
   useEffect(() => {
-    const matchedGroup = visibleGroups.find((group) =>
+    const matchedGroup = navForRole.find((group) =>
       group.items.some((item) => navItemActive(pathname, item.href, locale)),
     );
-
     setExpandedGroup(matchedGroup?.id ?? null);
-  }, [locale, pathname, visibleGroups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, pathname, activeRole]);
 
   const logout = async () => {
     await signOut({ callbackUrl: withLocalePrefix('/', locale) });
@@ -230,7 +236,7 @@ export default function ReferenceDashboardShell({
         </Link>
 
         <div className="space-y-1">
-          {visibleGroups.map((group) => {
+          {navForRole.map((group) => {
             const active = group.items.some((item) => navItemActive(pathname, item.href, locale));
             const open = expandedGroup === group.id;
             const GroupIcon = group.items[0]?.icon || LayoutDashboard;
@@ -293,7 +299,7 @@ export default function ReferenceDashboardShell({
 
       <div className="border-t border-slate-200 p-4">
         <div className="space-y-1">
-          {visibleFooterItems.map((item) => {
+          {footerForRole.map((item) => {
             const active = navItemActive(pathname, item.href, locale);
             return (
               <Link

@@ -42,7 +42,7 @@ test.describe('Dashboard Parity Verification', () => {
 
       if (await emailInput.isVisible()) {
         await emailInput.fill('admin@eduverse.com');
-        await passwordInput.fill('admin123');
+        await passwordInput.fill('password123');
         await page.locator('button[type="submit"]').click();
         await page.waitForLoadState('networkidle');
       }
@@ -68,7 +68,7 @@ test.describe('Dashboard Parity Verification', () => {
       const skeletons = await page.locator('.animate-pulse').count();
 
       // Take screenshot for visual comparison
-      await page.screenshot({ path: `$TMPDIR/dashboard-screenshots/${name.replace(/\s+/g, '-').toLowerCase()}.png`, fullPage: true });
+      await page.screenshot({ path: `test-results/dashboard-screenshots/${name.replace(/\s+/g, '-').toLowerCase()}.png`, fullPage: true });
 
       // Verify the page rendered actual content (not just empty/error)
       const bodyText = await page.textContent('body');
@@ -110,7 +110,7 @@ test.describe('Dashboard Parity Verification', () => {
       const options = await roleSelect.locator('option').allTextContents();
       expect(options.join(' ')).toContain('ولي أمر');
 
-      await page.screenshot({ path: `$TMPDIR/dashboard-screenshots/users-add-modal.png`, fullPage: true });
+      await page.screenshot({ path: `test-results/dashboard-screenshots/users-add-modal.png`, fullPage: true });
       console.log('✓ Users Add Modal: all reference fields present');
     }
   });
@@ -144,7 +144,7 @@ test.describe('Dashboard Parity Verification', () => {
           const table = page.locator('table');
           expect(await table.count()).toBeGreaterThan(0);
 
-          await page.screenshot({ path: `$TMPDIR/dashboard-screenshots/courses-live-list-view.png`, fullPage: true });
+          await page.screenshot({ path: `test-results/dashboard-screenshots/courses-live-list-view.png`, fullPage: true });
           console.log('✓ Courses Live Tab: List View toggle works');
         }
       }

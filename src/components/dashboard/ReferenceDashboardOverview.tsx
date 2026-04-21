@@ -136,8 +136,8 @@ export default function ReferenceDashboardOverview() {
     stats?.coursesWithEnrollments?.map((c) => ({
       title: c.title || '—',
       students: c.enrollments?.[0]?.count ?? 0,
-      paid: `AED ${(c.enrollments?.[0]?.count ?? 0) * 50}`,
-      completion: '0.0%',
+      paid: '—',
+      completion: '—',
     })) ?? []
   , [stats?.coursesWithEnrollments]);
 
@@ -220,16 +220,16 @@ export default function ReferenceDashboardOverview() {
         </div>
         <div className="flex items-center space-x-4">
           <div className="grid gap-2">
-            <button
-              onClick={() => { /* Date picker not yet implemented */ }}
-              className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-12 px-4 py-2 has-[>svg]:px-3 w-[300px] justify-start text-left font-normal"
-              type="button"
+            <div
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-3xl text-sm border bg-background dark:bg-input/30 dark:border-input h-12 px-4 py-2 has-[>svg]:px-3 w-[300px] justify-start text-left font-normal text-slate-700 dark:text-slate-200"
+              role="status"
+              aria-label={isArabic ? 'النطاق الزمني للوحة التحكم' : 'Dashboard date range'}
             >
               <Calendar className="me-2 h-4 w-4" aria-hidden="true" />
               {formatDateRange(locale)}
-            </button>
+            </div>
           </div>
-          <Link href={withLocalePrefix('/dashboard/admin/reports', locale)}>
+          <Link href={withLocalePrefix('/dashboard/reports', locale)}>
             <div className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer">
               <ChartNoAxesColumn className="h-4 w-4" aria-hidden="true" />
               <span className="text-sm font-medium">{isArabic ? 'عرض التقارير' : 'View Reports'}</span>
