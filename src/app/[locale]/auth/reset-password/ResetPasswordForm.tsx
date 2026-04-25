@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,12 +11,11 @@ import { withLocalePrefix } from '@/lib/locale-path';
 
 interface ResetPasswordFormProps {
     locale: string;
+    token: string | null;
 }
 
-export default function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
+export default function ResetPasswordForm({ locale, token }: ResetPasswordFormProps) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const token = searchParams.get('token');
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
