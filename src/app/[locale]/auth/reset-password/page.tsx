@@ -1,10 +1,7 @@
 import { Suspense } from 'react';
-import { locales } from '@/i18n/config';
 import ResetPasswordForm from './ResetPasswordForm';
 
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+export const dynamic = 'force-dynamic';
 
 function ResetPasswordFallback() {
     return (
