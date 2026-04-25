@@ -9,15 +9,11 @@ module.exports = {
     'out/**',
     'build/**',
     'next-env.d.ts',
-    // Capacitor mobile wrapper:
-    'android/**',
-    'ios/**',
     // Additional patterns:
     'node_modules/**',
     'dist/**',
     'coverage/**',
     '*.min.js',
-    'public/sw.js',
   ],
   rules: {
     // Allow 'any' type for audit purposes

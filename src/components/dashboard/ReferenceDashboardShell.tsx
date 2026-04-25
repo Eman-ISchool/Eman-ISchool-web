@@ -29,8 +29,6 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import InstallBanner from '@/components/pwa/InstallBanner';
-
 import { withLocalePrefix } from '@/lib/locale-path';
 
 interface ReferenceDashboardShellProps {
@@ -341,8 +339,6 @@ export default function ReferenceDashboardShell({
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <InstallBanner locale={locale} />
-
           <div className="px-4 pt-4 md:hidden">
             <button
               type="button"
@@ -409,8 +405,6 @@ export default function ReferenceDashboardShell({
                   );
                 })}
               </div>
-
-              <InstallBanner locale={locale} />
 
               <button
                 type="button"

@@ -7,8 +7,6 @@ import { locales } from '@/i18n/config';
 import AuthProvider from '@/components/AuthProvider';
 import LanguageProviderWrapper from '@/components/LanguageProviderWrapper';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
-import { PwaInstallProvider } from '@/contexts/PwaInstallContext';
-import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration';
 
 interface LocaleLayoutProps {
   children: ReactNode;
@@ -40,15 +38,12 @@ export default async function LocaleLayout({
     <AuthProvider>
       <NextIntlClientProvider messages={messages}>
         <LanguageProviderWrapper>
-          <PwaInstallProvider>
-            <ServiceWorkerRegistration />
-            <div lang={locale} dir={direction} className="min-h-screen flex flex-col">
-              <NextTopLoader color="#4A90E2" showSpinner={false} height={3} />
-              <ConditionalLayout>
-                {children}
-              </ConditionalLayout>
-            </div>
-          </PwaInstallProvider>
+          <div lang={locale} dir={direction} className="min-h-screen flex flex-col">
+            <NextTopLoader color="#4A90E2" showSpinner={false} height={3} />
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
+          </div>
         </LanguageProviderWrapper>
       </NextIntlClientProvider>
     </AuthProvider>

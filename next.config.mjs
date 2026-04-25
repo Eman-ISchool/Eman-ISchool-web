@@ -1,8 +1,5 @@
 import createNextIntlPlugin from 'next-intl/plugin';
-import withPWA from 'next-pwa';
 
-// Bundle analyzer — install with: yarn add -D @next/bundle-analyzer
-// Then run: ANALYZE=true next build
 let withBundleAnalyzer = (config) => config;
 if (process.env.ANALYZE === 'true') {
     try {
@@ -17,12 +14,10 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // output: 'export', // Enabled for Capacitor mobile builds
     distDir: process.env.NEXT_DIST_DIR || '.next',
     reactStrictMode: true,
     compress: true,
     poweredByHeader: false,
-    // Generate ETags for content-based cache validation
     generateEtags: true,
     typescript: {
         ignoreBuildErrors: true,
@@ -30,13 +25,11 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
-    // Strip console.log/warn in production (keep console.error for debugging)
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production'
             ? { exclude: ['error'] }
             : false,
     },
-    // Immutable cache headers for static assets + security headers
     async headers() {
         return [
             {
@@ -49,12 +42,6 @@ const nextConfig = {
                 source: '/icons/:path*',
                 headers: [
                     { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-                ],
-            },
-            {
-                source: '/manifest.json',
-                headers: [
-                    { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
                 ],
             },
             {
@@ -78,10 +65,8 @@ const nextConfig = {
                 hostname: '*.supabase.co',
             },
         ],
-        // Only disable optimization for Capacitor static export builds
-        unoptimized: process.env.NEXT_OUTPUT === 'export',
         formats: ['image/avif', 'image/webp'],
-        minimumCacheTTL: 60 * 60 * 24, // 24 hours
+        minimumCacheTTL: 60 * 60 * 24,
     },
     experimental: {
         optimizePackageImports: [
@@ -109,7 +94,6 @@ const nextConfig = {
         ],
     },
     webpack: (config, { isServer }) => {
-        // Mark pdf-parse as external to avoid ESM/worker issues in static export
         if (!isServer) {
             config.resolve.fallback = {
                 ...config.resolve.fallback,
@@ -117,7 +101,6 @@ const nextConfig = {
                 path: false,
                 canvas: false,
             };
-            // Exclude server-only packages from client bundle
             config.externals = config.externals || [];
             config.externals.push('pdf-parse');
             config.externals.push('pdfjs-dist');
@@ -126,7 +109,6 @@ const nextConfig = {
             config.externals.push('mammoth');
             config.externals.push('bcryptjs');
 
-            // Split heavy libraries into separate chunks so they're only loaded when needed
             config.optimization = {
                 ...config.optimization,
                 splitChunks: {
@@ -162,94 +144,4 @@ const nextConfig = {
     },
 };
 
-const pwaConfig = withPWA({
-    dest: 'public',
-    register: false,
-    skipWaiting: true,
-    disable: process.env.NODE_ENV === 'development',
-    buildExcludes: [/middleware-manifest\.json$/],
-    fallbacks: {
-        document: '/ar/offline',
-    },
-    runtimeCaching: [
-        // Google Fonts stylesheets — immutable, cache for 1 year
-        {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-                cacheName: 'google-fonts-stylesheets',
-                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-        },
-        // Google Fonts webfont files (woff2) — immutable, cache for 1 year
-        {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-                cacheName: 'google-fonts-webfonts',
-                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-                cacheableResponse: { statuses: [0, 200] },
-            },
-        },
-        // Next.js static assets (content-hashed) — long-lived cache
-        {
-            urlPattern: /\/_next\/static\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-                cacheName: 'next-static',
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-        },
-        // Other JS/CSS — stale-while-revalidate
-        {
-            urlPattern: /\.(?:js|css)$/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-                cacheName: 'static-resources',
-                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-        },
-        // Images — cache first with larger pool
-        {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|avif|ico)$/i,
-            handler: 'CacheFirst',
-            options: {
-                cacheName: 'images',
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 60 },
-                cacheableResponse: { statuses: [0, 200] },
-            },
-        },
-        // Supabase storage (user uploads) — cache with revalidation
-        {
-            urlPattern: /\.supabase\.co\/storage\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-                cacheName: 'supabase-storage',
-                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
-                cacheableResponse: { statuses: [0, 200] },
-            },
-        },
-        // API routes — network first with stale-while-revalidate semantics
-        {
-            urlPattern: /^\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-                cacheName: 'api-cache',
-                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
-                networkTimeoutSeconds: 10,
-            },
-        },
-        // HTML pages — network first for fresh content
-        {
-            urlPattern: /^\/(?!api).*$/i,
-            handler: 'NetworkFirst',
-            options: {
-                cacheName: 'pages',
-                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
-                networkTimeoutSeconds: 5,
-            },
-        },
-    ],
-});
-
-export default withBundleAnalyzer(withNextIntl(pwaConfig(nextConfig)));
+export default withBundleAnalyzer(withNextIntl(nextConfig));

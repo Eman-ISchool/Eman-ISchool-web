@@ -17,14 +17,14 @@ pnpm-debug.log*
 .pnpm-store
 .pnp*
 
-
-.next-codex-build
-.next-codex-build/*
-
-.next-codex/*
-.next-codex/
 # Next.js
 .next/
+.next-codex/
+.next-codex-build/
+.next-clean/
+.next-poll/
+.next-poll-3001/
+.next-poll-3002/
 out/
 build/
 dist/
@@ -34,55 +34,46 @@ next-env.d.ts
 # Vercel
 .vercel/
 
+# Netlify
+.netlify/
+
 # Environment Variables & Secrets
 .env
 .env.*
-!.env.example
-*.pem
 .env-backup
+.env-stable-backup
+!.env.example
+!.env.local.example
+*.pem
 testsprite_tests/test_credentials.json
 
 # IDEs & Editors
 .vscode/
 .idea/
-.claude/
-.auto-claude/
-.auto-claude*
-.kilocode/
-.specify/
 *.swp
 *.swo
 
-testsprite_tests/venv/
-/testsprite_tests/venv/
-/testsprite_tests/venv/*
-
-*/venv/*
-
-# Capacitor - Android
-android/.gradle/
-android/app/build/
-android/app/release/
-android/app/release-keystore.jks
-android/local.properties
-android/captures/
-android/.idea/
-
-# Capacitor - iOS
-ios/App/build/
-ios/App/Pods/
-ios/Pods/
-ios/DerivedData/
-ios/*.xcworkspace
-ios/App.xcodeproj/xcuserdata/
-
-# Mobile Builds & Resources
-builds/
-resources/android/
-resources/ios/
+# AI / Agent tool files
+.agent/
+.auth/
+.auto-claude/
+.auto-claude*
+.claude/
+.claude_settings.json
+.kilocode/
+.kilocode/
+.opencode/
+.mcp.json
+.playwright-mcp/
+.pytest_cache/
+.specify/
+.superpowers/
 
 # Testing & Specs
 coverage/
+test-results/
+playwright-report/
+testsprite_tests/venv/
 testsprite_tests/tmp/
 specs/
 
@@ -90,15 +81,43 @@ specs/
 logs/
 *.log
 
-# Test Artifacts
-test-results/
-playwright-report/
+# Screenshots & images (audit, debug, e2e checkpoints)
+*.png
+!public/**/*.png
+audit/
+e2e-proof/
+evidence/
 
-# Local Config / Planning Docs
-.mcp.json
-.env-stable-backup
+# Debug / temporary directories
+tmp/
+docs/
+
+# Scraping & reference artifacts
+futurelab-scrape/
+futurelab-links.json
+scripts/crawl-state.json
+
+# Non-essential documentation
+H_config.md
 IMPLEMENTATION_ROADMAP.md
 QA-AUDIT-REPORT.md
+SYSTEM-DOCUMENTATION.md
+CLAUDE.md
+admin-live-snapshot.md
+
+# Seed / one-off scripts (not needed for running the app)
+seed-database.mjs
+seed-e2e-users.ts
+test-login-e2e.mjs
+local-rag-prompt.txt
 
 # Misc
 .worktrees/
+builds/
+messages/
+instrumentation.ts
+app.log
+build_output.log
+dev.log
+next_dev.log
+backup.env copy.local

@@ -13,7 +13,6 @@ import { Footer } from '@/components/layout/Footer';
  * - Header's useSession() call (triggers /api/auth/session on every render)
  * - Header's cart-store hydration
  * - Footer DOM + style overhead
- * - NetworkMonitor Capacitor initialization
  */
 const PORTAL_PREFIXES = ['/teacher', '/student', '/admin', '/parent', '/auth', '/dashboard'];
 

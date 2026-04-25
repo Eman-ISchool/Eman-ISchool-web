@@ -33,9 +33,5 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# Capacitor
-android/
-ios/
-
 # Misc
 *.tsbuildinfo
