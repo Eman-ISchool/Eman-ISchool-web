@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * POST /api/reels/[reelId]/progress
@@ -34,7 +36,7 @@ export async function POST(
     }
 
     // Check if reel exists and is published
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .select('id, status')
       .eq('id', reelId)
@@ -52,7 +54,7 @@ export async function POST(
     }
 
     // Update or create reel_progress entry
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await getSupabase()
       .from('reel_progress')
       .select('id, replay_count')
       .eq('reel_id', reelId)
@@ -73,7 +75,7 @@ export async function POST(
       updateData.progress = progress;
       updateData.replay_count = replayCount;
 
-      await supabase
+      await getSupabase()
         .from('reel_progress')
         .update(updateData)
         .eq('id', existingProgress.id);
@@ -84,12 +86,12 @@ export async function POST(
       updateData.progress = progress;
       updateData.replay_count = 0;
 
-      await supabase.from('reel_progress').insert(updateData);
+      await getSupabase().from('reel_progress').insert(updateData);
     }
 
     // Increment view count on reel if progress > 50% (considered viewed)
     if (progress > 50) {
-      await supabase.rpc('increment_reel_view_count', { reel_id: reelId });
+      await getSupabase().rpc('increment_reel_view_count', { reel_id: reelId });
     }
 
     return NextResponse.json({
@@ -123,7 +125,7 @@ export async function GET(
 
     const reelId = params.reelId;
 
-    const { data: progress, error } = await supabase
+    const { data: progress, error } = await getSupabase()
       .from('reel_progress')
       .select('*')
       .eq('reel_id', reelId)

@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * POST /api/reels/[reelId]/understood
@@ -25,7 +27,7 @@ export async function POST(
     const reelId = params.reelId;
 
     // Check if reel exists and is published
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .select('id, status')
       .eq('id', reelId)
@@ -43,7 +45,7 @@ export async function POST(
     }
 
     // Check if already marked as understood
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await getSupabase()
       .from('reel_progress')
       .select('id, marked_understood')
       .eq('reel_id', reelId)
@@ -59,7 +61,7 @@ export async function POST(
       }
 
       // Update existing progress entry
-      await supabase
+      await getSupabase()
         .from('reel_progress')
         .update({
           marked_understood: true,
@@ -68,7 +70,7 @@ export async function POST(
         .eq('id', existingProgress.id);
     } else {
       // Create new progress entry with understood flag
-      await supabase.from('reel_progress').insert({
+      await getSupabase().from('reel_progress').insert({
         reel_id: reelId,
         student_id: session.user.id,
         is_bookmarked: false,
@@ -111,7 +113,7 @@ export async function DELETE(
     const reelId = params.reelId;
 
     // Check if progress exists
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await getSupabase()
       .from('reel_progress')
       .select('id, marked_understood')
       .eq('reel_id', reelId)
@@ -133,7 +135,7 @@ export async function DELETE(
     }
 
     // Remove understood mark
-    await supabase
+    await getSupabase()
       .from('reel_progress')
       .update({
         marked_understood: false,

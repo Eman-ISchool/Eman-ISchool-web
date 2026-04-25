@@ -5,10 +5,12 @@ import { authOptions, getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/reels/feed
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     // Build query
-    let query = supabase
+    let query = getSupabase()
       .from('reels')
       .select(`
         *,
@@ -60,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's class and grade level
     // We need to fetch this from DB as it's not in the session
-    const { data: userDetails } = await supabase
+    const { data: userDetails } = await getSupabase()
       .from('users')
       .select('class_id, grade_level')
       .eq('id', currentUser.id)

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/reels/processing-status/[jobId]
@@ -18,7 +20,7 @@ export async function GET(
     const jobId = params.jobId;
 
     // Fetch job status from database
-    const { data: job, error } = await supabase
+    const { data: job, error } = await getSupabase()
       .from('processing_jobs')
       .select('*')
       .eq('id', jobId)

@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 import { generateStoryboard, validateStoryboard } from '@/lib/storyboard-generator';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/source-content/[sourceId]/storyboard
@@ -26,7 +28,7 @@ export async function GET(
     const { sourceId } = params;
 
     // Fetch source content with storyboard
-    const { data: sourceContent, error } = await supabase
+    const { data: sourceContent, error } = await getSupabase()
       .from('source_content')
       .select(`
         *,
@@ -102,7 +104,7 @@ export async function POST(
     }
 
     // Fetch source content
-    const { data: sourceContent, error: fetchError } = await supabase
+    const { data: sourceContent, error: fetchError } = await getSupabase()
       .from('source_content')
       .select('id, type, status')
       .eq('id', sourceId)
@@ -141,7 +143,7 @@ export async function POST(
     }
 
     // Save storyboard to database
-    const { data: savedStoryboard, error: insertError } = await supabase
+    const { data: savedStoryboard, error: insertError } = await getSupabase()
       .from('storyboards')
       .insert({
         source_id: sourceId,
@@ -162,7 +164,7 @@ export async function POST(
     }
 
     // Update source content with storyboard reference
-    const { error: updateError } = await supabase
+    const { error: updateError } = await getSupabase()
       .from('source_content')
       .update({ storyboard_id: savedStoryboard.id })
       .eq('id', sourceId);

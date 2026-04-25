@@ -8,10 +8,12 @@ import {
   normalizeVideoUrl,
 } from '@/lib/external-video';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * POST /api/reels/external-link
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { provider, externalId } = validation;
 
     // Check if this external link already exists for this teacher
-    const { data: existingLink } = await supabase
+    const { data: existingLink } = await getSupabase()
       .from('external_video_links')
       .select('id, reel_id')
       .eq('external_id', externalId)
@@ -84,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the reel
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .insert({
         teacher_id: session.user.id,
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create external video link record
-    const { error: linkError } = await supabase
+    const { error: linkError } = await getSupabase()
       .from('external_video_links')
       .insert({
         reel_id: reel.id,
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
     if (linkError) {
       console.error('Error creating external video link:', linkError);
       // Rollback reel creation
-      await supabase.from('reels').delete().eq('id', reel.id);
+      await getSupabase().from('reels').delete().eq('id', reel.id);
       return NextResponse.json(
         { error: 'Failed to create external video link' },
         { status: 500 }
@@ -136,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Set visibility if provided
     if (classId || gradeLevel || groupId) {
-      const { error: visibilityError } = await supabase
+      const { error: visibilityError } = await getSupabase()
         .from('reel_visibility')
         .insert({
           reel_id: reel.id,

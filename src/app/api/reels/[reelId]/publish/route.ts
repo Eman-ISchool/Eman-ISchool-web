@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * POST /api/reels/[reelId]/publish
@@ -25,7 +27,7 @@ export async function POST(
     const reelId = params.reelId;
 
     // Check if reel exists and user owns it
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .select('id, teacher_id, status, video_url, thumbnail_url')
       .eq('id', reelId)
@@ -52,7 +54,7 @@ export async function POST(
     }
 
     // Validate that visibility settings exist
-    const { data: visibility, error: visibilityError } = await supabase
+    const { data: visibility, error: visibilityError } = await getSupabase()
       .from('reel_visibility')
       .select('id')
       .eq('reel_id', reelId);
@@ -82,7 +84,7 @@ export async function POST(
     }
 
     // Publish the reel
-    const { error: updateError } = await supabase
+    const { error: updateError } = await getSupabase()
       .from('reels')
       .update({
         status: 'published',

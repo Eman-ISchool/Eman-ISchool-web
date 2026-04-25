@@ -2,21 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
-/**
- * POST /api/reels/[reelId]/bookmark
- * Adds a reel to student's bookmarks
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: { reelId: string } }
 ) {
   try {
-    // Get user session
     const session = await getServerSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -25,7 +22,7 @@ export async function POST(
     const reelId = params.reelId;
 
     // Check if reel exists and is published
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .select('id, status')
       .eq('id', reelId)
@@ -43,7 +40,7 @@ export async function POST(
     }
 
     // Check if already bookmarked
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await getSupabase()
       .from('reel_progress')
       .select('id, is_bookmarked')
       .eq('reel_id', reelId)
@@ -59,13 +56,13 @@ export async function POST(
       }
 
       // Update existing progress entry
-      await supabase
+      await getSupabase()
         .from('reel_progress')
         .update({ is_bookmarked: true })
         .eq('id', existingProgress.id);
     } else {
       // Create new progress entry with bookmark
-      await supabase.from('reel_progress').insert({
+      await getSupabase().from('reel_progress').insert({
         reel_id: reelId,
         student_id: session.user.id,
         is_bookmarked: true,
@@ -107,7 +104,7 @@ export async function DELETE(
     const reelId = params.reelId;
 
     // Check if bookmarked
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await getSupabase()
       .from('reel_progress')
       .select('id, is_bookmarked')
       .eq('reel_id', reelId)
@@ -129,7 +126,7 @@ export async function DELETE(
     }
 
     // Remove bookmark
-    await supabase
+    await getSupabase()
       .from('reel_progress')
       .update({ is_bookmarked: false })
       .eq('id', existingProgress.id);

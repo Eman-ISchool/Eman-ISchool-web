@@ -6,10 +6,12 @@ import { computeFileHash } from '@/lib/content-hash';
 import type { SourceContentType, SourceStatus } from '@/types/database';
 import { parseDocument, validatePageCount } from '@/lib/document-parser';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/source-content
@@ -31,7 +33,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     // Build query
-    let query = supabase
+    let query = getSupabase()
       .from('source_content')
       .select(`
         *,
@@ -157,7 +159,7 @@ export async function POST(request: NextRequest) {
     const fileHash = computeFileHash(fileBuffer);
 
     // Check for duplicates
-    const { data: existingContent, error: duplicateError } = await supabase
+    const { data: existingContent, error: duplicateError } = await getSupabase()
       .from('source_content')
       .select('id, original_filename, created_at')
       .eq('teacher_id', session.user.id)
@@ -182,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     // Upload file to Supabase Storage
     const fileName = `${session.user.id}/${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await getSupabase().storage
       .from('source-content')
       .upload(fileName, fileBuffer, {
         contentType: file.type,
@@ -198,7 +200,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = getSupabase().storage
       .from('source-content')
       .getPublicUrl(fileName);
 
@@ -214,7 +216,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert source content record
-    const { data: sourceContent, error: insertError } = await supabase
+    const { data: sourceContent, error: insertError } = await getSupabase()
       .from('source_content')
       .insert({
         teacher_id: session.user.id,
@@ -233,7 +235,7 @@ export async function POST(request: NextRequest) {
     if (insertError || !sourceContent) {
       console.error('[API] Database insert error:', insertError);
       // Cleanup uploaded file
-      await supabase.storage
+      await getSupabase().storage
         .from('source-content')
         .remove([fileName]);
       
@@ -246,7 +248,7 @@ export async function POST(request: NextRequest) {
     // Auto-trigger transcription for video types
     if (type === 'video' || type === 'recording') {
       // Start transcription job asynchronously
-      const { error: jobError } = await supabase
+      const { error: jobError } = await getSupabase()
         .from('processing_jobs')
         .insert({
           source_id: sourceContent.id,

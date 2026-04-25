@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/source-content/[sourceId]
@@ -25,7 +27,7 @@ export async function GET(
     const sourceId = params.sourceId;
 
     // Fetch source content with related data
-    const { data: sourceContent, error } = await supabase
+    const { data: sourceContent, error } = await getSupabase()
       .from('source_content')
       .select(`
         *,
@@ -81,7 +83,7 @@ export async function GET(
     }
 
     // Fetch generated reels count
-    const { count: reelsCount } = await supabase
+    const { count: reelsCount } = await getSupabase()
       .from('reels')
       .select('*', { count: 'exact', head: true })
       .eq('source_id', sourceId);
@@ -119,7 +121,7 @@ export async function DELETE(
     const sourceId = params.sourceId;
 
     // Check if user owns this source content
-    const { data: sourceContent, error: checkError } = await supabase
+    const { data: sourceContent, error: checkError } = await getSupabase()
       .from('source_content')
       .select('id, teacher_id, file_url')
       .eq('id', sourceId)
@@ -140,7 +142,7 @@ export async function DELETE(
     }
 
     // Check if there are published reels
-    const { data: publishedReels } = await supabase
+    const { data: publishedReels } = await getSupabase()
       .from('reels')
       .select('id')
       .eq('source_id', sourceId)
@@ -161,14 +163,14 @@ export async function DELETE(
     if (sourceContent.file_url) {
       const fileName = sourceContent.file_url.split('/').pop();
       if (fileName) {
-        await supabase.storage
+        await getSupabase().storage
           .from('source-content')
           .remove([fileName]);
       }
     }
 
     // Delete from database (cascade will handle related records)
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await getSupabase()
       .from('source_content')
       .delete()
       .eq('id', sourceId);

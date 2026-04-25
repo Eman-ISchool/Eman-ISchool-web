@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/source-content/[sourceId]/transcript
@@ -25,7 +27,7 @@ export async function GET(
     const sourceId = params.sourceId;
 
     // Fetch source content to verify ownership
-    const { data: sourceContent, error: sourceError } = await supabase
+    const { data: sourceContent, error: sourceError } = await getSupabase()
       .from('source_content')
       .select('id, teacher_id')
       .eq('id', sourceId)
@@ -46,7 +48,7 @@ export async function GET(
     }
 
     // Fetch transcript
-    const { data: transcript, error } = await supabase
+    const { data: transcript, error } = await getSupabase()
       .from('transcripts')
       .select('*')
       .eq('source_id', sourceId)
@@ -105,7 +107,7 @@ export async function PUT(
     }
 
     // Verify source content ownership
-    const { data: sourceContent, error: sourceError } = await supabase
+    const { data: sourceContent, error: sourceError } = await getSupabase()
       .from('source_content')
       .select('id, teacher_id')
       .eq('id', sourceId)
@@ -126,7 +128,7 @@ export async function PUT(
     }
 
     // Check if transcript exists
-    const { data: existingTranscript } = await supabase
+    const { data: existingTranscript } = await getSupabase()
       .from('transcripts')
       .select('id')
       .eq('source_id', sourceId)
@@ -149,7 +151,7 @@ export async function PUT(
 
     if (existingTranscript) {
       // Update existing transcript
-      const { data, error: updateError } = await supabase
+      const { data, error: updateError } = await getSupabase()
         .from('transcripts')
         .update(transcriptData)
         .eq('id', existingTranscript.id)
@@ -167,7 +169,7 @@ export async function PUT(
       result = data;
     } else {
       // Create new transcript
-      const { data, error: insertError } = await supabase
+      const { data, error: insertError } = await getSupabase()
         .from('transcripts')
         .insert(transcriptData)
         .select()
@@ -184,7 +186,7 @@ export async function PUT(
       result = data;
 
       // Update source content with transcript ID
-      await supabase
+      await getSupabase()
         .from('source_content')
         .update({ transcript_id: result.id })
         .eq('id', sourceId);
@@ -223,7 +225,7 @@ export async function DELETE(
     const sourceId = params.sourceId;
 
     // Verify source content ownership
-    const { data: sourceContent, error: sourceError } = await supabase
+    const { data: sourceContent, error: sourceError } = await getSupabase()
       .from('source_content')
       .select('id, teacher_id')
       .eq('id', sourceId)
@@ -244,7 +246,7 @@ export async function DELETE(
     }
 
     // Delete transcript
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await getSupabase()
       .from('transcripts')
       .delete()
       .eq('source_id', sourceId);
@@ -258,7 +260,7 @@ export async function DELETE(
     }
 
     // Update source content to remove transcript reference
-    await supabase
+    await getSupabase()
       .from('source_content')
       .update({ transcript_id: null })
       .eq('id', sourceId);

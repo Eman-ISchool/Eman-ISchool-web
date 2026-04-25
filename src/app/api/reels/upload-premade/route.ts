@@ -3,10 +3,12 @@ import { getServerSession } from '@/lib/session-api';
 import { createClient } from '@supabase/supabase-js';
 import { validateVideoFile } from '@/lib/file-validation';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * POST /api/reels/upload-premade
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
     const filename = `premade/${userId}/${timestamp}-${file.name}`;
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await getSupabase().storage
       .from('reels')
       .upload(filename, buffer, {
         contentType: file.type,
@@ -75,14 +77,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = getSupabase().storage
       .from('reels')
       .getPublicUrl(filename);
 
     const videoUrl = publicUrlData.publicUrl;
 
     // Create the reel
-    const { data: reel, error: reelError } = await supabase
+    const { data: reel, error: reelError } = await getSupabase()
       .from('reels')
       .insert({
         teacher_id: session.user.id,
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
     if (reelError || !reel) {
       console.error('Error creating reel:', reelError);
       // Clean up uploaded file
-      await supabase.storage.from('reels').remove([filename]);
+      await getSupabase().storage.from('reels').remove([filename]);
       return NextResponse.json(
         { error: 'Failed to create reel' },
         { status: 500 }
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     // Set visibility if provided
     if (classId || gradeLevel || groupId) {
-      const { error: visibilityError } = await supabase
+      const { error: visibilityError } = await getSupabase()
         .from('reel_visibility')
         .insert({
           reel_id: reel.id,
