@@ -112,6 +112,5 @@ local-rag-prompt.txt
 # Misc local-only
 .worktrees/
 builds/
-messages/
 instrumentation.ts
 backup.env copy.local
