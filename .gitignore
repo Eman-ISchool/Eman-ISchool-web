@@ -16,8 +16,9 @@ yarn-error.log*
 pnpm-debug.log*
 .pnpm-store
 .pnp*
+package-lock.json
 
-# Next.js
+# Next.js build output & dev caches
 .next/
 .next-codex/
 .next-codex-build/
@@ -45,7 +46,6 @@ next-env.d.ts
 !.env.example
 !.env.local.example
 *.pem
-testsprite_tests/test_credentials.json
 
 # IDEs & Editors
 .vscode/
@@ -61,7 +61,6 @@ testsprite_tests/test_credentials.json
 .claude/
 .claude_settings.json
 .kilocode/
-.kilocode/
 .opencode/
 .mcp.json
 .playwright-mcp/
@@ -69,19 +68,18 @@ testsprite_tests/test_credentials.json
 .specify/
 .superpowers/
 
-# Testing & Specs
+# Testing
 coverage/
 test-results/
 playwright-report/
-testsprite_tests/venv/
-testsprite_tests/tmp/
+testsprite_tests/
 specs/
 
 # Logs
 logs/
 *.log
 
-# Screenshots & images (audit, debug, e2e checkpoints)
+# Screenshots & images
 *.png
 !public/**/*.png
 audit/
@@ -105,19 +103,15 @@ SYSTEM-DOCUMENTATION.md
 CLAUDE.md
 admin-live-snapshot.md
 
-# Seed / one-off scripts (not needed for running the app)
+# Seed / one-off scripts
 seed-database.mjs
 seed-e2e-users.ts
 test-login-e2e.mjs
 local-rag-prompt.txt
 
-# Misc
+# Misc local-only
 .worktrees/
 builds/
 messages/
 instrumentation.ts
-app.log
-build_output.log
-dev.log
-next_dev.log
 backup.env copy.local
