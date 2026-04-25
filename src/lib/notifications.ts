@@ -4,8 +4,7 @@
  * A lightweight helper for creating in-app notifications directly in API routes.
  * This provides a simple interface for the education platform feature.
  *
- * For more advanced notification features (email, push, SMS, scheduling),
- * use the full NotificationService from src/lib/notifications/service.ts
+ * More advanced channels can be layered on top of this helper when needed.
  */
 
 import { supabaseAdmin } from '@/lib/supabase';
