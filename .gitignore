@@ -25,6 +25,7 @@ pnpm-debug.log*
 .next-codex/
 # Next.js
 .next/
+.next-poll*/
 out/
 build/
 dist/
@@ -93,6 +94,28 @@ logs/
 # Test Artifacts
 test-results/
 playwright-report/
+.playwright-mcp/
+e2e-proof/
+evidence/
+futurelab-scrape/
+docs/evidence/screenshots/
+tests/screenshots/
+audit/
+public/sw.js
+public/workbox-*.js
+public/fallback-*.js
+
+# Generated visual checks at repo root
+admin-*.png
+audit-*.png
+dashboard-*.png
+e2e-checkpoint-*.png
+local-*.png
+meet-join-test.png
+pwa-*.png
+ref-*.png
+reference-*.png
+verify-*.png
 
 # Local Config / Planning Docs
 .mcp.json

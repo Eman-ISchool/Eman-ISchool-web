@@ -38,19 +38,14 @@
     "**/*.mts",
     ".next-codex/types/**/*.ts",
     ".next-codex-build/types/**/*.ts",
-    ".next-clean/types/**/*.ts",
-    ".next-poll/types/**/*.ts",
-    ".next-poll-3001/types/**/*.ts",
-    ".next-poll-3002/types/**/*.ts"
+    ".next-clean/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     ".auto-claude",
     ".worktrees",
     ".next",
-    ".next-poll",
-    ".next-poll-3001",
-    ".next-poll-3002",
+    ".next-poll*",
     ".next-codex",
     ".next-codex-build",
     ".next-clean",
