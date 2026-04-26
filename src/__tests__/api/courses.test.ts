@@ -40,7 +40,7 @@ describe('POST /api/courses', () => {
     });
 
     it('creates a new course successfully', async () => {
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Physics 101',
@@ -59,7 +59,7 @@ describe('POST /api/courses', () => {
     });
 
     it('validates missing title', async () => {
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 description: 'Basic Physics',
@@ -75,7 +75,7 @@ describe('POST /api/courses', () => {
     });
 
     it('validates missing grade_id', async () => {
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Physics 101',
@@ -91,7 +91,7 @@ describe('POST /api/courses', () => {
     });
 
     it('validates invalid grade_id (non-existent UUID)', async () => {
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Physics 101',
@@ -110,7 +110,7 @@ describe('POST /api/courses', () => {
     it('returns 401 for unauthenticated requests', async () => {
         getServerSession.mockResolvedValueOnce(null);
 
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Physics 101',
@@ -130,7 +130,7 @@ describe('POST /api/courses', () => {
     it('returns 403 for student role', async () => {
         (getCurrentUser as jest.Mock).mockResolvedValueOnce({ id: '123', role: 'student' });
 
-        const req = new Request('http://localhost:3000/api/courses', {
+        const req = new Request('http://127.0.0.1:3000/api/courses', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Physics 101',

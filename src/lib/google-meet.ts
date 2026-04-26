@@ -261,7 +261,8 @@ export async function generateMeetLink(
     );
   }
 
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, process.env.NEXTAUTH_URL);
+  const appUrl = getAppUrl();
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, `${appUrl}/api/auth/callback/google`);
   oauth2Client.setCredentials({ refresh_token: refreshToken });
 
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });

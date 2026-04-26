@@ -40,6 +40,11 @@ next-env.d.ts
 
 # Environment Variables & Secrets
 .env
+.env.local
+.env.production
+.env.production.local
+backup.env.local
+bakcup.env.local
 .env.*
 !.env.example
 *.pem

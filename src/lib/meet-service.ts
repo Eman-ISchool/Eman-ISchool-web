@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { getValidGoogleToken } from '@/lib/google-token';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
 import { reportError } from '@/lib/crash-reporter';
+import { getAppUrl } from '@/lib/env';
 
 interface MeetLinkResult {
   meetLink: string;
@@ -90,10 +91,11 @@ async function createMeetViaCalendarApi(
   accessToken: string,
   entity: { id: string; title: string; description: string; start: string; end: string }
 ): Promise<{ meetLink: string; eventId: string; calendarLink?: string }> {
+  const appUrl = getAppUrl();
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.NEXTAUTH_URL
+    `${appUrl}/api/auth/callback/google`
   );
   oauth2Client.setCredentials({ access_token: accessToken });
 

@@ -26,7 +26,7 @@ describe('GET /api/grade-levels', () => {
     });
 
     it('returns 200 with grades sorted by sort_order', async () => {
-        const req = new Request('http://localhost:3000/api/grade-levels');
+        const req = new Request('http://127.0.0.1:3000/api/grade-levels');
         const res = await GET(req);
         const data = await res.json();
 
@@ -49,7 +49,7 @@ describe('GET /api/grade-levels', () => {
             error: null
         });
 
-        const req = new Request('http://localhost:3000/api/grade-levels');
+        const req = new Request('http://127.0.0.1:3000/api/grade-levels');
         const res = await GET(req);
         const data = await res.json();
 
@@ -65,7 +65,7 @@ describe('GET /api/grade-levels', () => {
             error: { message: 'Database connection failed' }
         });
 
-        const req = new Request('http://localhost:3000/api/grade-levels');
+        const req = new Request('http://127.0.0.1:3000/api/grade-levels');
         const res = await GET(req);
         const data = await res.json();
 
@@ -86,7 +86,7 @@ describe('GET /api/grade-levels', () => {
             error: null
         });
 
-        const req = new Request('http://localhost:3000/api/grade-levels');
+        const req = new Request('http://127.0.0.1:3000/api/grade-levels');
         const res = await GET(req);
         const data = await res.json();
 
@@ -101,7 +101,7 @@ describe('GET /api/grade-levels', () => {
             throw new Error('Unexpected error');
         });
 
-        const req = new Request('http://localhost:3000/api/grade-levels');
+        const req = new Request('http://127.0.0.1:3000/api/grade-levels');
         const res = await GET(req);
         const data = await res.json();
 

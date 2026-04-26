@@ -1,4 +1,5 @@
-const r = await fetch('http://localhost:3000/api/debug-login');
+const BASE = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
+const r = await fetch(`${BASE}/api/debug-login`);
 const j = await r.json();
 console.log('status:', r.status);
 console.log('totalUsers:', j.totalUsers);

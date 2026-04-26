@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getAppUrl } from '@/lib/env';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
@@ -60,7 +61,8 @@ export async function POST(req: Request) {
         }
 
         // Mock Send Email
-        const resetLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+        const appUrl = getAppUrl();
+        const resetLink = `${appUrl}/auth/reset-password?token=${token}`;
         console.log('---------------------------------------------------');
         console.log(`[MOCK EMAIL] Password Reset for ${user.email}`);
         console.log(`Link: ${resetLink}`);

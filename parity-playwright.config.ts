@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'line',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000',
     trace: 'off',
     screenshot: 'off',
     video: 'off',

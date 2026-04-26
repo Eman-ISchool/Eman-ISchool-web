@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
 const OUT = '/tmp/verify-tabs';
 
 async function main() {

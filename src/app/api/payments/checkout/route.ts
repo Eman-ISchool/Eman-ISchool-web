@@ -88,12 +88,13 @@ export async function POST(req: Request) {
         }
 
         // Create Checkout Session with idempotency key
+        const appUrl = getAppUrl();
         const checkoutSession = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${process.env.NEXTAUTH_URL}/parent/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.NEXTAUTH_URL}/parent/courses?canceled=true`,
+            success_url: `${appUrl}/parent/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${appUrl}/parent/courses?canceled=true`,
             customer_email: user.email,
             client_reference_id: user.id,
             metadata: metadata,

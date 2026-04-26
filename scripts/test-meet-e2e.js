@@ -56,7 +56,8 @@ console.log('  Refresh token:', REFRESH_TOKEN.slice(0, 15) + '...');
 // Step 2: Test token refresh
 async function run() {
   console.log('\n[2/5] Testing token refresh...');
-  const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, process.env.NEXTAUTH_URL || 'http://localhost:3000');
+  const BASE_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
+  const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, `${BASE_URL}/api/auth/callback/google`);
   oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
   let accessToken;

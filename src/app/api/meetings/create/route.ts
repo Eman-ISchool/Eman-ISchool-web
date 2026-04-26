@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
+import { getAppUrl } from '@/lib/env';
 import { google } from 'googleapis';
 
 export const dynamic = 'force-dynamic';
@@ -77,10 +78,11 @@ async function createMeetViaCalendarApi(
 ): Promise<{ meetLink: string; eventId: string }> {
     console.log('[meetings/create] Trying Calendar API fallback...');
 
+    const appUrl = getAppUrl();
     const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        process.env.NEXTAUTH_URL
+        `${appUrl}/api/auth/callback/google`
     );
     oauth2Client.setCredentials({ access_token: accessToken });
 

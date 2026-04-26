@@ -1,12 +1,14 @@
 import { chromium } from 'playwright';
 
+const BASE = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
+
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 
 try {
   // Step 1: Reset password via debug endpoint
   console.log('=== Step 1: Resetting password ===');
-  await page.goto('http://localhost:3000/api/debug-reset-password?email=student1@eduverse.com&password=12345678');
+  await page.goto(`${BASE}/api/debug-reset-password?email=student1@eduverse.com&password=12345678`);
   const resetResult = JSON.parse(await page.textContent('body'));
   console.log('Reset result:', JSON.stringify(resetResult, null, 2));
 
@@ -17,14 +19,14 @@ try {
 
   // Step 2: Verify via debug-login
   console.log('\n=== Step 2: Verifying password in DB ===');
-  await page.goto('http://localhost:3000/api/debug-login?phone=555555555&countryCode=971&password=12345678&email=student1@eduverse.com');
+  await page.goto(`${BASE}/api/debug-login?phone=555555555&countryCode=971&password=12345678&email=student1@eduverse.com`);
   const verifyResult = JSON.parse(await page.textContent('body'));
   console.log('Phone password check:', verifyResult.phonePasswordCheck);
   console.log('Email password check:', verifyResult.emailPasswordCheck);
 
   // Step 3: Try actual login
   console.log('\n=== Step 3: Testing actual login ===');
-  await page.goto('http://localhost:3000/ar/auth/signin');
+  await page.goto(`${BASE}/ar/auth/signin`);
   await page.waitForTimeout(2000);
 
   // Find and fill phone field

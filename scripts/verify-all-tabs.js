@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
 const OUT = '/tmp/verify-tabs-full';
 
 const MODAL_SEL = '[class*="z-50"][class*="fixed"]';

@@ -23,7 +23,7 @@ const STUDENT_PASSWORD = process.env.STUDENT_PASSWORD || 'testpassword';
 
 const PRE_EXISTING_MEET_LINK = process.env.PRE_EXISTING_MEET_LINK || 'https://meet.google.com/abc-defg-hij';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL || 'http://127.0.0.1:3000';
 
 describe('Google Meet Integration Tests', () => {
     let browser: Browser;

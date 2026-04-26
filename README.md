@@ -34,4 +34,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Netlify Deployment
+
+### Required Environment Variables
+
+Set these in **Netlify > Site settings > Environment variables**:
+
+| Variable | Description |
+|---|---|
+| `NEXTAUTH_URL` | Your production domain, e.g. `https://your-domain.com` |
+| `NEXT_PUBLIC_APP_URL` | Same as `NEXTAUTH_URL` |
+| `NEXTAUTH_SECRET` | **Generate a new secret — do NOT reuse local/dev values**: `openssl rand -hex 32` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| Plus all other service keys | See `.env.example` for the full list |
+
+> **WARNING**: Generate a fresh `NEXTAUTH_SECRET` for production. Never reuse exposed or local secrets.
+> Run: `openssl rand -hex 32`
+
+### Local Development
+
+Copy `.env.example` to `.env.local` and fill in your local values. `.env.local` is gitignored and will not be committed.
+
 # Eman-ISchool-new

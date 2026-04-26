@@ -22,6 +22,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
         }
 
+        const appUrl = getAppUrl();
+
         // Create Checkout Sessions from body params.
         const checkoutSession = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -40,8 +42,8 @@ export async function POST(req: Request) {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/enrollment/success?session_id={CHECKOUT_SESSION_ID}&application_id=${applicationId}`,
-            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/enrollment?step=payment&application_id=${applicationId}`,
+            success_url: `${appUrl}/en/enrollment/success?session_id={CHECKOUT_SESSION_ID}&application_id=${applicationId}`,
+            cancel_url: `${appUrl}/en/enrollment?step=payment&application_id=${applicationId}`,
             metadata: {
                 applicationId: applicationId,
                 userId: session.user?.id || '',

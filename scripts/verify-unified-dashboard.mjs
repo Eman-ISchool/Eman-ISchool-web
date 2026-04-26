@@ -4,7 +4,7 @@
 // Optional env vars (used only for the role-login checks): ADMIN_EMAIL, ADMIN_PASSWORD,
 // TEACHER_EMAIL, TEACHER_PASSWORD, STUDENT_EMAIL, STUDENT_PASSWORD, PARENT_EMAIL, PARENT_PASSWORD.
 
-const BASE = process.env.BASE_URL || 'http://localhost:3000';
+const BASE = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL || 'http://127.0.0.1:3000';
 
 const redirectChecks = [
   { name: 'legacy /ar/student/home -> /ar/dashboard',              url: '/ar/student/home',             location: /\/ar\/dashboard\/?$/ },

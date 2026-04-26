@@ -38,7 +38,7 @@ describe('POST /api/subjects', () => {
     });
 
     it('creates a new subject successfully', async () => {
-        const req = new Request('http://localhost:3000/api/subjects', {
+        const req = new Request('http://127.0.0.1:3000/api/subjects', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Mathematics 101',
@@ -54,7 +54,7 @@ describe('POST /api/subjects', () => {
     });
 
     it('validates missing title', async () => {
-        const req = new Request('http://localhost:3000/api/subjects', {
+        const req = new Request('http://127.0.0.1:3000/api/subjects', {
             method: 'POST',
             body: JSON.stringify({
                 description: 'Basic Math',
@@ -71,7 +71,7 @@ describe('POST /api/subjects', () => {
     it('returns 401 for unauthenticated requests', async () => {
         getServerSession.mockResolvedValueOnce(null);
 
-        const req = new Request('http://localhost:3000/api/subjects', {
+        const req = new Request('http://127.0.0.1:3000/api/subjects', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Mathematics 101',
@@ -89,7 +89,7 @@ describe('POST /api/subjects', () => {
     it('returns 403 for student role', async () => {
         (getCurrentUser as jest.Mock).mockResolvedValueOnce({ id: '123', role: 'student' });
 
-        const req = new Request('http://localhost:3000/api/subjects', {
+        const req = new Request('http://127.0.0.1:3000/api/subjects', {
             method: 'POST',
             body: JSON.stringify({
                 title: 'Mathematics 101',

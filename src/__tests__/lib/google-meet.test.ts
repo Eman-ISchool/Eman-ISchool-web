@@ -5,6 +5,8 @@ import {
     toPublicGoogleError,
 } from '@/lib/google-meet';
 
+const TEST_BASE_URL = 'http://127.0.0.1:3000';
+
 describe('google-meet helpers', () => {
     const originalEnv = process.env;
 
@@ -13,7 +15,7 @@ describe('google-meet helpers', () => {
             ...originalEnv,
             GOOGLE_CLIENT_ID: 'client-id',
             GOOGLE_CLIENT_SECRET: 'client-secret',
-            NEXTAUTH_URL: 'http://localhost:3000',
+            NEXTAUTH_URL: TEST_BASE_URL,
         };
     });
 
@@ -24,12 +26,12 @@ describe('google-meet helpers', () => {
     it('builds a Google connect URL with the Meet scope and callback URI', () => {
         const url = buildGoogleConnectUrl({
             state: 'state-123',
-            appBaseUrl: 'http://localhost:3000',
+            appBaseUrl: TEST_BASE_URL,
         });
 
         expect(url).toContain('accounts.google.com');
         expect(url).toContain('state=state-123');
-        expect(url).toContain(encodeURIComponent('http://localhost:3000/api/integrations/google/callback'));
+        expect(url).toContain(encodeURIComponent(`${TEST_BASE_URL}/api/integrations/google/callback`));
         expect(url).toContain(encodeURIComponent('https://www.googleapis.com/auth/meetings.space.created'));
     });
 
