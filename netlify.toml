@@ -1,5 +1,5 @@
 [build]
-  command = "yarn run build"
+  command = "node scripts/verify-deploy-source.mjs && yarn run build:next"
   publish = ".next"
 
 [build.environment]

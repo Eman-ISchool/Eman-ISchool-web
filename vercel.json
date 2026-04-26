@@ -1,0 +1,3 @@
+{
+  "buildCommand": "node scripts/verify-deploy-source.mjs && yarn run build:next"
+}
