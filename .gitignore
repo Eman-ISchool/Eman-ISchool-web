@@ -35,6 +35,9 @@ next-env.d.ts
 # Vercel
 .vercel/
 
+# Netlify
+.netlify/
+
 # Environment Variables & Secrets
 .env
 .env.*

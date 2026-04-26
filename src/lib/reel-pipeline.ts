@@ -1,14 +1,32 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { transcribeVideo } from './transcription-api';
 import { segmentTranscript, validateSegmentation } from './content-segmenter';
 import { generateReel } from './runway-api';
 import type { ProcessingJobStatus } from '@/types/database';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let pipelineSupabase: SupabaseClient | null = null;
+
+function getPipelineSupabase(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    throw new Error(
+      'Supabase server credentials are not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+    );
+  }
+
+  if (!pipelineSupabase) {
+    pipelineSupabase = createClient(supabaseUrl, serviceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+
+  return pipelineSupabase;
+}
 
 export interface PipelineConfig {
   sourceId: string;
@@ -39,6 +57,8 @@ export interface PipelineStatus {
  */
 export async function startPipeline(config: PipelineConfig): Promise<string> {
   try {
+    const supabase = getPipelineSupabase();
+
     console.log('[Reel Pipeline] Starting pipeline for source:', config.sourceId);
 
     // Create processing job record
@@ -88,6 +108,8 @@ export async function startPipeline(config: PipelineConfig): Promise<string> {
  */
 async function executePipeline(jobId: string, config: PipelineConfig): Promise<void> {
   try {
+    const supabase = getPipelineSupabase();
+
     // Step 1: Transcription
     await updateJobProgress(jobId, 'Transcribing video', 10);
     const transcription = await transcribeVideo(config.sourceId);
@@ -153,6 +175,7 @@ async function generateReelsFromSegments(
   config: PipelineConfig,
   segmentation: any
 ): Promise<string[]> {
+  const supabase = getPipelineSupabase();
   const reelIds: string[] = [];
 
   for (const segment of segmentation.segments) {
@@ -236,6 +259,8 @@ async function saveTranscript(
   sourceId: string,
   transcription: any
 ): Promise<void> {
+  const supabase = getPipelineSupabase();
+
   const { error } = await supabase.from('transcripts').insert({
     source_id: sourceId,
     text: transcription.text,
@@ -276,6 +301,8 @@ async function updateJobProgress(
   step: string,
   progress: number
 ): Promise<void> {
+  const supabase = getPipelineSupabase();
+
   const { error } = await supabase
     .from('processing_jobs')
     .update({
@@ -295,6 +322,8 @@ async function updateJobProgress(
  * @param error - Error that occurred
  */
 async function handlePipelineFailure(jobId: string, error: any): Promise<void> {
+  const supabase = getPipelineSupabase();
+
   // Get current job to check retry count
   const { data: job } = await supabase
     .from('processing_jobs')
@@ -357,6 +386,8 @@ async function handlePipelineFailure(jobId: string, error: any): Promise<void> {
  */
 export async function resumePipeline(jobId: string): Promise<void> {
   try {
+    const supabase = getPipelineSupabase();
+
     console.log('[Reel Pipeline] Resuming job:', jobId);
 
     const { data: job, error } = await supabase
@@ -393,6 +424,8 @@ export async function resumePipeline(jobId: string): Promise<void> {
  * @returns Pipeline status
  */
 export async function getPipelineStatus(jobId: string): Promise<PipelineStatus> {
+  const supabase = getPipelineSupabase();
+
   const { data: job, error } = await supabase
     .from('processing_jobs')
     .select('*')
@@ -437,6 +470,8 @@ async function notifyAdminOfFailure(
  * @param jobId - Job ID to pause
  */
 export async function pausePipeline(jobId: string): Promise<void> {
+  const supabase = getPipelineSupabase();
+
   const { error } = await supabase
     .from('processing_jobs')
     .update({
@@ -457,6 +492,8 @@ export async function pausePipeline(jobId: string): Promise<void> {
  * @param jobId - Job ID to cancel
  */
 export async function cancelPipeline(jobId: string): Promise<void> {
+  const supabase = getPipelineSupabase();
+
   const { error } = await supabase
     .from('processing_jobs')
     .update({

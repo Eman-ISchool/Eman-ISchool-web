@@ -1,10 +1,21 @@
 import OpenAI from 'openai';
 import { TranscriptSegment, TranscriptionResult } from './transcription-api';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
+  return openaiClient;
+}
 
 export interface ContentSegment {
   segmentNumber: number;
@@ -35,6 +46,8 @@ export async function segmentTranscript(
   targetDuration: number = 30
 ): Promise<SegmentationResult> {
   try {
+    const openai = getOpenAIClient();
+
     console.log('[Content Segmenter] Starting segmentation:', {
       wordCount: transcript.wordCount,
       segments: transcript.segments.length,

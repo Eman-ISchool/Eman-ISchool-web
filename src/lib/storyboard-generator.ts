@@ -28,10 +28,21 @@ export interface GenerateStoryboardInput {
   visualStyle?: string;
 }
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
+  return openaiClient;
+}
 
 /**
  * Generates a storyboard from document content using GPT-4
@@ -42,6 +53,8 @@ export async function generateStoryboard(
   input: GenerateStoryboardInput
 ): Promise<Storyboard> {
   try {
+    const openai = getOpenAIClient();
+
     console.log('[StoryboardGenerator] Generating storyboard for:', input.targetAudience);
     
     const targetDuration = input.targetDuration || 30;

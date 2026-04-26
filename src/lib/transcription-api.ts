@@ -1,9 +1,20 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
+  return openaiClient;
+}
 
 export interface TranscriptSegment {
   start: number;
@@ -27,6 +38,8 @@ export interface TranscriptionResult {
  */
 export async function transcribeVideo(audioUrl: string): Promise<TranscriptionResult> {
   try {
+    const openai = getOpenAIClient();
+
     console.log('[Transcription API] Starting transcription for:', audioUrl);
 
     // Call Whisper API
@@ -101,6 +114,8 @@ export async function transcribeVideoAutoDetect(
   audioUrl: string
 ): Promise<TranscriptionResult> {
   try {
+    const openai = getOpenAIClient();
+
     console.log('[Transcription API] Starting transcription with auto-detect for:', audioUrl);
 
     const transcription = await openai.audio.transcriptions.create({

@@ -74,11 +74,42 @@ for (const file of listFiles(resetPasswordDir)) {
 
 for (const route of [
   'src/app/api/reels/[reelId]/bookmark/route.ts',
+  'src/app/api/reels/generate-from-source/route.ts',
   'src/app/api/dashboard/teacher/route.ts',
   'src/app/api/enrollment/onboarding/route.ts',
 ]) {
   requireText(route, "export const dynamic = 'force-dynamic';");
 }
+
+for (const file of [
+  'src/lib/content-segmenter.ts',
+  'src/lib/storyboard-generator.ts',
+  'src/lib/transcription-api.ts',
+]) {
+  const source = readRequiredFile(file);
+  if (source.includes('const openai = new OpenAI')) {
+    failures.push(`${file} must not construct the OpenAI client at module import time`);
+  }
+}
+
+const reelPipelineSource = readRequiredFile('src/lib/reel-pipeline.ts');
+if (reelPipelineSource.includes('process.env.NEXT_PUBLIC_SUPABASE_URL!')) {
+  failures.push('src/lib/reel-pipeline.ts must not construct the Supabase client at module import time');
+}
+
+for (const file of [
+  'scripts/migrate-add-class-to-reels.js',
+  'scripts/run-migration.sh',
+  'seed-database.mjs',
+]) {
+  const source = readRequiredFile(file);
+  if (source.includes('sb_secret_')) {
+    failures.push(`${file} must read the Supabase service role key from the environment`);
+  }
+}
+
+requireText('netlify.toml', 'SECRETS_SCAN_OMIT_KEYS');
+requireText('netlify.toml', 'SECRETS_SCAN_OMIT_PATHS');
 
 if (failures.length > 0) {
   console.error('[deploy-check] This checkout does not contain the Netlify/Vercel build fixes.');

@@ -7,8 +7,13 @@ echo "🔄 Starting database migration..."
 echo ""
 
 # Supabase credentials
-SUPABASE_URL="https://cxphxyblhvrupnmcmtoy.supabase.co"
-SERVICE_KEY="sb_secret_zJutqIo-918Es6-gN4vQNw_r67NRohe"
+SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-${SUPABASE_URL:-}}"
+SERVICE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-${SUPABASE_SERVICE_KEY:-}}"
+
+if [ -z "$SUPABASE_URL" ] || [ -z "$SERVICE_KEY" ]; then
+  echo "Missing NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables."
+  exit 1
+fi
 
 # SQL to execute
 SQL_QUERY="DO \$\$ 
