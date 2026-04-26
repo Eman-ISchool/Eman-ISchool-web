@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next && next build",
+    "build": "node scripts/verify-deploy-source.mjs && rm -rf .next && next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
     "test": "jest",
