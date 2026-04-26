@@ -135,3 +135,43 @@ shared/
 # Misc
 .worktrees/
 tmp/
+
+
+
+
+
+
+# dependencies
+node_modules
+
+# local env
+.env
+.env.local
+.env.*.local
+
+# Next.js
+.next
+out
+
+# Netlify
+.netlify
+
+# builds
+dist
+build
+
+# logs
+*.log
+
+# mobile/native - remove from web deploy
+eduverse-mobile
+ios
+android
+
+# tests/docs not needed for production deploy
+tests
+test-results
+playwright-report
+testsprite_tests
+docs/reports
+docs/superpowers
