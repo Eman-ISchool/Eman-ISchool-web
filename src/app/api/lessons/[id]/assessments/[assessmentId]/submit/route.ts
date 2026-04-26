@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateRequestId } from '@/lib/request-id';
 
+export const dynamic = 'force-dynamic';
 // POST - Submit assessment
 export async function POST(
   req: Request,

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 interface CurrentUser {
     id: string;
     email: string;

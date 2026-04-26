@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 async function checkAdminAccess() {
     const session = await getServerSession(authOptions);
     if (!session?.user) {

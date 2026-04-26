@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
 import { google } from 'googleapis';
 
+export const dynamic = 'force-dynamic';
 /**
  * Refresh the GOOGLE_REFRESH_TOKEN env var into a fresh access token.
  * Returns the access token string or throws.

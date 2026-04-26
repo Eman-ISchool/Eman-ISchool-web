@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { createNotification } from '@/lib/notifications';
 
+export const dynamic = 'force-dynamic';
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
 // In production, update this with real secret.
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/session-api';
 import { startPipeline, PipelineConfig } from '@/lib/reel-pipeline';
 
+export const dynamic = 'force-dynamic';
 /**
  * POST /api/reels/generate-from-source
  * Initiates AI pipeline to generate reels from source content

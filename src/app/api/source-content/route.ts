@@ -6,6 +6,7 @@ import { computeFileHash } from '@/lib/content-hash';
 import type { SourceContentType, SourceStatus } from '@/types/database';
 import { parseDocument, validatePageCount } from '@/lib/document-parser';
 
+export const dynamic = 'force-dynamic';
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

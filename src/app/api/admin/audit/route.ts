@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch audit logs (Admin only)
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);

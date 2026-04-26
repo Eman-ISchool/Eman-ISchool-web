@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from '@/lib/session-api';
 import { generateStoryboard, validateStoryboard } from '@/lib/storyboard-generator';
 
+export const dynamic = 'force-dynamic';
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

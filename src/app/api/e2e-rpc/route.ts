@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 /**
  * E2E RPC endpoint — all operations go through Supabase.
  */

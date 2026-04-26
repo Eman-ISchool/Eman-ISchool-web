@@ -5,6 +5,7 @@ import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createHash } from 'crypto';
 
+export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {

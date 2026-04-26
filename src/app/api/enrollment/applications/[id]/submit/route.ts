@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { validateForSubmission, logEnrollmentAudit } from '@/lib/enrollment';
 import type { EnrollmentAppStatus } from '@/types/enrollment';
 
+export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ id: string }> };
 
 // ── POST: Submit application ─────────────────────────────────

@@ -11,6 +11,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { canManageLesson } from '@/lib/permissions';
 import { computeAttendanceStatusWithLeaveTime } from '@/lib/attendance';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/lessons/[id]/end
  * 

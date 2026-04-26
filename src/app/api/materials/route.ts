@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyEnrolledStudents } from '@/lib/notifications';
 
+export const dynamic = 'force-dynamic';
 // GET - List materials
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);

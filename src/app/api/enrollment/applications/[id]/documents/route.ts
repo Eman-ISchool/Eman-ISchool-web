@@ -6,6 +6,7 @@ import { logEnrollmentAudit, getAttestationRequirements } from '@/lib/enrollment
 import type { EnrollmentDocType, EnrollmentAppStatus } from '@/types/enrollment';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ id: string }> };
 
 const ALLOWED_MIME_TYPES = [

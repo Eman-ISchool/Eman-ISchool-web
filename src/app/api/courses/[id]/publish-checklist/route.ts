@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateRequestId } from '@/lib/request-id';
 
+export const dynamic = 'force-dynamic';
 export async function GET(
     req: Request,
     { params }: { params: { id: string } }

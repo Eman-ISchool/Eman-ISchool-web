@@ -6,6 +6,7 @@ import { logEnrollmentAudit, canTransitionTo } from '@/lib/enrollment';
 import type { EnrollmentAppStatus } from '@/types/enrollment';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ id: string }> };
 
 // ── Default onboarding tasks ─────────────────────────────────

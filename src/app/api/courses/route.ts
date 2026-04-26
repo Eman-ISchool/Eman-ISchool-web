@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isTeacherOrAdmin, isAdmin } from '@/lib/au
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateRequestId } from '@/lib/request-id';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch courses with filters
 // Note: This endpoint has role-based filtering:
 // - Admin/Teacher: Can see all courses (published and unpublished)

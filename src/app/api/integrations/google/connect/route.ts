@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
 import { buildGoogleConnectUrl } from '@/lib/google-meet';
 
+export const dynamic = 'force-dynamic';
 const GOOGLE_CONNECT_STATE_COOKIE = 'eduverse_google_connect_state';
 
 function sanitizeReturnTo(value: string | null | undefined) {

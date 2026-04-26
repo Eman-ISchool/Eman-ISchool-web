@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createNotification } from '@/lib/notifications';
 
+export const dynamic = 'force-dynamic';
 // PATCH - Approve or reject an enrollment
 export async function PATCH(
   req: Request,

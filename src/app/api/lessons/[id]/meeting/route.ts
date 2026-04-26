@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { generateMeetLink } from '@/lib/meet-service';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
 
+export const dynamic = 'force-dynamic';
 // POST - Create or get a meeting for a specific lesson
 export async function POST(
     req: Request,

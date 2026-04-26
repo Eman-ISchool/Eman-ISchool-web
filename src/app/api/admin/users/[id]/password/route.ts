@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
 // PATCH - Admin change user password
 export async function PATCH(
     req: Request,

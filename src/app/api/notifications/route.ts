@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getUserNotifications, markNotificationsAsRead, getUnreadNotificationCount } from '@/lib/notifications';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch notifications for current user
 export async function GET(req: Request) {
     try {

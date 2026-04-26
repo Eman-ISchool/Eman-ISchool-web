@@ -6,6 +6,7 @@ import { notifyEnrolledStudents } from '@/lib/notifications';
 import { generateMeetLink } from '@/lib/meet-service';
 import { isGoogleMeetUrl } from '@/lib/meet-utils';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch lessons with filters
 export async function GET(req: Request) {
     try {

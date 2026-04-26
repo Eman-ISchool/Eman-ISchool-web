@@ -5,6 +5,7 @@ import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
 import { generateRequestId, withRequestId } from '@/lib/request-id';
 import { google } from 'googleapis';
 
+export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const requestId = generateRequestId();

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 // Valid attendance status values
 const VALID_ATTENDANCE_STATUSES = ['present', 'absent', 'late', 'excused'];
 

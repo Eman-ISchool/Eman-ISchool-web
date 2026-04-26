@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { logEnrollmentAudit } from '@/lib/enrollment';
 import type { EnrollmentAppStatus } from '@/types/enrollment';
 
+export const dynamic = 'force-dynamic';
 // ── GET: List applications ───────────────────────────────────
 // Admin: all applications with filters (status, grade, transfer_source, academic_year)
 // Parent: only their own applications

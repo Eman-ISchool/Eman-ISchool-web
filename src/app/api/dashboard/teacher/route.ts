@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin, isSupabaseAdminConfigured } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 /**
  * GET /api/dashboard/teacher
  * Returns aggregated stats for the teacher dashboard.

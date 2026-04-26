@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { buildStoredPhone } from '@/lib/auth-credentials';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch users for admin management
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);

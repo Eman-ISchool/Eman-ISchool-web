@@ -6,6 +6,7 @@ import { exchangeGoogleAuthCode, fetchGoogleProfile, GoogleIntegrationError } fr
 import { storeGoogleTokens } from '@/lib/google-token';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 const GOOGLE_CONNECT_STATE_COOKIE = 'eduverse_google_connect_state';
 
 interface GoogleConnectState {

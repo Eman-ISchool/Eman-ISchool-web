@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isTeacherOrAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateRequestId } from '@/lib/request-id';
 
+export const dynamic = 'force-dynamic';
 // GET - Fetch a single course by ID
 export async function GET(
   req: Request,

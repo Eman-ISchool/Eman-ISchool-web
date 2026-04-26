@@ -4,6 +4,7 @@ import { authOptions, getCurrentUser, isAdmin, hasRole } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { logEnrollmentAudit } from '@/lib/enrollment';
 
+export const dynamic = 'force-dynamic';
 // ── GET: Get onboarding tasks for current student ────────────
 // Looks up tasks by linked_student_user_id.
 
