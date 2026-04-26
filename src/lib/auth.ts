@@ -6,6 +6,13 @@ import { encrypt } from "./encryption";
 import bcrypt from 'bcryptjs';
 import { getPhoneCandidates, isEmailIdentifier } from './auth-credentials';
 import { normalizeReferenceSessionIdentity } from './reference-session-normalization';
+
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error(
+    '[AUTH] NEXTAUTH_SECRET is not set. JWT signing will be unstable in serverless/edge environments, ' +
+    'causing middleware to fail decoding tokens. Set NEXTAUTH_SECRET in your deployment environment.'
+  );
+}
 // Extend NextAuth types to include custom properties
 declare module "next-auth" {
     interface Session {
